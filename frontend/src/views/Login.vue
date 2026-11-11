@@ -189,11 +189,19 @@ const submitForm = async () => {
           <input 
             type="url" 
             v-model="serverUrlInput" 
-            placeholder="http://192.168.1.21:8000" 
+            placeholder="http://localhost:8000" 
             style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--ks-border); background: var(--ks-surface-2); color: var(--ks-text); font-size: 14px;"
           />
-          <button type="button" class="ks-btn-filled" @click="saveServerUrl" style="padding: 8px 14px; font-size: 13px;">
-            Server-Adresse speichern
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button type="button" class="ks-chip" @click="serverUrlInput = 'http://localhost:8000'; saveServerUrl();" style="font-size: 11px; cursor: pointer;">
+              🔌 USB (localhost:8000)
+            </button>
+            <button type="button" class="ks-chip" @click="serverUrlInput = 'http://192.168.1.21:8000'; saveServerUrl();" style="font-size: 11px; cursor: pointer;">
+              📶 WLAN (192.168.1.21:8000)
+            </button>
+          </div>
+          <button type="button" class="ks-btn-filled" @click="saveServerUrl" style="padding: 8px 14px; font-size: 13px; margin-top: 4px;">
+            Speichern
           </button>
         </div>
       </div>
