@@ -19,11 +19,19 @@ export function getApiBaseUrl() {
   }
 
   if (Capacitor.isNativePlatform()) {
-    // Standard-Fallback für Android Emulator (10.0.2.2) oder lokales Netzwerk
-    return 'http://10.0.2.2:8000';
+    // Standard-Fallback für lokales Netzwerk (deine aktuelle PC-WLAN-IP)
+    return 'http://192.168.1.21:8000';
   }
 
   return ''; // Web: relative Pfade
+}
+
+export function setCustomBackendUrl(url) {
+  if (!url || !url.trim()) {
+    localStorage.removeItem('ks_backend_url');
+  } else {
+    localStorage.setItem('ks_backend_url', url.trim().replace(/\/$/, ''));
+  }
 }
 
 /**

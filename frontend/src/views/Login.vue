@@ -1,7 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
-import { apiUrl } from '../config/api';
+import { Capacitor } from '@capacitor/core';
+import { apiUrl, getApiBaseUrl, setCustomBackendUrl } from '../config/api';
 
 const router = useRouter();
 
@@ -14,6 +15,15 @@ const formData = ref({
 const errorMessage = ref('');
 const successMessage = ref('');
 const isLoading = ref(false);
+const showServerConfig = ref(false);
+const serverUrlInput = ref(getApiBaseUrl());
+
+const saveServerUrl = () => {
+  setCustomBackendUrl(serverUrlInput.value);
+  showServerConfig.value = false;
+  successMessage.value = `Server-URL aktualisiert: ${getApiBaseUrl()}`;
+  setTimeout(() => successMessage.value = '', 3000);
+};
 
 const toggleMode = () => {
   isLogin.value = !isLogin.value;
@@ -114,7 +124,11 @@ const submitForm = async () => {
       successMessage.value = 'Registrierung erfolgreich! Bitte logge dich ein.';
     }
   } catch (error) {
-    errorMessage.value = error.message;
+    if (error?.message?.toLowerCase().includes('fetch')) {
+      errorMessage.value = `Server (${getApiBaseUrl()}) nicht erreichbar. Bitte prüfe, ob dein lokales Backend läuft oder passe die Server-Adresse unten an.`;
+    } else {
+      errorMessage.value = error.message;
+    }
   } finally {
     isLoading.value = false;
   }
@@ -163,6 +177,25 @@ const submitForm = async () => {
         <button type="button" class="ks-btn-text" @click="toggleMode">
           {{ isLogin ? 'Noch kein Konto? Registrieren' : 'Bereits registriert? Einloggen' }}
         </button>
+      </div>
+
+      <!-- Server-Adresse Konfiguration für Android -->
+      <div v-if="Capacitor.isNativePlatform()" style="margin-top: 20px; text-align: center; border-top: 1px solid var(--ks-border); padding-top: 16px;">
+        <button type="button" class="ks-btn-text" @click="showServerConfig = !showServerConfig" style="font-size: 13px; opacity: 0.85;">
+          ⚙️ Server: {{ getApiBaseUrl() }}
+        </button>
+
+        <div v-if="showServerConfig" style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">
+          <input 
+            type="url" 
+            v-model="serverUrlInput" 
+            placeholder="http://192.168.1.21:8000" 
+            style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--ks-border); background: var(--ks-surface-2); color: var(--ks-text); font-size: 14px;"
+          />
+          <button type="button" class="ks-btn-filled" @click="saveServerUrl" style="padding: 8px 14px; font-size: 13px;">
+            Server-Adresse speichern
+          </button>
+        </div>
       </div>
     </div>
   </div>
