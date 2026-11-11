@@ -44,9 +44,22 @@ def send_push_notification(subscription_info: dict, payload: dict):
                   )
 
 # --- CORS KONFIGURATION ---
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+allowed_origins = [
+    "http://localhost:5173",       # Vite Dev Server
+    "https://localhost",           # Capacitor Android Default WebView Origin
+    "capacitor://localhost",       # Capacitor iOS & alternativer Scheme
+    "http://localhost",            # Lokaler Test
+]
+if cors_origins_env:
+    for origin in cors_origins_env.split(","):
+        stripped = origin.strip()
+        if stripped and stripped not in allowed_origins:
+            allowed_origins.append(stripped)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Erlaubt Anfragen vom Vue-Dev-Server
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],  # Erlaubt alle Methoden (GET, POST, etc.)
     allow_headers=["*"],  # Erlaubt alle Header

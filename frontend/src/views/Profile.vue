@@ -1,6 +1,8 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { Capacitor } from '@capacitor/core';
+import { apiUrl } from '../config/api';
 
 const router = useRouter();
 
@@ -24,7 +26,7 @@ const isLoading = ref(false);
 const loadUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/users/me', {
+    const response = await fetch(apiUrl('/api/users/me'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     
@@ -54,7 +56,7 @@ const updateProfile = async () => {
   
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/users/me', {
+    const response = await fetch(apiUrl('/api/users/me'), {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -93,7 +95,7 @@ const changePassword = async () => {
   isLoading.value = true;
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/users/me/password', {
+    const response = await fetch(apiUrl('/api/users/me/password'), {
       method: 'PUT',
       headers: { 
         'Content-Type': 'application/json',
@@ -151,6 +153,11 @@ const urlBase64ToUint8Array = (base64String) => {
 };
 
 const enableNotifications = async () => {
+  if (Capacitor.isNativePlatform()) {
+    alert("Auf Android werden Benachrichtigungen direkt über die App gesteuert.");
+    return;
+  }
+
   if (isIos() && !isStandalone()) {
     alert("To receive push notifications, tap Share and select 'Add to Home Screen'.");
     return;
@@ -171,7 +178,7 @@ const enableNotifications = async () => {
     const token = localStorage.getItem('token');
 
     // Get public key
-    const pubKeyRes = await fetch('/api/push/public-key');
+    const pubKeyRes = await fetch(apiUrl('/api/push/public-key'));
     if (!pubKeyRes.ok) throw new Error('VAPID public key konnte nicht geladen werden');
     const { public_key } = await pubKeyRes.json();
 
@@ -194,7 +201,7 @@ const enableNotifications = async () => {
     const subData = JSON.parse(JSON.stringify(subscription));
 
     // Send to backend
-    const subRes = await fetch('/api/push/subscribe', {
+    const subRes = await fetch(apiUrl('/api/push/subscribe'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -5,6 +5,8 @@ import { useRoute } from 'vue-router';
 import { searchTaxonomy, debounce } from '../utils/search';
 import CategoryIcon from './CategoryIcon.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
+import { Capacitor } from '@capacitor/core';
+import { scanBarcodeNative } from '../utils/nativeBarcode';
 
 // --- KATEGORIE DEFINITIONEN ---
 const predefinedCategories = [
@@ -97,6 +99,26 @@ const deleteItem = () => {
     }
     emit('delete', itemId);
     closeModal();
+};
+
+const triggerScan = async () => {
+    if (Capacitor.isNativePlatform()) {
+        try {
+            const code = await scanBarcodeNative();
+            if (code) {
+                await handleScan(code);
+            } else {
+                if (props.startWithScanner && !selectedItem.value && !query.value) {
+                    closeModal();
+                }
+            }
+        } catch (err) {
+            console.warn("Nativer Scan abgebrochen oder fehlgeschlagen, nutze Web-Fallback:", err);
+            showScanner.value = true;
+        }
+    } else {
+        showScanner.value = true;
+    }
 };
 
 const handleScan = async (barcode) => {
@@ -416,7 +438,11 @@ onMounted(() => {
 import { watch } from 'vue';
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
-        showScanner.value = props.startWithScanner;
+        if (props.startWithScanner) {
+            triggerScan();
+        } else {
+            showScanner.value = false;
+        }
 
         if (props.editItem) {
             // Edit Mode Init

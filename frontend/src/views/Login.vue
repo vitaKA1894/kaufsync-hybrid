@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiUrl } from '../config/api';
 
 const router = useRouter();
 
@@ -28,7 +29,7 @@ onMounted(async () => {
     if (isLoggedIn && pendingJoinCode) {
       try {
         const token = localStorage.getItem('token');
-        const joinRes = await fetch('/api/lists/join', {
+        const joinRes = await fetch(apiUrl('/api/lists/join'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ share_code: pendingJoinCode })
@@ -69,7 +70,7 @@ const submitForm = async () => {
     : { email: formData.value.email, password: formData.value.password, display_name: formData.value.displayName };
 
   try {
-    const response = await fetch(`${endpoint}`, {
+    const response = await fetch(apiUrl(endpoint), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -91,7 +92,7 @@ const submitForm = async () => {
       const pendingJoinCode = localStorage.getItem('pending_join_code');
       if (pendingJoinCode) {
         try {
-          const joinRes = await fetch('/api/lists/join', {
+          const joinRes = await fetch(apiUrl('/api/lists/join'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${data.access_token}` },
             body: JSON.stringify({ share_code: pendingJoinCode })

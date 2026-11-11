@@ -1,0 +1,14 @@
+{
+  "appId": "com.kaufsync.app",
+  "appName": "KaufSync",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "cleartext": true
+  },
+  "plugins": {
+    "BarcodeScanner": {
+      "formats": ["EAN_13", "EAN_8", "UPC_A", "UPC_E", "QR_CODE"]
+    }
+  }
+}

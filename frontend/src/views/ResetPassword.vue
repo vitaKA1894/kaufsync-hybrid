@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
+import { apiUrl } from '../config/api';
 
 const router = useRouter();
 const route = useRoute();
@@ -35,7 +36,7 @@ const submitForm = async () => {
   const user_id = route.query.user_id;
 
   try {
-    const response = await fetch('/api/auth/reset-password', {
+    const response = await fetch(apiUrl('/api/auth/reset-password'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: user_id, token: token, new_password: formData.value.password })

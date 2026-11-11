@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiUrl, wsUrl } from '../config/api';
 
 const router = useRouter();
 const shoppingLists = ref([]);
@@ -83,11 +84,9 @@ const setupWebSockets = () => {
   const isOnline = navigator.onLine;
   if (!isOnline) return;
 
-  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-
   if (currentUser.value && !userWs) {
     try {
-      userWs = new WebSocket(`${protocol}//${window.location.host}/ws/user/${currentUser.value.id}`);
+      userWs = new WebSocket(wsUrl(`/ws/user/${currentUser.value.id}`));
       userWs.onerror = (error) => console.warn("User WebSocket Fehler", error);
       userWs.onmessage = (event) => {
         const data = JSON.parse(event.data);
@@ -104,7 +103,7 @@ const setupWebSockets = () => {
   shoppingLists.value.forEach(list => {
     if (!wsConnections.has(list.id)) {
       try {
-        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/${list.id}`);
+        const ws = new WebSocket(wsUrl(`/ws/${list.id}`));
         ws.onerror = (error) => console.warn(`WebSocket Fehler für Liste ${list.id}`, error);
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
@@ -158,7 +157,7 @@ const updateOnlineStatus = () => {
 const loadLists = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/lists', { headers: { 'Authorization': `Bearer ${token}` } });
+    const response = await fetch(apiUrl('/api/lists'), { headers: { 'Authorization': `Bearer ${token}` } });
     if (response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('isLoggedIn');
@@ -177,7 +176,7 @@ const loadLists = async () => {
 const loadInvitations = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/invitations', { headers: { 'Authorization': `Bearer ${token}` } });
+    const response = await fetch(apiUrl('/api/invitations'), { headers: { 'Authorization': `Bearer ${token}` } });
     if (!response.ok) throw new Error('Fehler beim Laden von Einladungen');
     const data = await response.json();
     invitations.value = data;
@@ -189,7 +188,7 @@ const loadInvitations = async () => {
 const respondToInvitation = async (inviteId, action) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/invitations/${inviteId}/respond?action=${action}`, {
+    const response = await fetch(apiUrl(`/api/invitations/${inviteId}/respond?action=${action}`), {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -216,7 +215,7 @@ const createNewList = async () => {
     const token = localStorage.getItem('token');
     const finalIcon = selectedIcon.value || fallbackCartIcon;
     
-    const response = await fetch('/api/lists', {
+    const response = await fetch(apiUrl('/api/lists'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ name: newListName.value.trim(), icon_name: finalIcon })
@@ -232,7 +231,7 @@ const joinList = async () => {
   if (!shareCodeInput.value.trim()) return;
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/lists/join', {
+    const response = await fetch(apiUrl('/api/lists/join'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ share_code: shareCodeInput.value.trim() })
@@ -255,7 +254,7 @@ const deleteList = async () => {
   if (!selectedListForOptions.value) return;
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/lists/${selectedListForOptions.value.id}`, {
+    const response = await fetch(apiUrl(`/api/lists/${selectedListForOptions.value.id}`), {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -309,7 +308,7 @@ const handleImageError = (event) => {
 const loadUserProfile = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/users/me', { headers: { 'Authorization': `Bearer ${token}` } });
+    const response = await fetch(apiUrl('/api/users/me'), { headers: { 'Authorization': `Bearer ${token}` } });
     if (!response.ok) throw new Error('Fehler beim Laden des Profils');
     currentUser.value = await response.json();
     setupWebSockets();

@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiUrl } from '../config/api';
 
 const router = useRouter();
 
@@ -12,7 +13,7 @@ const successMessage = ref('');
 const loadAdminData = async () => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('/api/admin/stats', {
+        const response = await fetch(apiUrl('/api/admin/stats'), {
             headers: { 'Authorization': `Bearer ${token}` }
         });
 
@@ -33,7 +34,7 @@ const loadAdminData = async () => {
 const promoteUser = async (userId, isAdmin) => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/admin/users/${userId}/role`, {
+        const response = await fetch(apiUrl(`/api/admin/users/${userId}/role`), {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_admin: isAdmin })
@@ -53,7 +54,7 @@ const promoteUser = async (userId, isAdmin) => {
 const changeStatus = async (userId, status) => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/admin/users/${userId}/status`, {
+        const response = await fetch(apiUrl(`/api/admin/users/${userId}/status`), {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({ status: status })
@@ -75,7 +76,7 @@ const resetPasswordLink = ref('');
 const resetPassword = async (userId) => {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`/api/admin/users/${userId}/reset-password`, {
+        const response = await fetch(apiUrl(`/api/admin/users/${userId}/reset-password`), {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });

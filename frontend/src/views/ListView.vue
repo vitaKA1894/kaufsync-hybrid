@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { apiUrl, wsUrl } from '../config/api';
 import CategoryIcon from '../components/CategoryIcon.vue';
 import AddItemModal from '../components/AddItemModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
@@ -221,7 +222,7 @@ const updateOnlineStatus = () => {
 const loadItems = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch('/api/lists', {
+    const response = await fetch(apiUrl('/api/lists'), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (response.status === 401) {
@@ -255,8 +256,7 @@ const loadItems = async () => {
 const setupWebSocket = () => {
   if (!isOnline.value) return;
   try {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    ws = new WebSocket(`${protocol}//${window.location.host}/ws/${listId}`);
+    ws = new WebSocket(wsUrl(`/ws/${listId}`));
     ws.onerror = (error) => console.warn("WebSocket Fehler", error);
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -298,7 +298,7 @@ const handleUpdateItem = async (updatedPayload) => {
     items.value[index] = { ...items.value[index], ...updatedPayload };
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/items/${updatedPayload.id}`, {
+      const response = await fetch(apiUrl(`/api/items/${updatedPayload.id}`), {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify(updatedPayload)
@@ -328,7 +328,7 @@ const handleAddItem = async (itemPayload) => {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/lists/${listId}/items`, {
+    const response = await fetch(apiUrl(`/api/lists/${listId}/items`), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ 
@@ -365,7 +365,7 @@ const processOfflineQueue = async () => {
   for (const action of queue) {
     try {
       if (action.type === 'TOGGLE_STATUS') {
-        await fetch(`/api/items/${action.itemId}`, {
+        await fetch(apiUrl(`/api/items/${action.itemId}`), {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify({ status: action.newStatus })
@@ -413,7 +413,7 @@ const toggleItemStatus = async (item) => {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/items/${item.id}`, {
+    const response = await fetch(apiUrl(`/api/items/${item.id}`), {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
       body: JSON.stringify({ status: newStatus })
@@ -462,7 +462,7 @@ const deleteItem = async (itemId) => {
   
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/items/${itemId}`, {
+    const response = await fetch(apiUrl(`/api/items/${itemId}`), {
       method: 'DELETE',
       headers: { 'Authorization': `Bearer ${token}` }
     });
@@ -476,7 +476,7 @@ const deleteItem = async (itemId) => {
 const loadChangelog = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/lists/${listId}/changelog`, {
+    const response = await fetch(apiUrl(`/api/lists/${listId}/changelog`), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (response.ok) {
@@ -571,7 +571,7 @@ const searchUsers = async () => {
   isSearching.value = true;
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`/api/users/search?q=${encodeURIComponent(searchQuery.value)}`, {
+    const response = await fetch(apiUrl(`/api/users/search?q=${encodeURIComponent(searchQuery.value)}`), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (response.ok) {
@@ -594,7 +594,7 @@ const inviteUser = async (userId) => {
   try {
     const token = localStorage.getItem('token');
     const listId = route.params.id;
-    const response = await fetch(`/api/lists/${listId}/invite`, {
+    const response = await fetch(apiUrl(`/api/lists/${listId}/invite`), {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
