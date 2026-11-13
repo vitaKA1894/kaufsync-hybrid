@@ -562,63 +562,197 @@ async def delete_list(
 
     return {"status": "ok", "message": "Liste erfolgreich gelöscht"}
     
-@app.post("/api/lists/join", response_model=schemas.ListResponse)
+@app.post("/api/lists/join")
 async def join_list(
     join_data: schemas.JoinListRequest, 
     background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
-    # Liste anhand des Codes suchen (wir machen ihn uppercase zur Sicherheit)
+    # Liste anhand des Codes suchen
     db_list = db.query(models.List).filter(models.List.share_code == join_data.share_code.upper()).first()
     if not db_list:
-        raise HTTPException(status_code=404, detail="Ungültiger Einladungscode")
+        raise HTTPException(status_code=404, detail="Ungültiger Einladungs-Link")
         
     # Prüfen ob man schon Mitglied oder sogar Besitzer ist
-    if current_user.id == db_list.created_by or current_user in db_list.members:
-        raise HTTPException(status_code=400, detail="Du bist bereits in dieser Liste")
+    if current_user.id == db_list.created_by or any(m.id == current_user.id for m in db_list.members):
+        return {
+            "status": "already_member",
+            "list_id": db_list.id,
+            "list_name": db_list.name,
+            "message": "Du bist bereits Mitglied dieser Liste."
+        }
 
-    # Prüfen ob eine Liste mit demselben Namen bereits in den Listen des Users existiert
-    existing_list = db.query(models.List).filter(
-        models.List.name == db_list.name,
-        ((models.List.created_by == current_user.id) | (models.List.members.any(id=current_user.id)))
+    # Prüfen ob bereits eine offene Anfrage vorliegt
+    existing_req = db.query(models.ListJoinRequest).filter(
+        models.ListJoinRequest.list_id == db_list.id,
+        models.ListJoinRequest.user_id == current_user.id,
+        models.ListJoinRequest.status == "pending"
     ).first()
-    if existing_list:
-        raise HTTPException(status_code=400, detail="Eine Liste mit diesem Namen existiert bereits in deinen Listen.")
-        
-    # User als Mitglied hinzufügen
-    db_list.members.append(current_user)
-    db.commit()
-    db.refresh(db_list)
+    if existing_req:
+        return {
+            "status": "pending_approval",
+            "list_id": db_list.id,
+            "list_name": db_list.name,
+            "message": "Deine Beitrittsanfrage wartet noch auf Freigabe durch den Besitzer."
+        }
 
-    # Push Notifications senden
-    # Deduplicate members to prevent sending duplicate notifications to the creator
-    members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
-    members = {member.id: member for member in members_list}.values()
-    for member in members:
-        if member.id != current_user.id:
-            notif = models.Notification(
-                user_id=member.id,
-                title="Neues Mitglied",
-                body=f"{current_user.display_name} ist der Liste '{db_list.name}' beigetreten.",
-                action_url=f"/list/{db_list.id}"
+    # Neue Anfrage erstellen
+    new_req = models.ListJoinRequest(
+        list_id=db_list.id,
+        user_id=current_user.id,
+        status="pending"
+    )
+    db.add(new_req)
+    db.commit()
+
+    # Push Notification & WS an den Besitzer der Liste
+    owner = db.query(models.User).filter(models.User.id == db_list.created_by).first()
+    if owner and owner.id != current_user.id:
+        notif = models.Notification(
+            user_id=owner.id,
+            title="Neue Beitrittsanfrage",
+            body=f"{current_user.display_name} möchte der Liste '{db_list.name}' beitreten.",
+            action_url=f"/list/{db_list.id}"
+        )
+        db.add(notif)
+        db.commit()
+        if owner.settings_push_async_events:
+            subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == owner.id).all()
+            for sub in subs:
+                background_tasks.add_task(
+                    send_push_notification,
+                    {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                    {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                )
+        await manager.broadcast_user(str(owner.id), {
+            "event": "JOIN_REQUEST_RECEIVED",
+            "payload": {
+                "list_id": db_list.id,
+                "request_id": new_req.id,
+                "user_name": current_user.display_name
+            }
+        })
+
+    return {
+        "status": "pending_approval",
+        "list_id": db_list.id,
+        "list_name": db_list.name,
+        "message": "Beitrittsanfrage gesendet. Der Besitzer der Liste muss dich freischalten."
+    }
+
+@app.get("/api/lists/{list_id}/join-requests")
+def get_join_requests(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Nur der Besitzer kann Beitrittsanfragen einsehen")
+
+    requests = db.query(models.ListJoinRequest).filter(
+        models.ListJoinRequest.list_id == list_id,
+        models.ListJoinRequest.status == "pending"
+    ).all()
+
+    return [
+        {
+            "id": r.id,
+            "user_id": r.user_id,
+            "display_name": r.user.display_name if r.user else "Unbekannt",
+            "email": r.user.email if r.user else "",
+            "created_at": r.created_at.isoformat() if r.created_at else None
+        }
+        for r in requests
+    ]
+
+@app.post("/api/lists/{list_id}/join-requests/{request_id}/approve")
+async def approve_join_request(
+    list_id: str,
+    request_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Nur der Besitzer kann Beitrittsanfragen genehmigen")
+
+    join_req = db.query(models.ListJoinRequest).filter(
+        models.ListJoinRequest.id == request_id,
+        models.ListJoinRequest.list_id == list_id
+    ).first()
+    if not join_req:
+        raise HTTPException(status_code=404, detail="Anfrage nicht gefunden")
+
+    target_user = db.query(models.User).filter(models.User.id == join_req.user_id).first()
+    if not target_user:
+        raise HTTPException(status_code=404, detail="Benutzer nicht mehr vorhanden")
+
+    if target_user not in db_list.members:
+        db_list.members.append(target_user)
+
+    join_req.status = "approved"
+    db.commit()
+
+    # Benachrichtigung an den freigeschalteten Nutzer
+    notif = models.Notification(
+        user_id=target_user.id,
+        title="Beitritt freigegeben",
+        body=f"Du wurdest für die Liste '{db_list.name}' freigeschaltet!",
+        action_url=f"/list/{db_list.id}"
+    )
+    db.add(notif)
+    db.commit()
+
+    if target_user.settings_push_async_events:
+        subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == target_user.id).all()
+        for sub in subs:
+            background_tasks.add_task(
+                send_push_notification,
+                {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                {"title": notif.title, "body": notif.body, "url": notif.action_url}
             )
-            db.add(notif)
-            if member.settings_push_async_events:
-                subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
-                for sub in subs:
-                    background_tasks.add_task(
-                        send_push_notification,
-                        {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
-                        {"title": notif.title, "body": notif.body, "url": notif.action_url}
-                    )
-    db.commit()
 
-    await manager.broadcast_user(str(current_user.id), {
+    await manager.broadcast_user(str(target_user.id), {
         "event": "LIST_UPDATED"
     })
+    await manager.broadcast_to_list(str(db_list.id), {
+        "event": "MEMBER_JOINED",
+        "payload": {"user_id": target_user.id, "display_name": target_user.display_name}
+    })
 
-    return db_list
+    return {"status": "ok", "message": f"{target_user.display_name} wurde zur Liste hinzugefügt"}
+
+@app.post("/api/lists/{list_id}/join-requests/{request_id}/reject")
+async def reject_join_request(
+    list_id: str,
+    request_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Nur der Besitzer kann Beitrittsanfragen ablehnen")
+
+    join_req = db.query(models.ListJoinRequest).filter(
+        models.ListJoinRequest.id == request_id,
+        models.ListJoinRequest.list_id == list_id
+    ).first()
+    if not join_req:
+        raise HTTPException(status_code=404, detail="Anfrage nicht gefunden")
+
+    join_req.status = "rejected"
+    db.commit()
+
+    return {"status": "ok", "message": "Anfrage abgelehnt"}
 
 @app.post("/api/lists/{list_id}/invite", response_model=schemas.ListInvitationResponse)
 def invite_user(

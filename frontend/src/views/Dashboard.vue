@@ -18,22 +18,13 @@ const selectedListForOptions = ref(null);
 
 const newListName = ref('');
 const selectedIcon = ref(''); 
-const shareCodeInput = ref('');
 const showScanner = ref(false);
 
 const handleScanCode = (scannedValue) => {
   showScanner.value = false;
-  // Fall 1: Es ist ein kompletter Share-Link (z.B. https://kaufsync.app/join?code=XYZ)
   const urlMatch = scannedValue.match(/code=([^&]+)/);
-  if (urlMatch) {
-    shareCodeInput.value = urlMatch[1];
-  } else {
-    // Fall 2: Es ist nur der raw Code aus dem Scanner
-    // Wir filtern alles raus, was kein Alphanumerischer Code ist
-    shareCodeInput.value = scannedValue.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
-  }
-
-  if (shareCodeInput.value) joinList();
+  const code = urlMatch ? urlMatch[1] : scannedValue.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  if (code) handlePendingJoinCode(code);
 };
 
 // --- ECHTE WIKIPEDIA LOGOS (Alphabetisch sortiert) ---
@@ -68,7 +59,7 @@ const selectPreset = (store) => {
 const openActionSheet = () => showActionSheet.value = true;
 const closeActionSheet = () => { showActionSheet.value = false; showOptionsSheet.value = false; };
 const openModal = (mode) => { activeModal.value = mode; showActionSheet.value = false; };
-const closeModal = () => { activeModal.value = null; newListName.value = ''; selectedIcon.value = fallbackCartIcon; shareCodeInput.value = ''; };
+const closeModal = () => { activeModal.value = null; newListName.value = ''; selectedIcon.value = fallbackCartIcon; };
 
 const openOptions = (list) => {
   selectedListForOptions.value = list;
@@ -251,22 +242,29 @@ const createNewList = async () => {
   } catch { errorMessage.value = "Liste konnte nicht erstellt werden."; }
 };
 
-const joinList = async () => {
-  if (!shareCodeInput.value.trim()) return;
+const handlePendingJoinCode = async () => {
+  const pendingCode = localStorage.getItem('pending_join_code') || router.currentRoute.value.query.code;
+  if (!pendingCode) return;
+  localStorage.removeItem('pending_join_code');
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl('/api/lists/join'), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ share_code: shareCodeInput.value.trim() })
+      body: JSON.stringify({ share_code: String(pendingCode).trim() })
     });
     if (!response.ok) throw new Error();
-    const joined = await response.json();
-    shoppingLists.value.push(joined);
-    successMessage.value = `Beigetreten: ${joined.name}`;
-    closeModal();
-    setTimeout(() => successMessage.value = '', 3000);
-  } catch { errorMessage.value = "Code ungültig oder Fehler beim Beitreten."; }
+    const res = await response.json();
+    if (res.status === 'already_member') {
+      router.push(`/list/${res.list_id}`);
+    } else {
+      successMessage.value = res.message || "Beitrittsanfrage gesendet. Der Besitzer muss dich freischalten.";
+      setTimeout(() => successMessage.value = '', 5000);
+    }
+  } catch (err) {
+    errorMessage.value = "Ungültiger Einladungs-Link oder Fehler beim Beitreten.";
+    setTimeout(() => errorMessage.value = '', 4000);
+  }
 };
 
 const getInitial = (name) => {
@@ -345,6 +343,7 @@ onMounted(() => {
   loadLists();
   loadInvitations();
   loadUserProfile();
+  handlePendingJoinCode();
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
 });
@@ -447,34 +446,14 @@ onUnmounted(() => {
     </div>
 
     <div class="ks-fab-bar">
-      <button class="ks-fab" @click.stop="openActionSheet">
+      <button class="ks-fab" @click="openModal('create')">
         <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
-        Liste erstellen / beitreten
+        Neue Liste erstellen
       </button>
     </div>
 
     <transition name="scrim-fade">
-      <div v-if="showActionSheet || showOptionsSheet" class="ks-sheet-scrim" @click="closeActionSheet"></div>
-    </transition>
-
-    <transition name="sheet-slide">
-      <div v-if="showActionSheet && !showOptionsSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
-        <button class="sheet-item" @click="openModal('create')">
-          <span class="sheet-icon primary"><svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg></span>
-          <div class="sheet-text">
-            <span class="sheet-title">Neue Liste erstellen</span>
-          </div>
-        </button>
-        <button class="sheet-item" @click="openModal('join')">
-          <span class="sheet-icon secondary">
-            <svg viewBox="0 0 24 24"><path d="M12.65 10A5.99 5.99 0 0 0 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6a5.99 5.99 0 0 0 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>
-          </span>
-          <div class="sheet-text">
-            <span class="sheet-title">Per Code beitreten</span>
-          </div>
-        </button>
-      </div>
+      <div v-if="showOptionsSheet" class="ks-sheet-scrim" @click="closeActionSheet"></div>
     </transition>
 
     <transition name="sheet-slide">
@@ -523,19 +502,6 @@ onUnmounted(() => {
               <button class="ks-btn-filled" @click="createNewList">Erstellen</button>
             </div>
           </template>
-
-          <template v-else-if="activeModal === 'join'">
-            <h2 style="margin: 0 0 20px; font-size: 20px;">Code einlösen</h2>
-            <div class="ks-field" style="margin-bottom: 24px;">
-              <input v-model="shareCodeInput" type="text" maxlength="6" placeholder=" " class="code-input" @keyup.enter="joinList" />
-              <label>6-stelliger Code</label>
-            </div>
-            <div class="ks-btn-row">
-              <button class="ks-btn-text" @click="closeModal">Abbrechen</button>
-              <button class="ks-btn-filled" @click="joinList">Beitreten</button>
-            </div>
-          </template>
-          
         </div>
       </div>
     </transition>

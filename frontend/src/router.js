@@ -76,7 +76,11 @@ router.beforeEach((to, from, next) => {
     if (code) {
       localStorage.setItem('pending_join_code', code);
     }
-    next('/login'); // Redirect to login, which will handle the join if already logged in or after logging in
+    if (isLoggedIn) {
+      next('/');
+    } else {
+      next('/login');
+    }
     return;
   }
 

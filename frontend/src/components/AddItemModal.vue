@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { searchTaxonomy, debounce } from '../utils/search';
@@ -397,7 +397,7 @@ const confirmSelection = (bypassWarning = false) => {
       duplicateWarning.value = false;
       isContinuousAdd.value = true;
       nextTick(() => {
-         inputRef.value?.focus();
+         inputRef.value?.focus({ preventScroll: true });
       });
     } else {
       closeModal();
@@ -405,7 +405,32 @@ const confirmSelection = (bypassWarning = false) => {
   }
 };
 
+let savedScrollY = 0;
+
+const lockBackgroundScroll = () => {
+  savedScrollY = window.scrollY || window.pageYOffset || 0;
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${savedScrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+};
+
+const unlockBackgroundScroll = () => {
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  window.scrollTo(0, savedScrollY);
+};
+
 const closeModal = () => {
+  unlockBackgroundScroll();
   isContinuousAdd.value = false;
   query.value = '';
   results.value = [];
@@ -428,16 +453,21 @@ const highlightText = (text, match) => {
 
 onMounted(() => {
   if (props.isOpen) {
+    lockBackgroundScroll();
     nextTick(() => {
-      inputRef.value?.focus();
+      inputRef.value?.focus({ preventScroll: true });
     });
   }
 });
 
+onUnmounted(() => {
+  unlockBackgroundScroll();
+});
+
 // Watch isOpen prop to focus input when modal is opened
-import { watch } from 'vue';
 watch(() => props.isOpen, (newVal) => {
     if (newVal) {
+        lockBackgroundScroll();
         if (props.startWithScanner) {
             triggerScan();
         } else {
@@ -490,10 +520,11 @@ watch(() => props.isOpen, (newVal) => {
         } else {
             // Add Mode Init
             nextTick(() => {
-                inputRef.value?.focus();
+                inputRef.value?.focus({ preventScroll: true });
             });
         }
     } else {
+        unlockBackgroundScroll();
         // Reset when closed
         query.value = '';
         results.value = [];
@@ -518,30 +549,28 @@ watch(() => props.isOpen, (newVal) => {
 
         <!-- STEP 1: Search -->
         <div class="search-step" v-show="!showScanner" style="flex-direction: column-reverse;">
-          <div class="results-list" style="margin-bottom: 16px;">
-            <template v-if="query.length >= 1">
-              <div class="ks-grid items-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 ga" style="padding: 0 4px;">
-                <div
-                  v-for="item in results"
-                  :key="item.id"
-                  class="grid-card"
-                  @click="selectItem(item)"
-                >
-                  <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: getCategoryDef(item.category).color }"></div>
-                  <div class="w-[55px] h-[55px] mb-2 rounded-xl bg-slate-700/50 flex items-center justify-center p-0" :style="{ color: getCategoryDef(item.category).color }">
-                    <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="55" />
-                  </div>
-                  <div class="card-text-area">
-                    <span class="item-name" v-html="highlightText(item.matchedAlias || item.name, query)"></span>
-                    <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.name }}</span>
-                  </div>
+          <div v-if="query.length >= 1" class="results-list" style="margin-bottom: 16px;">
+            <div class="ks-grid items-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2" style="padding: 0 4px;">
+              <div
+                v-for="item in results"
+                :key="item.id"
+                class="grid-card"
+                @click="selectItem(item)"
+              >
+                <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: getCategoryDef(item.category).color }"></div>
+                <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: getCategoryDef(item.category).color }">
+                  <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="64" />
+                </div>
+                <div class="card-text-area">
+                  <span class="item-name" v-html="highlightText(item.matchedAlias || item.name, query)"></span>
+                  <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.name }}</span>
                 </div>
               </div>
+            </div>
 
-              <div v-if="query.length >= 1 && results.length === 0" class="no-results">
-                  Keine Vorschläge gefunden. Drücke Enter, um "{{ query }}" als eigenen Artikel hinzuzufügen.
-              </div>
-            </template>
+            <div v-if="results.length === 0" class="no-results">
+                Keine Vorschläge gefunden. Drücke Enter, um "{{ query }}" als eigenen Artikel hinzuzufügen.
+            </div>
           </div>
 
           <div class="modal-header">
@@ -576,11 +605,11 @@ watch(() => props.isOpen, (newVal) => {
            <div class="ks-sheet__handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
            <div class="modal-header" style="justify-content: space-between; align-items: center; margin-top: 0; padding-bottom: 16px;">
               <div style="display: flex; align-items: flex-start; gap: 16px; width: 100%;">
-                 <div class="w-[55px] h-[55px] rounded-xl flex items-center justify-center p-0 flex-shrink-0" :style="{ color: getCategoryDef(selectedItem.category).color, backgroundColor: 'color-mix(in srgb, ' + getCategoryDef(selectedItem.category).bg + ' 20%, transparent)' }">
+                 <div class="item-icon-container flex items-center justify-center p-0 flex-shrink-0" :style="{ color: getCategoryDef(selectedItem.category).color }">
                     <CategoryIcon
                       :name="selectedItem.name"
                       :category="selectedItem.category"
-                      size="55"
+                      size="64"
                     />
                  </div>
                  <div style="display: flex; flex-direction: column; flex: 1; min-width: 0;">

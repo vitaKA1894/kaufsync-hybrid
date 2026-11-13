@@ -306,6 +306,11 @@ const setupWebSocket = () => {
         if (showChangelogSheet.value) {
           loadChangelog();
         }
+      } else if (data.event === 'MEMBER_JOINED' || data.event === 'LIST_UPDATED') {
+        loadItems();
+        if (showShareSheet.value) loadJoinRequests();
+      } else if (data.event === 'JOIN_REQUEST_RECEIVED') {
+        if (showShareSheet.value) loadJoinRequests();
       }
     };
   } catch (err) {
@@ -579,72 +584,114 @@ const getInitial = (name) => {
   return name.charAt(0).toUpperCase();
 };
 
-const copyToClipboard = async () => {
-  if (!currentList.value) return;
+const currentUser = ref(null);
+const joinRequests = ref([]);
+const isLoadingRequests = ref(false);
+
+const isListOwner = computed(() => {
+  if (!currentList.value || !currentUser.value) return false;
+  return currentList.value.created_by === currentUser.value.id || currentUser.value.is_admin;
+});
+
+const loadCurrentUser = async () => {
   try {
-    const joinLink = `${window.location.origin}/join?code=${currentList.value.share_code}`;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+    const res = await fetch(apiUrl('/api/users/me'), {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      currentUser.value = await res.json();
+    }
+  } catch (err) {
+    console.error('Fehler beim Laden des Benutzers', err);
+  }
+};
+
+const loadJoinRequests = async () => {
+  if (!currentList.value) return;
+  isLoadingRequests.value = true;
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(apiUrl(`/api/lists/${listId}/join-requests`), {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      joinRequests.value = await res.json();
+    }
+  } catch (err) {
+    console.error('Fehler beim Laden der Beitrittsanfragen', err);
+  } finally {
+    isLoadingRequests.value = false;
+  }
+};
+
+const approveJoinRequest = async (requestId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(apiUrl(`/api/lists/${listId}/join-requests/${requestId}/approve`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      successMessage.value = "Benutzer freigeschaltet!";
+      joinRequests.value = joinRequests.value.filter(r => r.id !== requestId);
+      loadItems();
+      setTimeout(() => successMessage.value = '', 3000);
+    }
+  } catch (err) {
+    errorMessage.value = "Fehler beim Freischalten.";
+    setTimeout(() => errorMessage.value = '', 3000);
+  }
+};
+
+const rejectJoinRequest = async (requestId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const res = await fetch(apiUrl(`/api/lists/${listId}/join-requests/${requestId}/reject`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      successMessage.value = "Anfrage abgelehnt.";
+      joinRequests.value = joinRequests.value.filter(r => r.id !== requestId);
+      setTimeout(() => successMessage.value = '', 2000);
+    }
+  } catch (err) {
+    errorMessage.value = "Fehler beim Ablehnen.";
+    setTimeout(() => errorMessage.value = '', 3000);
+  }
+};
+
+const shareOrCopyLink = async () => {
+  if (!currentList.value) return;
+  const joinLink = `${window.location.origin}/join?code=${currentList.value.share_code}`;
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `KaufSync - ${currentList.value.name}`,
+        text: `Tritt meiner Einkaufsliste '${currentList.value.name}' auf KaufSync bei!`,
+        url: joinLink
+      });
+      return;
+    } catch (e) {
+      // User cancelled or clipboard fallback
+    }
+  }
+  try {
     await navigator.clipboard.writeText(joinLink);
-    successMessage.value = "Link kopiert!";
+    successMessage.value = "Einladungs-Link kopiert!";
     setTimeout(() => successMessage.value = '', 2000);
   } catch (err) {
     console.error('Kopieren fehlgeschlagen', err);
   }
 };
 
-const searchUsers = async () => {
-  if (searchQuery.value.length < 2) {
-    searchResults.value = [];
-    return;
+watch(showShareSheet, (newVal) => {
+  if (newVal) {
+    loadJoinRequests();
   }
-  isSearching.value = true;
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/users/search?q=${encodeURIComponent(searchQuery.value)}`), {
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (response.ok) {
-      searchResults.value = await response.json();
-    }
-  } catch (error) {
-    console.error('Fehler bei der Benutzersuche', error);
-  } finally {
-    isSearching.value = false;
-  }
-};
-
-let searchTimeout;
-const debouncedSearch = () => {
-  clearTimeout(searchTimeout);
-  searchTimeout = setTimeout(searchUsers, 300);
-};
-
-const inviteUser = async (userId) => {
-  try {
-    const token = localStorage.getItem('token');
-    const listId = route.params.id;
-    const response = await fetch(apiUrl(`/api/lists/${listId}/invite`), {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ invitee_id: userId })
-    });
-
-    if (response.ok) {
-      successMessage.value = "Einladung versendet!";
-      searchQuery.value = '';
-      searchResults.value = [];
-      setTimeout(() => successMessage.value = '', 3000);
-    } else {
-      const data = await response.json();
-      throw new Error(data.detail || "Fehler beim Einladen");
-    }
-  } catch (error) {
-    errorMessage.value = error.message;
-    setTimeout(() => errorMessage.value = '', 3000);
-  }
-};
+});
 
 const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase();
@@ -709,10 +756,13 @@ const sortedActiveItems = computed(() => {
   }, []);
 });
 
-const completedItems = computed(() => items.value.filter(i => i.status === 'completed').map(item => {
-  let catName = item.category || 'Sonstiges';
-  return { ...item, category: mapLegacyCategory(catName) };
-}));
+const completedItems = computed(() => {
+  const list = items.value.filter(i => i.status === 'completed').map(item => {
+    let catName = item.category || 'Sonstiges';
+    return { ...item, category: mapLegacyCategory(catName) };
+  });
+  return list.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+});
 
 const getRegularTags = (tagsStr) => {
   const tags = parseTags(tagsStr);
@@ -734,6 +784,7 @@ const formatTags = (tagsStr) => {
 
 onMounted(() => {
   loadItems(); // loadItems ruft am Ende loadCategoryOrder() auf
+  loadCurrentUser();
   setupWebSocket();
   processOfflineQueue();
   window.addEventListener('online', updateOnlineStatus);
@@ -756,7 +807,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page-shell list-view-layout" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false;">
+  <div class="page-shell list-view-layout" :class="{ 'modal-open': isAddModalOpen }" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false;">
 
     <header class="page-topbar" style="justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
@@ -794,41 +845,71 @@ onUnmounted(() => {
         <div class="ks-sheet__handle"></div>
         <h3 class="sheet-heading">Liste teilen</h3>
 
-        <div class="share-section" style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
-          <p class="section-label" style="align-self: flex-start;">Per Code beitreten</p>
-          <div class="code-box" @click="copyToClipboard">
-            <span class="code">{{ currentList?.share_code }}</span>
-            <svg viewBox="0 0 24 24"><path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/></svg>
-          </div>
+        <div class="share-section" style="display: flex; flex-direction: column; gap: 14px;">
+          <p class="sheet-support" style="margin: 0; font-size: 13px; line-height: 1.4;">
+            Über diesen Link kann jeder eine Beitrittsanfrage stellen. Du als Besitzer musst neue Mitglieder erst freigeben.
+          </p>
 
-          <button class="ks-btn-filled full-width" style="display: flex; align-items: center; justify-content: center; gap: 8px;" @click="copyToClipboard">
-             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M9 18q-.825 0-1.412-.587Q7 16.825 7 16V4q0-.825.588-1.412Q8.175 2 9 2h9q.825 0 1.413.588Q20 3.175 20 4v12q0 .825-.587 1.413Q18.825 18 18 18Zm0-2h9V4H9v12Zm-4 6q-.825 0-1.412-.587Q3 20.825 3 20V6h2v14h11v2Z"/></svg>
-             Link kopieren
+          <button class="ks-btn-filled full-width" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px;" @click="shareOrCopyLink">
+             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
+             Einladungs-Link teilen / kopieren
           </button>
         </div>
 
-        <div class="share-section mt-4">
-          <p class="section-label">Benutzer suchen</p>
-          <div class="search-box">
-            <input
-              v-model="searchQuery"
-              @input="debouncedSearch"
-              type="text"
-              placeholder="Name oder E-Mail"
-              class="search-input"
-            />
+        <!-- AUSSTEHENDE ANFRAGEN (FÜR BESITZER) -->
+        <div v-if="isListOwner" class="share-section mt-4" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <p class="section-label" style="margin: 0; font-weight: 600; color: #f8fafc;">
+              Ausstehende Beitrittsanfragen
+            </p>
+            <span v-if="joinRequests.length > 0" class="text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+              {{ joinRequests.length }}
+            </span>
           </div>
 
-          <div v-if="searchResults.length > 0" class="search-results">
-            <div v-for="user in searchResults" :key="user.id" class="user-result-item">
-              <div class="user-info">
-                <span class="user-name">{{ user.display_name }}</span>
-                <span class="user-email">{{ user.email }}</span>
+          <div v-if="isLoadingRequests" class="text-xs text-slate-400 py-3 text-center">
+            Lade Anfragen...
+          </div>
+
+          <div v-else-if="joinRequests.length > 0" class="space-y-2 mt-2">
+            <div v-for="req in joinRequests" :key="req.id" class="flex items-center justify-between p-3 rounded-xl bg-slate-800/80 border border-slate-700/60 shadow-sm">
+              <div class="min-w-0 flex-1 mr-2">
+                <div class="text-sm font-semibold text-white truncate">{{ req.display_name }}</div>
+                <div class="text-xs text-slate-400 truncate">{{ req.email }}</div>
               </div>
-              <button class="ks-btn-filled" @click="inviteUser(user.id)">Einladen</button>
+              <div class="flex items-center gap-1.5 flex-shrink-0">
+                <button
+                  class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition-all"
+                  @click="approveJoinRequest(req.id)"
+                >
+                  Zulassen
+                </button>
+                <button
+                  class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-rose-500/30 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-all"
+                  @click="rejectJoinRequest(req.id)"
+                >
+                  Ablehnen
+                </button>
+              </div>
             </div>
           </div>
-          <p v-else-if="searchQuery.length >= 2 && !isSearching" class="no-results">Keine Benutzer gefunden</p>
+
+          <div v-else class="text-xs text-slate-500 italic py-2">
+            Keine offenen Beitrittsanfragen.
+          </div>
+        </div>
+
+        <!-- LISTE DER MITGLIEDER -->
+        <div v-if="currentList?.members?.length" class="share-section mt-4" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+          <p class="section-label" style="margin-bottom: 8px; font-weight: 600; color: #f8fafc;">
+            Aktuelle Mitglieder ({{ currentList.members.length }})
+          </p>
+          <div class="space-y-1.5 max-h-36 overflow-y-auto">
+            <div v-for="member in currentList.members" :key="member.id" class="flex items-center justify-between py-1.5 px-2 rounded-lg bg-slate-800/40 text-xs text-slate-300">
+              <span class="font-medium truncate">{{ member.display_name }}</span>
+              <span v-if="member.id === currentList.created_by" class="text-[10px] text-amber-400 bg-amber-400/10 px-1.5 py-0.5 rounded border border-amber-400/20">Besitzer</span>
+            </div>
+          </div>
         </div>
       </div>
     </transition>
@@ -943,8 +1024,8 @@ onUnmounted(() => {
                    @touchend="cancelPress"
                    @touchmove="cancelPress">
               <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: group.def.color }"></div>
-              <div class="w-[55px] h-[55px] mb-2 rounded-xl bg-slate-700/50 flex items-center justify-center p-0" :style="{ color: group.def.color }">
-                <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="55" />
+              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: group.def.color }">
+                <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="66" />
               </div>
               <div v-if="getUrgencyTags(item.tags).length > 0" class="item-tags" style="position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 2;">
                 <span
@@ -958,7 +1039,9 @@ onUnmounted(() => {
                 </span>
               </div>
               <div class="card-text-area mb-2">
-                <span class="item-name">{{ item.name }}</span>
+                <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
+                  <span class="item-name-text">{{ item.name }}</span>
+                </span>
                 <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
                   {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
                 </span>
@@ -984,8 +1067,8 @@ onUnmounted(() => {
                    @touchend="cancelPress"
                    @touchmove="cancelPress">
               <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: item._groupDef.color }"></div>
-              <div class="w-[55px] h-[55px] mb-2 rounded-xl bg-slate-700/50 flex items-center justify-center p-0" :style="{ color: item._groupDef.color }">
-                <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="55" />
+              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: item._groupDef.color }">
+                <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="66" />
               </div>
               <div v-if="getUrgencyTags(item.tags).length > 0" class="item-tags" style="position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 2;">
                 <span
@@ -999,7 +1082,9 @@ onUnmounted(() => {
                 </span>
               </div>
               <div class="card-text-area mb-2">
-                <span class="item-name">{{ item.name }}</span>
+                <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
+                  <span class="item-name-text">{{ item.name }}</span>
+                </span>
                 <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
                   {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
                 </span>
@@ -1039,20 +1124,22 @@ onUnmounted(() => {
                   </button>
               </h2>
         
-        <transition-group name="list" tag="div" class="flex flex-wrap gap-2 w-full pt-1">
+        <transition-group name="list" tag="div" class="grid grid-cols-2 gap-2 w-full pt-1">
           <div
             v-for="item in completedItems"
             :key="item.id"
-            class="completed-chip inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-500 text-slate-300 shadow-sm cursor-pointer active:scale-95 transition-all select-none"
+            class="completed-item-card flex items-center justify-between p-2.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-500 text-slate-300 shadow-sm cursor-pointer active:scale-95 transition-all select-none"
             @click="toggleItemStatus(item)"
           >
-            <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
-            <span class="text-xs line-through text-slate-400 font-medium">
-              {{ item.name }}
-              <span v-if="formatQuantity(item)" class="text-[11px] text-slate-500 ml-0.5">({{ formatQuantity(item) }} {{ item.unit || '' }})</span>
-            </span>
+            <div class="flex items-center gap-2 min-w-0 flex-1 mr-1">
+              <span class="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xs font-bold flex-shrink-0">✓</span>
+              <div class="min-w-0 flex-1">
+                <div class="text-xs line-through text-slate-300 font-semibold truncate">{{ item.name }}</div>
+                <div v-if="formatQuantity(item)" class="text-[10px] text-slate-500 truncate">{{ formatQuantity(item) }} {{ item.unit || '' }}</div>
+              </div>
+            </div>
             <button
-              class="completed-chip-delete w-4 h-4 rounded flex items-center justify-center text-slate-500 hover:text-rose-400 ml-0.5 text-xs transition-colors"
+              class="w-6 h-6 rounded-lg flex items-center justify-center text-slate-500 hover:text-rose-400 hover:bg-slate-700/50 flex-shrink-0 text-xs transition-colors"
               @click.stop="confirmDeleteItem(item)"
               aria-label="Löschen"
             >
@@ -1263,14 +1350,64 @@ onUnmounted(() => {
   margin: 4px 0 6px;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
 .item-name {
   font-size: 13px; font-weight: 600; line-height: 1.25;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; overflow: hidden;
   width: 100%;
   padding: 0 4px;
   color: #f8fafc;
+  display: block;
+  text-align: center;
+}
+
+.item-name-text {
+  display: inline-block;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Marquee Ping-Pong bei langen Namen */
+.item-name.has-marquee {
+  display: block;
+  text-align: left;
+  mask-image: linear-gradient(90deg, transparent 0%, black 8px, black calc(100% - 8px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 8px, black calc(100% - 8px), transparent 100%);
+}
+
+.item-name.has-marquee .item-name-text {
+  max-width: none !important;
+  overflow: visible;
+  text-overflow: clip;
+  padding-left: 4px;
+  animation: marquee-pingpong 6s ease-in-out infinite alternate;
+}
+
+@keyframes marquee-pingpong {
+  0%, 25% { transform: translateX(0); }
+  75%, 100% { transform: translateX(calc(-100% + 75px)); }
+}
+
+.item-icon-container {
+  width: 100%;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+}
+
+.completed-item-card {
+  min-height: 44px;
+  touch-action: manipulation;
+}
+
+.list-view-layout.modal-open {
+  overflow: hidden !important;
 }
 
 .item-regular-tags {

@@ -121,3 +121,15 @@ class ListInvitation(Base):
     list = relationship("List")
     inviter = relationship("User", foreign_keys=[inviter_id])
     invitee = relationship("User", foreign_keys=[invitee_id])
+
+class ListJoinRequest(Base):
+    __tablename__ = "list_join_requests"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    list_id = Column(String, ForeignKey("lists.id"), index=True)
+    user_id = Column(String, ForeignKey("users.id"), index=True)
+    status = Column(String, default="pending") # "pending", "approved", "rejected"
+    created_at = Column(DateTime, default=utc_now)
+
+    list = relationship("List")
+    user = relationship("User")
+
