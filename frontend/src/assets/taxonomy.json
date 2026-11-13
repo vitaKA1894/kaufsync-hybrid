@@ -358,7 +358,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Pilze"
   },
   {
     "id": "e62fab4c-b160-4044-bb8a-42ff069021ef",
@@ -492,7 +492,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Erbsen"
+    "icon": "Gemüse gefroren"
   },
   {
     "id": "9fe58540-2754-4080-96fc-c73c0fe4f78a",
@@ -528,7 +528,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Glacé"
   },
   {
     "id": "6a33bfa2-9d86-4b72-8f13-c09c80e425e3",
@@ -1240,7 +1240,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Früchte"
   },
   {
     "id": "1592d899-ed89-477f-990a-8f70ea5abb5c",
@@ -1399,7 +1399,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Tomaten"
   },
   {
     "id": "5e462805-30fa-4d1e-b34b-92754d7cdbbe",
@@ -1440,7 +1440,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Peperoni"
   },
   {
     "id": "9e022680-e729-49ce-841a-2ee039989e56",
@@ -1597,7 +1597,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Salat"
   },
   {
     "id": "93c2b7c7-12b5-4853-a611-a4cf6affafb8",
@@ -1672,7 +1672,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Salat"
+    "icon": "Lattich"
   },
   {
     "id": "f464ee53-54a1-4cb0-89e3-a5ff453489fc",
@@ -1741,7 +1741,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Zucchetti"
   },
   {
     "id": "91fe6a5e-4522-410e-a01c-0494d2eb923f",
@@ -2197,7 +2197,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Radieschen"
   },
   {
     "id": "7db6d1e1-d842-4f28-9139-5515bbe7b135",
@@ -2361,7 +2361,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Petersilie"
   },
   {
     "id": "1fef8658-c008-405c-8ae8-12d46aa3f40f",
@@ -2449,7 +2449,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Ingwer"
   },
   {
     "id": "b05f76ba-aad2-4111-bcfc-f2bc93aa8daa",
@@ -2477,7 +2477,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Peperoni"
+    "icon": "Peperoncini"
   },
   {
     "id": "3d3c0e29-c31f-4782-bcb1-2eb4df43932b",
@@ -2519,7 +2519,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Brot"
   },
   {
     "id": "73f0a607-3780-4558-9423-392060ef65c2",
@@ -2601,7 +2601,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Brot"
+    "icon": "Toast"
   },
   {
     "id": "897bc9a7-8f56-4fa8-acf3-9d370754cb26",
@@ -2677,7 +2677,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Brot"
+    "icon": "Brezeln"
   },
   {
     "id": "c2cc226b-3995-4b68-acf3-116baab90f61",
@@ -2706,7 +2706,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Brot"
+    "icon": "Gipfeli"
   },
   {
     "id": "af568f64-955d-445a-b821-e0a300f64282",
@@ -2905,7 +2905,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Brot"
+    "icon": "Knäckebrot"
   },
   {
     "id": "4c6bcbbd-ef69-4d92-8e91-cdba0f69b302",
@@ -3014,7 +3014,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Hackfleisch"
   },
   {
     "id": "eef9e848-049f-4938-af97-3cd72852ebbc",
@@ -3041,7 +3041,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Hackfleisch"
   },
   {
     "id": "d2005cfb-0ba4-4e0f-bfc5-d63850d5d432",
@@ -3115,7 +3115,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Schweinefleisch"
   },
   {
     "id": "9ff1bf6e-838c-4952-ac94-1f7b7853771d",
@@ -3151,7 +3151,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Schweinefleisch"
   },
   {
     "id": "dc394736-12e0-443c-bd32-c93df819d9c0",
@@ -3253,7 +3253,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Rindfleisch"
   },
   {
     "id": "a5a3cf5f-9fc0-4092-ab87-bba61512eba6",
@@ -3297,7 +3297,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Pouletbrüstli"
   },
   {
     "id": "44b8a5e3-0f16-447b-986c-f2351b446f0b",
@@ -3324,7 +3324,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Chicken Wings"
   },
   {
     "id": "8ee1a24e-4d07-4151-82fd-245804c2255c",
@@ -3350,7 +3350,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Poulet"
   },
   {
     "id": "596c517f-15cd-4228-b409-45468f0a88c5",
@@ -3392,7 +3392,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Aufschnitt"
+    "icon": "Pouletbrüstli"
   },
   {
     "id": "edad5289-c1c0-4287-942a-b1bf361f59ba",
@@ -3420,7 +3420,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Poulet"
   },
   {
     "id": "32c616f8-2091-4f52-9f22-3165fb8b31e4",
@@ -3536,7 +3536,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Aufschnitt"
+    "icon": "Salami"
   },
   {
     "id": "d5860341-9694-40f6-a601-aa0a52fa1cd4",
@@ -3692,7 +3692,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Wurst"
   },
   {
     "id": "5cf5ea22-e93a-4f5e-9f1a-f4f10430c97e",
@@ -3730,7 +3730,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Bier"
+    "icon": "Aufschnitt"
   },
   {
     "id": "dc7b3405-a437-4aac-9108-d8e8588375e5",
@@ -3813,7 +3813,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Wurst"
+    "icon": "Frankfurter"
   },
   {
     "id": "fcd3c33e-e742-4181-849f-8f5236d165b4",
@@ -3996,7 +3996,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Fisch"
   },
   {
     "id": "38ac5daf-5430-4783-ace8-ea179b04dbfc",
@@ -4031,7 +4031,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Fisch"
   },
   {
     "id": "39bfcf48-c301-441a-a0c9-e195629957e2",
@@ -4097,7 +4097,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fisch"
+    "icon": "Fischstäbli"
   },
   {
     "id": "5a156b74-ed44-48f0-ac04-02871b736bb1",
@@ -4123,7 +4123,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Fisch"
   },
   {
     "id": "52ace1b8-b676-4a45-b378-be8fd4ffa52f",
@@ -4320,7 +4320,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Milch"
+    "icon": "Soya Milch"
   },
   {
     "id": "175c0d2b-160c-4a60-b50f-78fe1d135556",
@@ -4476,7 +4476,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Quark"
   },
   {
     "id": "bdba576c-69c2-4450-a926-ae386687e689",
@@ -4688,7 +4688,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Joghurt"
   },
   {
     "id": "d8626447-b88e-4f0b-a182-679bc25b5ffc",
@@ -4760,7 +4760,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Käse"
   },
   {
     "id": "0f942f6b-dbeb-47ca-953f-f0504cf94cdd",
@@ -4787,7 +4787,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Käse"
   },
   {
     "id": "65e31584-acdf-4689-84d4-8b45b83dc947",
@@ -4815,7 +4815,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Butter"
+    "icon": "Käse"
   },
   {
     "id": "53bb3f3f-3b68-4cb2-a90f-8cf4715b77f6",
@@ -4919,7 +4919,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Feta"
   },
   {
     "id": "fb2dd3b9-45fc-4b94-8d8d-a3f907d23a84",
@@ -5258,7 +5258,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Hackfleisch"
   },
   {
     "id": "f4a17693-032b-4574-af81-f85706c2426c",
@@ -5285,7 +5285,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Schnitzel"
+    "icon": "Wurst"
   },
   {
     "id": "976e3469-075d-422b-8f61-8e5316932760",
@@ -5445,7 +5445,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Wasser"
   },
   {
     "id": "f1bdcff3-6672-4739-89b3-7afcaae6ebd3",
@@ -5920,7 +5920,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Tofu"
   },
   {
     "id": "5c0239c7-528d-4fb2-86fc-be5bd9aba522",
@@ -5943,7 +5943,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Kartoffelstock"
   },
   {
     "id": "7b03a05d-65e0-446c-abe1-8cafc4c011ab",
@@ -6166,7 +6166,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Paprikapulver"
   },
   {
     "id": "fcfa3fbb-e671-48ff-8144-a99ffdcece44",
@@ -6228,7 +6228,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Gemüse"
+    "icon": "Bouillon"
   },
   {
     "id": "1a37e9e0-f747-4699-97a1-8f00b45675dd",
@@ -6307,7 +6307,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Blumen"
+    "icon": "Öl"
   },
   {
     "id": "c4cdad23-7589-4166-bd4f-89b600c93bcd",
@@ -6333,7 +6333,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Balsamico"
+    "icon": "Essig"
   },
   {
     "id": "71523695-966a-4a2c-b4c5-06291a316ba2",
@@ -6496,7 +6496,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Soyasauce"
   },
   {
     "id": "621b4b55-d0af-43f0-97c7-ebe8774bf887",
@@ -6573,7 +6573,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Tomaten"
+    "icon": "Pelati"
   },
   {
     "id": "edeb9222-632f-4b60-931b-dea0bbbd698e",
@@ -6598,7 +6598,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Tomaten"
+    "icon": "Pelati"
   },
   {
     "id": "1f13a446-cb99-4eaf-a9be-ad4cf3cdade3",
@@ -6639,7 +6639,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Pasta Sauce"
   },
   {
     "id": "1f7b0180-bd91-48dc-8903-846bd495f713",
@@ -6739,7 +6739,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fisch"
+    "icon": "Thunfisch"
   },
   {
     "id": "7d1a193f-a5b0-4834-a972-e6d671bf537d",
@@ -6781,7 +6781,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Müesli"
   },
   {
     "id": "68e7bfb9-7ad3-4677-94e3-3be94327a47c",
@@ -7030,7 +7030,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Süssigkeiten"
   },
   {
     "id": "766ef682-1c30-4716-9a96-58a836b2a5b2",
@@ -7108,7 +7108,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Pommes Chips"
   },
   {
     "id": "5bfa52e5-07d0-4105-81ad-fc1aea74f23f",
@@ -7740,7 +7740,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Rum"
+    "icon": "Vodka"
   },
   {
     "id": "e114e9d7-0722-4c9c-9649-9951d6e155fa",
@@ -7898,7 +7898,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Duschmittel"
   },
   {
     "id": "19904d14-cb09-4df8-ba27-32f2354bba07",
@@ -8009,7 +8009,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Deo"
   },
   {
     "id": "0af5942e-a040-482f-b3af-e434d4e858b0",
@@ -8167,7 +8167,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Haushaltspapier"
   },
   {
     "id": "00f01808-93e2-46ef-94b9-ba7f4496a204",
@@ -8460,7 +8460,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Geschirrtabs"
   },
   {
     "id": "b46a373a-81e9-4b9c-8901-5f983a28903d",
@@ -8546,7 +8546,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Abfallsäcke"
   },
   {
     "id": "9d0fbbbf-5341-4e81-9f6f-904d77243f85",
@@ -8858,7 +8858,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Hundesnack"
   },
   {
     "id": "7c5cc988-7265-4502-bc47-a4679d0d5c2c",
@@ -8985,7 +8985,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "letters"
   },
   {
     "id": "4a8c4c7c-c271-4b62-803d-58526462cb38",
@@ -9016,7 +9016,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Geschenk"
   },
   {
     "id": "9889b789-84fa-4e69-81af-43e9303cdbfe",
@@ -9096,7 +9096,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Abfallsäcke"
   },
   {
     "id": "a665a72f-6580-4554-826d-cfcf119d2d91",
@@ -9148,7 +9148,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Grill"
+    "icon": "Holzkohle"
   },
   {
     "id": "419f1ac2-41a8-4d5b-afb6-a7262f83af29",
@@ -9385,7 +9385,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Reis"
+    "icon": "Beeren"
   },
   {
     "id": "887d855f-d7b2-41c3-8b23-7b807834bce4",
@@ -9417,7 +9417,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Beeren"
   },
   {
     "id": "3beea4c5-2a4f-4bd9-82c9-26312dff15fb",
@@ -9511,7 +9511,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Zucker"
+    "icon": "Erbsen"
   },
   {
     "id": "12086375-c687-4b01-aa3a-d607f98a3cf8",
@@ -9573,7 +9573,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Karotten"
   },
   {
     "id": "dc7ae5c3-6262-48b7-a918-224f6df6dd69",
@@ -9693,7 +9693,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Mango"
+    "icon": "Spinat"
   },
   {
     "id": "335c9442-ab67-4df1-9212-6dfed05e4294",
@@ -9839,7 +9839,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Kräuter"
   },
   {
     "id": "bece172d-b1d5-4f82-93a2-791428bd615d",
@@ -9870,7 +9870,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Radieschen"
   },
   {
     "id": "35ba9935-bc25-4ee6-acf1-18b75afa3ab0",
@@ -9900,7 +9900,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Kräuter"
   },
   {
     "id": "3ab57028-eb97-45c8-973b-4d5d95c6cf7d",
@@ -10151,7 +10151,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Rahm"
   },
   {
     "id": "e0445841-9504-4c65-b71c-c9c21255fa23",
@@ -10215,7 +10215,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kaffee"
+    "icon": "Rahm"
   },
   {
     "id": "dc342faa-55e7-46de-b66e-789070d9fd08",
@@ -10286,7 +10286,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Feta"
   },
   {
     "id": "58c4ef41-a4cd-4248-8f4d-05a5d0441600",
@@ -10350,7 +10350,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Joghurt"
   },
   {
     "id": "b3b232fe-b5c5-4001-9e0b-cc87344e3d12",
@@ -10383,7 +10383,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Dip"
   },
   {
     "id": "c83e9734-a0b0-4253-a3e9-0b4265508d37",
@@ -10547,7 +10547,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Getreideriegel"
   },
   {
     "id": "2cd9bb6e-b1d8-41de-8954-5704be756c0a",
@@ -10646,7 +10646,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Aufschnitt"
   },
   {
     "id": "9e4708e4-d3a4-478b-b54d-5f0c4d4d13a4",
@@ -10681,7 +10681,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Hackfleisch"
   },
   {
     "id": "fec8cdc3-5e4a-4cd6-8f6c-f7a6d0e831ab",
@@ -10747,7 +10747,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Chicken Wings"
   },
   {
     "id": "ae483a30-c334-4081-aa36-3aff8b1407d8",
@@ -10778,7 +10778,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Schweinefleisch"
   },
   {
     "id": "b173f183-1719-4614-afa7-aadcf8dda514",
@@ -10809,7 +10809,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Fleisch"
   },
   {
     "id": "580252ad-3997-46f3-bd34-0782b973eae3",
@@ -10878,7 +10878,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Fisch"
   },
   {
     "id": "dae3aa73-9433-4975-ae25-c6b237546b19",
@@ -10909,7 +10909,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Fisch"
   },
   {
     "id": "656536ab-f7fa-433f-817d-19336234aba5",
@@ -10939,7 +10939,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Fisch"
   },
   {
     "id": "a7848d3e-35ad-4256-85c7-fac5f393c2f3",
@@ -10969,7 +10969,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fleisch"
+    "icon": "Garnelen"
   },
   {
     "id": "be158e8b-c466-4e73-81aa-c43ab9f09217",
@@ -11107,7 +11107,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Reis"
+    "icon": "Glacé"
   },
   {
     "id": "8214d0c6-e058-40f4-ad50-faedc8903377",
@@ -11210,7 +11210,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Pommes Frites"
   },
   {
     "id": "a917de27-1dc2-401b-9c27-814ccab9c77b",
@@ -11241,7 +11241,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Chinese To Go"
   },
   {
     "id": "1d046468-8465-4d43-b475-2ae2cb2c3e19",
@@ -11272,7 +11272,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Salat"
+    "icon": "Couscous"
   },
   {
     "id": "e8154ae5-2f86-4b9e-8f77-f560c287aa72",
@@ -11427,7 +11427,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Tomaten"
+    "icon": "Pelati"
   },
   {
     "id": "063a84d2-68e2-4f2c-b737-bd0a5782871b",
@@ -11495,7 +11495,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Erbsen"
+    "icon": "Kichererbsen"
   },
   {
     "id": "cb921b25-eeac-4595-a287-cdd8df0f944f",
@@ -11626,7 +11626,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Oliven"
   },
   {
     "id": "63b553f4-8848-41ce-8050-93ce9a88377b",
@@ -11660,7 +11660,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Kohl"
   },
   {
     "id": "c4f56ae7-3e02-495d-922b-d68a85f0eeab",
@@ -11730,7 +11730,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Nudeln"
   },
   {
     "id": "b7c0eacc-80dc-45b8-bfe1-d3717c3dc04a",
@@ -11763,7 +11763,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Eier"
+    "icon": "Nudeln"
   },
   {
     "id": "937d856d-db56-4419-ae66-95a2c74dd092",
@@ -11829,7 +11829,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Torte"
+    "icon": "Nudeln"
   },
   {
     "id": "552f53b5-e833-456c-bb74-cd795cf8704b",
@@ -11965,7 +11965,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Soyasauce"
   },
   {
     "id": "c4a0631f-a1cf-4a42-b573-a675b84e3ba5",
@@ -12033,7 +12033,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Paprikapulver"
   },
   {
     "id": "8ad6d300-d9b9-46f8-ac21-ed05e64a77d6",
@@ -12068,7 +12068,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Dörrobst"
   },
   {
     "id": "f4b7a25d-130d-4716-a9ed-bebc698803ab",
@@ -12161,7 +12161,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Mayonnaise"
   },
   {
     "id": "1246fcf5-8215-40c9-9b29-84148a503844",
@@ -12194,7 +12194,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Erbsen"
+    "icon": "Dip"
   },
   {
     "id": "b41e1c8c-0cc9-46cf-b94e-85676cbfcf1d",
@@ -12385,7 +12385,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Bratensauce"
   },
   {
     "id": "97143203-b403-4045-ab06-f26ce66ecd11",
@@ -12420,7 +12420,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Gemüse"
+    "icon": "Bouillon"
   },
   {
     "id": "d64c4557-acae-4550-8eeb-36f90c5536f1",
@@ -12515,7 +12515,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Öl"
   },
   {
     "id": "ab087060-afbf-41b6-b04b-b2fe8841db2f",
@@ -12548,7 +12548,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Öl"
   },
   {
     "id": "3e92c106-4826-4a41-bc1b-10f8f3df3e3c",
@@ -12741,7 +12741,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Obst"
+    "icon": "Zwiebeln"
   },
   {
     "id": "6ddca136-5fc4-4ab4-a649-6ec0f8cabb80",
@@ -12770,7 +12770,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Peperoncini"
   },
   {
     "id": "0321bbdb-431e-4444-9fe0-a284d134a6a6",
@@ -12829,7 +12829,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Kräuter"
   },
   {
     "id": "5a892301-d92a-4a09-8635-84b9b9be07ae",
@@ -12859,7 +12859,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Vanillezucker"
   },
   {
     "id": "abee88de-a6f5-40a1-ac24-cc0d95a3cf78",
@@ -12891,7 +12891,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Schokolade"
   },
   {
     "id": "147f6528-08cc-4586-a1e9-fcd90ad009dd",
@@ -12922,7 +12922,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Vanillezucker"
   },
   {
     "id": "41b49beb-36b2-4e65-a3ad-266619b93d2f",
@@ -12951,7 +12951,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Nüsse"
   },
   {
     "id": "13f33f85-7bab-4d82-8214-a986ad085341",
@@ -12983,7 +12983,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Dörrobst"
   },
   {
     "id": "b2099879-7163-4abb-8b0d-2ba58fe91f3a",
@@ -13046,7 +13046,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Backpulver"
   },
   {
     "id": "5f04ff17-ce05-4c6f-83f6-ae91d892f8db",
@@ -13075,7 +13075,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Gelee"
   },
   {
     "id": "a738db02-fde7-4a3a-874f-dcbe75a664ec",
@@ -13104,7 +13104,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Torte"
+    "icon": "Gelee"
   },
   {
     "id": "95142183-d96c-4b6a-926b-f714fece718d",
@@ -13166,7 +13166,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kürbis"
+    "icon": "Öl"
   },
   {
     "id": "f6c27e1f-8a23-4a6d-91fc-fd261bd84634",
@@ -13204,7 +13204,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Pommes Chips"
   },
   {
     "id": "2d6ee8a7-233c-4088-98e9-0638d2f9a52a",
@@ -13269,7 +13269,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Snacks"
   },
   {
     "id": "999d95a9-7f35-40bf-adbd-23a237e5f4ee",
@@ -13334,7 +13334,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Nüsse"
   },
   {
     "id": "d2807846-dce7-4ec5-ac89-066fd0637a48",
@@ -13397,7 +13397,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Nüsse"
   },
   {
     "id": "a00f9e6a-ba59-48c3-9537-acea32e825ae",
@@ -13467,7 +13467,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Süssigkeiten"
   },
   {
     "id": "fde65bfb-d1ff-42ec-8d00-976147c38c03",
@@ -13501,7 +13501,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Süssigkeiten"
   },
   {
     "id": "f9a8de07-b3b9-4789-b4f3-55a02abf9d6e",
@@ -13535,7 +13535,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Getränke"
+    "icon": "Süssigkeiten"
   },
   {
     "id": "a0248c21-2ca2-42c3-9e4a-eecd15fbd771",
@@ -13576,7 +13576,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Schokolade"
   },
   {
     "id": "e8f0d35f-332d-4ae1-9aea-9c1821d26e2a",
@@ -13612,7 +13612,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Dessert"
   },
   {
     "id": "e078d822-3d00-47c5-9b3f-31de596a83d7",
@@ -13875,7 +13875,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Dip"
   },
   {
     "id": "0f918bdb-90fd-435c-9382-3f52ef9c2f1c",
@@ -13937,7 +13937,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Mandelmus"
   },
   {
     "id": "02fc5f47-7aa7-4710-9f28-13b0f51baf92",
@@ -13970,7 +13970,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Äpfel"
+    "icon": "Apfelsaft"
   },
   {
     "id": "f13e544f-e9e1-4a98-8411-0a21e92b0c21",
@@ -14008,7 +14008,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Orangensaft"
+    "icon": "Fruchtsaft"
   },
   {
     "id": "e709b1ed-6d12-4c06-8133-2ba574ba95cc",
@@ -14208,7 +14208,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Getränke"
+    "icon": "Prosecco"
   },
   {
     "id": "c54259aa-d312-4ac4-ac69-d29320dffa26",
@@ -14270,7 +14270,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Getränke"
+    "icon": "Rotwein"
   },
   {
     "id": "586a336b-ffa8-47c0-a087-106eaed7a6fd",
@@ -14305,7 +14305,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Bohnen"
+    "icon": "Kaffee"
   },
   {
     "id": "94c6c31c-7624-480e-82a3-63e4d8f31109",
@@ -14838,7 +14838,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Binden"
   },
   {
     "id": "8667eec0-022b-4074-93b1-0be833779454",
@@ -14870,7 +14870,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Watterondellen"
   },
   {
     "id": "812f155e-278e-4c6e-ba98-a54a1e0006d5",
@@ -15060,7 +15060,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Babynahrung"
   },
   {
     "id": "88729855-49a6-41c4-961c-94f372efc56d",
@@ -15092,7 +15092,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Milch"
+    "icon": "Babynahrung"
   },
   {
     "id": "d68e5f22-24e7-4cd6-a42e-5dcb6a88b7b7",
@@ -15123,7 +15123,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Handcreme"
   },
   {
     "id": "79889402-349a-4d68-9149-2861dd20c1f7",
@@ -15185,7 +15185,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Babynahrung"
   },
   {
     "id": "758986d9-8808-4f2c-8cb7-1f8cfcc0de1a",
@@ -15216,7 +15216,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Salz"
+    "icon": "Geschirrsalz"
   },
   {
     "id": "073cc22d-f085-421a-833d-3f24ab9c7785",
@@ -15246,7 +15246,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Geschirrglanz"
   },
   {
     "id": "679ad93b-6291-44c7-8a7b-bcdf0c9b433b",
@@ -15351,7 +15351,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "WC Reiniger"
   },
   {
     "id": "b77d1f38-473e-4508-8bbf-7b43eb7a4400",
@@ -15413,7 +15413,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Milch"
+    "icon": "Putzmittel"
   },
   {
     "id": "aaf0a9bf-d642-4c96-8b53-dcc9588fa1ae",
@@ -15476,7 +15476,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Haushaltspapier"
   },
   {
     "id": "3c7d62eb-2ab2-43ce-8f32-7bd73aab0cae",
@@ -15507,7 +15507,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Schwamm"
   },
   {
     "id": "177eab49-5b1d-4a27-8b6b-7544c081b58c",
@@ -15569,7 +15569,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Frischhaltefolie"
   },
   {
     "id": "773d66eb-f076-46d9-acbe-cf76fe535a36",
@@ -15691,7 +15691,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Schwamm"
   },
   {
     "id": "ed2d9434-872a-4e04-9118-8f9f17f73af7",
@@ -15722,6 +15722,6 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Allgemein"
+    "icon": "Abfallsäcke"
   }
 ]
