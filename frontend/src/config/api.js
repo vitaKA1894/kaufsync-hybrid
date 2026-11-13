@@ -19,8 +19,8 @@ export function getApiBaseUrl() {
   }
 
   if (Capacitor.isNativePlatform()) {
-    // Standard-Fallback für lokales Netzwerk (deine aktuelle PC-WLAN-IP)
-    return 'http://192.168.1.21:8000';
+    // Standard-Backend für mobile App
+    return 'https://einkaufsliste.kotrini.de';
   }
 
   return ''; // Web: relative Pfade
