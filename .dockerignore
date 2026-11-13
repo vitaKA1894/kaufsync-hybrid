@@ -1,0 +1,20 @@
+.git
+.github
+.gitignore
+.dockerignore
+*.png
+*.jpg
+test-results
+
+# Frontend
+frontend/node_modules
+frontend/dist
+frontend/android
+
+# Backend
+backend/venv
+backend/__pycache__
+backend/*.pyc
+backend/*.db
+backend/*.log
+backend/static
