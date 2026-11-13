@@ -685,14 +685,12 @@ onUnmounted(() => {
 }
 .options-trigger:hover { background: rgba(255,255,255,0.05); }
 
-/* --- 5 LOGOS WIEDERHERGESTELLT --- */
+/* --- SUPERMARKT AUSWAHL MODAL (MODERN 4-SPALTEN GRID) --- */
 .preset-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px 6px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px 8px;
   margin-bottom: 24px;
-  max-height: 280px;
-  /* Scrollen verhindern, falls möglich */
   overflow: visible; 
   padding: 4px;
 }
@@ -700,22 +698,53 @@ onUnmounted(() => {
 
 .preset-btn {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
-  background: transparent; border: 2px solid transparent; border-radius: 12px;
-  padding: 6px 2px; cursor: pointer; width: 100%;
-  transition: all 0.2s ease;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 8px 4px; cursor: pointer; width: 100%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.preset-btn:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+.preset-btn:active {
+  transform: scale(0.97);
+}
+.preset-btn.active {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.25);
+  transform: scale(1.02);
 }
 
 .store-svg-container {
-  /* Größe 50px für die breitere Ansicht */
-  width: 50px; height: 50px; background: white; border-radius: 12px; padding: 6px; 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center;
+  width: 46px; height: 46px; background: white; border-radius: 12px; padding: 6px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+  transition: transform 0.2s ease;
+}
+.preset-btn.active .store-svg-container {
+  transform: scale(1.04);
 }
 .store-svg-container img { width: 100%; height: 100%; object-fit: contain; }
 
-.preset-btn span { font-size: 12px; color: var(--ks-text-soft); text-align: center; word-break: break-word; line-height: 1.2; }
-.preset-btn:hover { background: rgba(255,255,255,0.06); }
-.preset-btn.active { background: var(--ks-primary-container); border-color: var(--ks-primary); }
-.preset-btn.active span { color: var(--ks-primary); font-weight: 600; }
+.preset-btn span {
+  font-size: 11px;
+  font-weight: 500;
+  color: #cbd5e1;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 2px;
+  line-height: 1.2;
+}
+.preset-btn.active span {
+  color: #38bdf8;
+  font-weight: 600;
+}
 /* --------------------------------------- */
 
 .empty-state { text-align: center; margin-top: 60px; color: var(--ks-text-muted); }

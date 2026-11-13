@@ -10,12 +10,12 @@
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
-  --ks-primary: #a8c7fa;
-  --ks-on-primary: #062e6f;
-  --ks-primary-container: rgba(168, 199, 250, 0.14);
+  --ks-primary: #38bdf8;
+  --ks-on-primary: #ffffff;
+  --ks-primary-container: rgba(56, 189, 248, 0.16);
 
-  --ks-secondary: #c2e7ff;
-  --ks-on-secondary: #001d31;
+  --ks-secondary: #818cf8;
+  --ks-on-secondary: #ffffff;
 
   --ks-bg: #0f1115;
   --ks-surface: rgba(18, 19, 23, 0.92);
@@ -24,7 +24,7 @@
   --ks-surface-4: rgba(48, 52, 61, 0.98);
 
   --ks-border: rgba(255, 255, 255, 0.08);
-  --ks-border-strong: rgba(168, 199, 250, 0.22);
+  --ks-border-strong: rgba(56, 189, 248, 0.3);
 
   --ks-text: #e7eaf0;
   --ks-text-soft: #c2c7d0;
@@ -359,11 +359,13 @@ img {
 
 .ks-btn-text {
   background: transparent;
-  color: var(--ks-primary);
+  color: var(--ks-text-soft);
+  font-weight: 500;
 }
 
 .ks-btn-text:hover {
-  background: rgba(168, 199, 250, 0.12);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ks-text);
 }
 
 .ks-btn-tonal {
@@ -373,16 +375,19 @@ img {
 }
 
 .ks-btn-tonal:hover {
-  background: rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .ks-btn-filled {
-  background: var(--ks-primary);
-  color: var(--ks-on-primary);
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 600;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
 }
 
 .ks-btn-filled:hover {
-  filter: brightness(1.04);
+  filter: brightness(1.08);
+  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
 }
 
 .ks-fab-bar {
@@ -396,29 +401,36 @@ img {
 .ks-fab {
   width: min(100%, calc(var(--ks-page-width) - 32px));
   margin: 0 auto;
-  min-height: 60px;
+  min-height: 56px;
   border: none;
-  border-radius: 22px;
-  background: linear-gradient(180deg, #b2cdfa, #9ec0f7);
-  color: #032a66;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 12px;
-  box-shadow: 0 12px 28px rgba(8, 16, 31, 0.34);
+  gap: 10px;
+  box-shadow: 0 10px 25px -4px rgba(56, 189, 248, 0.4), 0 4px 12px rgba(0, 0, 0, 0.4);
   cursor: pointer;
-  font-weight: 600;
+  font-weight: 700;
+  font-size: 15px;
   letter-spacing: 0.01em;
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
 }
 
 .ks-fab svg {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   fill: currentColor;
 }
 
 .ks-fab:hover {
-  filter: brightness(1.02);
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.ks-fab:active {
+  transform: scale(0.98);
 }
 
 .scrim-fade-enter-active,

@@ -432,7 +432,12 @@ const toggleItemStatus = async (item) => {
     }
   }
 
+  // Optimistisches sofortiges Update für 0ms Verzögerung in der UI
   item.status = newStatus;
+  const itemIdx = items.value.findIndex(i => i.id === item.id);
+  if (itemIdx !== -1) {
+    items.value[itemIdx] = { ...items.value[itemIdx], status: newStatus };
+  }
 
   try {
     const token = localStorage.getItem('token');
@@ -916,7 +921,7 @@ onUnmounted(() => {
                   {{ formatCategoryName(group.name) }} <span :style="{ backgroundColor: 'color-mix(in srgb, ' + group.def.color + ' 20%, transparent)', color: group.def.color }" style="padding: 2px 8px; border-radius: 9999px;">{{ group.items.length }}</span>
               </h2>
 
-            <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 ga w-full">
+            <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full">
               <div v-for="item in group.items" :key="item.id" class="grid-card active" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
@@ -940,16 +945,16 @@ onUnmounted(() => {
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2zm4 5h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 </span>
               </div>
-              <div class="card-text-area mb-3">
-                <span class="item-name mb-1">{{ item.name }}</span>
-                <span class="item-regular-tags" v-if="getRegularTags(item.tags).length > 0">
-                  {{ formatTags(item.tags) }}
+              <div class="card-text-area mb-2">
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
+                  {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
                 </span>
               </div>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
-                <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center">-</button>
+                <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
                 <span class="qty-val" :style="{ color: group.def.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center" :style="{ backgroundColor: group.def.color }">+</button>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: group.def.color }">+</button>
               </div>
               </div>
             </transition-group>
@@ -957,7 +962,7 @@ onUnmounted(() => {
           </section>
         </template>
         <template v-else>
-          <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 ga w-full" style="padding-top: 0;">
+          <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full" style="padding-top: 0;">
             <div v-for="item in sortedActiveItems" :key="item.id" class="grid-card active" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
@@ -981,16 +986,16 @@ onUnmounted(() => {
                   <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2zm4 5h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
                 </span>
               </div>
-              <div class="card-text-area mb-3">
-                <span class="item-name mb-1">{{ item.name }}</span>
-                <span class="item-regular-tags" v-if="getRegularTags(item.tags).length > 0">
-                  {{ formatTags(item.tags) }}
+              <div class="card-text-area mb-2">
+                <span class="item-name">{{ item.name }}</span>
+                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
+                  {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
                 </span>
               </div>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
-                <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center">-</button>
+                <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
                 <span class="qty-val" :style="{ color: item._groupDef.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center" :style="{ backgroundColor: item._groupDef.color }">+</button>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: item._groupDef.color }">+</button>
               </div>
             </div>
 </transition-group>
@@ -1022,20 +1027,22 @@ onUnmounted(() => {
                   </button>
               </h2>
         
-        <div class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 ga w-full">
+        <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full">
           <div v-for="item in completedItems" :key="item.id" class="grid-card completed" @click="toggleItemStatus(item)">
               <div class="w-[55px] h-[55px] mb-2 rounded-xl flex items-center justify-center" :style="{ color: getCategoryDef(item.category).bg, backgroundColor: 'rgba(255, 255, 255, 0.02)' }" style="width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
                 <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="55" style="opacity: 0.5;" />
               </div>
-            <div class="card-text-area mb-3">
+            <div class="card-text-area mb-2">
               <span class="item-name" style="opacity: 0.5; text-decoration: line-through;">{{ item.name }}</span>
-              <span class="item-quantity" v-if="formatQuantity(item)" style="opacity: 0.5;">{{ formatQuantity(item) }}</span>
+              <span class="item-regular-tags" style="opacity: 0.5;">
+                {{ formatQuantity(item) ? (formatQuantity(item) + ' ' + (item.unit || '')) : '&nbsp;' }}
+              </span>
             </div>
             <button class="delete-btn" @click.stop="confirmDeleteItem(item)" aria-label="Löschen" style="margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: center; opacity: 0.8;">
               <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: var(--ks-text-muted);"><path d="M7 21q-.825 0-1.412-.587Q5 19.825 5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413Q17.825 21 17 21Zm2-4h2V8H9Zm4 0h2V8h-2Z"/></svg>
             </button>
           </div>
-        </div>
+        </transition-group>
             </div>
       </section>
     </div>
@@ -1177,18 +1184,29 @@ onUnmounted(() => {
 
 .grid-card {
   display: flex; flex-direction: column;
-  border-radius: 1rem;
-  padding: 8px;
+  border-radius: 1.1rem;
+  padding: 10px 8px;
   cursor: pointer; text-align: center;
-  transition: transform 0.1s, opacity 0.2s, background 0.2s, border-color 0.3s;
   position: relative;
   background: #1e293b !important;
-  border: none;
-  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  min-height: 172px;
+  height: 100%;
   overflow: hidden;
-  justify-content: flex-start;
+  justify-content: space-between;
   align-items: center;
   color: white !important;
+  touch-action: manipulation;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.15s ease, border-color 0.2s ease;
+}
+
+.grid-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.grid-card:active {
+  transform: scale(0.97);
 }
 
 .grid-card-glow {
@@ -1221,22 +1239,30 @@ onUnmounted(() => {
 
 .card-text-area {
   display: flex; flex-direction: column;
-  margin-top: 4px;
+  justify-content: center;
+  align-items: center;
+  height: 38px;
   width: 100%;
+  margin: 4px 0 6px;
   position: relative;
   z-index: 1;
 }
 
 .item-name {
-  font-size: 13px; font-weight: 600; line-height: 1.2;
+  font-size: 13px; font-weight: 600; line-height: 1.25;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: white;
+  width: 100%;
+  padding: 0 4px;
+  color: #f8fafc;
 }
 
 .item-regular-tags {
-  font-size: 10px; color: #94a3b8; line-height: 1.2;
+  font-size: 11px; color: #94a3b8; line-height: 1.2;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  margin-top: 2px;
+  width: 100%;
+  padding: 0 4px;
+  height: 14px;
+  display: block;
 }
 
 .quantity-controls {
@@ -1283,30 +1309,50 @@ onUnmounted(() => {
 .input-container > * { pointer-events: auto; }
 
 .add-trigger-btn {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; max-width: var(--ks-page-width);
-    background: var(--ks-primary);
-    color: var(--ks-on-primary);
-    border: none; border-radius: 32px;
-    padding: 16px; font-size: 16px; font-weight: 600;
-    cursor: pointer;
-    box-shadow: 0 4px 12px var(--ks-primary-container);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; max-width: var(--ks-page-width);
+  min-height: 56px;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none; border-radius: 20px;
+  padding: 14px 20px; font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 25px -4px rgba(56, 189, 248, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
 }
-.add-trigger-btn svg { width: 24px; height: 24px; fill: currentColor; }
+.add-trigger-btn:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.add-trigger-btn:active {
+  transform: scale(0.98);
+}
+.add-trigger-btn svg { width: 22px; height: 22px; fill: currentColor; }
 
 .barcode-trigger-btn {
-    flex-shrink: 0;
-    width: 56px;
-    padding: 0;
-    border-radius: 32px;
-    background: var(--ks-surface-3);
-    color: var(--ks-primary);
-    border: none;
-    box-shadow: 0 4px 12px var(--ks-primary-container);
+  flex-shrink: 0;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  border-radius: 18px;
+  background: rgba(30, 41, 59, 0.95);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease, border-color 0.2s ease;
+}
+.barcode-trigger-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+}
+.barcode-trigger-btn:active {
+  transform: scale(0.95);
 }
 .barcode-trigger-btn svg {
-    width: 24px;
-    height: 24px;
+  width: 22px;
+  height: 22px;
 }
 
 /* Modal & Sheets */
@@ -1372,19 +1418,25 @@ onUnmounted(() => {
 .user-name { font-weight: 500; color: var(--ks-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .user-email { font-size: 12px; color: var(--ks-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .no-results { color: var(--ks-text-muted); font-size: 14px; margin-top: 12px; text-align: center; }
-</style>
+
+.ks-grid {
+  position: relative;
+}
+
 .list-move,
 .list-enter-active,
 .list-leave-active {
-  transition: all 0.5s ease;
+  transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .list-enter-from,
 .list-leave-to {
   opacity: 0;
-  transform: translateX(30px);
+  transform: scale(0.85);
 }
 
 .list-leave-active {
   position: absolute;
+  pointer-events: none;
 }
+</style>
