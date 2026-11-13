@@ -79,15 +79,23 @@ const goToProfile = () => router.push('/profile');
 
 const wsConnections = new Map();
 let userWs = null;
+let reconnectTimer = null;
+let isUnmounted = false;
 
 const setupWebSockets = () => {
-  const isOnline = navigator.onLine;
-  if (!isOnline) return;
+  if (isUnmounted || !navigator.onLine) return;
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const tokenQuery = `?token=${encodeURIComponent(token)}`;
 
-  if (currentUser.value && !userWs) {
+  if (currentUser.value && (!userWs || userWs.readyState === WebSocket.CLOSED)) {
     try {
-      userWs = new WebSocket(wsUrl(`/ws/user/${currentUser.value.id}`));
+      userWs = new WebSocket(wsUrl(`/ws/user/${currentUser.value.id}${tokenQuery}`));
       userWs.onerror = (error) => console.warn("User WebSocket Fehler", error);
+      userWs.onclose = () => {
+        userWs = null;
+        scheduleReconnect();
+      };
       userWs.onmessage = (event) => {
         const data = JSON.parse(event.data);
         if (data.event === 'LIST_UPDATED') {
@@ -96,15 +104,20 @@ const setupWebSockets = () => {
       };
     } catch (err) {
       console.warn("Konnte User WebSocket nicht aufbauen", err);
+      scheduleReconnect();
     }
   }
 
-
   shoppingLists.value.forEach(list => {
-    if (!wsConnections.has(list.id)) {
+    const existing = wsConnections.get(list.id);
+    if (!existing || existing.readyState === WebSocket.CLOSED) {
       try {
-        const ws = new WebSocket(wsUrl(`/ws/${list.id}`));
+        const ws = new WebSocket(wsUrl(`/ws/${list.id}${tokenQuery}`));
         ws.onerror = (error) => console.warn(`WebSocket Fehler für Liste ${list.id}`, error);
+        ws.onclose = () => {
+          wsConnections.delete(list.id);
+          scheduleReconnect();
+        };
         ws.onmessage = (event) => {
           const data = JSON.parse(event.data);
 
@@ -114,9 +127,7 @@ const setupWebSockets = () => {
             if (targetList && targetList.items) {
               const index = targetList.items.findIndex(i => i.id === incomingItem.id);
               if (index !== -1) {
-                // Re-assign the entire object to reliably trigger reactivity
                 targetList.items[index] = { ...targetList.items[index], ...incomingItem };
-
                 if (incomingItem.category) targetList.items[index].category = incomingItem.category;
               } else {
                 targetList.items.push(incomingItem);
@@ -137,7 +148,20 @@ const setupWebSockets = () => {
   });
 };
 
+const scheduleReconnect = () => {
+  if (isUnmounted || !navigator.onLine || reconnectTimer) return;
+  reconnectTimer = setTimeout(() => {
+    reconnectTimer = null;
+    setupWebSockets();
+  }, 3500);
+};
+
 const closeWebSockets = () => {
+  isUnmounted = true;
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
   wsConnections.forEach((ws) => {
     ws.close();
   });

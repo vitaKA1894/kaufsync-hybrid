@@ -2,6 +2,8 @@
 node_modules/
 dist/
 .env
+frontend/.env
+test-results/
 
 # Backend (Python/FastAPI)
 __pycache__/
@@ -10,11 +12,8 @@ env/
 *.pyc
 *.db
 *.sqlite3
+*.log
 
 # OS generierte Dateien
 .DS_Store
 Thumbs.db
-# Ignore env for docker
-.env
-node_modules/
-dist/

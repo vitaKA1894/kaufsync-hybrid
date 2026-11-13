@@ -37,6 +37,8 @@ const changelog = ref([]);
 const changelogFilter = ref('all'); // 'all', 'added', 'completed'
 
 let ws = null;
+let wsReconnectTimer = null;
+let isViewUnmounted = false;
 const isOnline = ref(navigator.onLine);
 
 const isCompactView = ref(localStorage.getItem('ks_compact_view') === 'true');
@@ -253,11 +255,31 @@ const loadItems = async () => {
   }
 };
 
+const scheduleWebSocketReconnect = () => {
+  if (isViewUnmounted || !isOnline.value || wsReconnectTimer) return;
+  wsReconnectTimer = setTimeout(() => {
+    wsReconnectTimer = null;
+    setupWebSocket();
+  }, 3500);
+};
+
 const setupWebSocket = () => {
-  if (!isOnline.value) return;
+  if (isViewUnmounted || !isOnline.value) return;
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  const tokenQuery = `?token=${encodeURIComponent(token)}`;
+
+  if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+    return;
+  }
+
   try {
-    ws = new WebSocket(wsUrl(`/ws/${listId}`));
+    ws = new WebSocket(wsUrl(`/ws/${listId}${tokenQuery}`));
     ws.onerror = (error) => console.warn("WebSocket Fehler", error);
+    ws.onclose = () => {
+      ws = null;
+      scheduleWebSocketReconnect();
+    };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.event === 'ITEM_UPDATED') {
@@ -288,6 +310,7 @@ const setupWebSocket = () => {
     };
   } catch (err) {
     console.warn("Konnte WebSocket nicht aufbauen:", err);
+    scheduleWebSocketReconnect();
   }
 };
 
@@ -713,7 +736,15 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  if (ws) ws.close();
+  isViewUnmounted = true;
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = null;
+  }
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
   window.removeEventListener('online', updateOnlineStatus);
   window.removeEventListener('offline', updateOnlineStatus);
 });

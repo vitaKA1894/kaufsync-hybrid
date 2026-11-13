@@ -33,6 +33,13 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
+class UserPublicResponse(BaseModel):
+    id: str
+    display_name: str
+
+    class Config:
+        from_attributes = True
+
 class NotificationResponse(BaseModel):
     id: str
     title: str

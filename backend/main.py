@@ -1,14 +1,14 @@
 import os
-from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, Response, BackgroundTasks
+from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, Response, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from typing import List, Dict
-from datetime import timedelta
+from typing import List, Dict, Optional
+from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
 import models, schemas, auth
-from database import engine, get_db
+from database import engine, get_db, SessionLocal
 import json
 from pywebpush import webpush, WebPushException
 from dotenv import load_dotenv
@@ -111,26 +111,47 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
-# --- WEBSOCKET ENDPUNKT ---
+# --- WEBSOCKET ENDPUNKTE (MIT AUTH & BERECHTIGUNGSPRÜFUNG) ---
 @app.websocket("/ws/{list_id}")
-async def websocket_endpoint(websocket: WebSocket, list_id: str):
-    await manager.connect(websocket, list_id)
+async def websocket_endpoint(websocket: WebSocket, list_id: str, token: Optional[str] = Query(None)):
+    db = SessionLocal()
     try:
+        user = auth.get_user_from_token(token, db) if token else None
+        if not user or user.status != "active":
+            await websocket.close(code=4001, reason="Nicht authentifiziert")
+            return
+
+        db_list = db.query(models.List).filter(models.List.id == list_id).first()
+        if not db_list or (db_list.created_by != user.id and user not in db_list.members):
+            await websocket.close(code=4003, reason="Keine Berechtigung für diese Liste")
+            return
+
+        await manager.connect(websocket, list_id)
         while True:
-            # Wir halten die Verbindung offen und warten auf Disconnects
+            # Verbindung offen halten und auf Disconnects warten
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket, list_id)
+    finally:
+        db.close()
 
 
 @app.websocket("/ws/user/{user_id}")
-async def user_websocket_endpoint(websocket: WebSocket, user_id: str):
-    await manager.connect_user(websocket, user_id)
+async def user_websocket_endpoint(websocket: WebSocket, user_id: str, token: Optional[str] = Query(None)):
+    db = SessionLocal()
     try:
+        user = auth.get_user_from_token(token, db) if token else None
+        if not user or user.status != "active" or user.id != user_id:
+            await websocket.close(code=4001, reason="Nicht authentifiziert")
+            return
+
+        await manager.connect_user(websocket, user_id)
         while True:
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect_user(websocket, user_id)
+    finally:
+        db.close()
 
 # --- REST ENDPUNKTE ---
 @app.get("/api/health")
@@ -206,6 +227,15 @@ def login(login_data: schemas.LoginRequest, db: Session = Depends(get_db)):
     user = db.query(models.User).filter(models.User.email == login_data.email).first()
     if not user or not auth.verify_password(login_data.password, user.password_hash):
         raise HTTPException(status_code=400, detail="Falsche E-Mail oder Passwort")
+
+    # Status prüfen (pending/locked)
+    if user.status != "active":
+        if user.status == "pending":
+            raise HTTPException(status_code=403, detail="Dein Benutzerkonto wartet noch auf Freischaltung durch einen Administrator.")
+        elif user.status == "locked":
+            raise HTTPException(status_code=403, detail="Dein Benutzerkonto wurde gesperrt.")
+        else:
+            raise HTTPException(status_code=403, detail="Konto nicht aktiv.")
     
     # Token generieren
     access_token = auth.create_access_token(
@@ -294,7 +324,7 @@ def admin_generate_reset_token(user_id: str, db: Session = Depends(get_db), admi
     token_entry = models.PasswordResetToken(
         user_id=user.id,
         token=auth.get_password_hash(plain_token),
-        expires_at=datetime.utcnow() + timedelta(hours=24)
+        expires_at=datetime.now(timezone.utc) + timedelta(hours=24)
     )
     db.add(token_entry)
     db.commit()
@@ -309,11 +339,11 @@ class ResetPasswordConfirm(BaseModel):
 
 @app.post("/api/auth/reset-password")
 def reset_password(payload: ResetPasswordConfirm, db: Session = Depends(get_db)):
-    from datetime import datetime
+    now_utc = datetime.now(timezone.utc)
     tokens = db.query(models.PasswordResetToken).filter(
         models.PasswordResetToken.user_id == payload.user_id,
         models.PasswordResetToken.is_used == False,
-        models.PasswordResetToken.expires_at > datetime.utcnow()
+        models.PasswordResetToken.expires_at > now_utc
     ).all()
 
     valid_token = None
@@ -347,7 +377,7 @@ class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
 
-@app.get("/api/users/search", response_model=list[schemas.UserResponse])
+@app.get("/api/users/search", response_model=list[schemas.UserPublicResponse])
 def search_users(
     q: str,
     db: Session = Depends(get_db),
@@ -506,6 +536,10 @@ async def delete_list(
     db_list = db.query(models.List).filter(models.List.id == list_id).first()
     if not db_list:
         raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder dürfen Items anlegen
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
         
     # Nur der Ersteller darf die Liste komplett löschen
     if db_list.created_by != current_user.id:
@@ -684,6 +718,10 @@ async def create_item(
     db_list = db.query(models.List).filter(models.List.id == list_id).first()
     if not db_list:
         raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder dürfen Items anlegen
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
         
     new_item = models.Item(
         list_id=list_id, name=item_data.name, category=item_data.category,
@@ -755,6 +793,10 @@ async def start_shopping(
     if not db_list:
         raise HTTPException(status_code=404, detail="Liste nicht gefunden")
 
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder dürfen Items anlegen
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
+
     # LOG ACTIVITY
     log_entry = models.ActivityLog(
         list_id=list_id,
@@ -801,8 +843,7 @@ async def get_list_changelog(
         raise HTTPException(status_code=404, detail="Liste nicht gefunden")
 
     # Check if user is member or creator
-    is_member = any(member.id == current_user.id for member in db_list.members)
-    if db_list.created_by != current_user.id and not is_member:
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
         raise HTTPException(status_code=403, detail="Kein Zugriff auf diese Liste")
 
     logs = db.query(models.ActivityLog).filter(
@@ -830,6 +871,10 @@ async def update_item(
     db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item nicht gefunden")
+
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder der Liste dürfen Items ändern
+    if db_item.shopping_list.created_by != current_user.id and current_user not in db_item.shopping_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für dieses Item")
     
     if item_data.name is not None: db_item.name = item_data.name
     if item_data.unit is not None: db_item.unit = item_data.unit
@@ -882,6 +927,10 @@ async def delete_item(
     db_item = db.query(models.Item).filter(models.Item.id == item_id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Item nicht gefunden")
+
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder der Liste dürfen Items ändern
+    if db_item.shopping_list.created_by != current_user.id and current_user not in db_item.shopping_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für dieses Item")
     
     list_id = db_item.list_id
     item_name = db_item.name
