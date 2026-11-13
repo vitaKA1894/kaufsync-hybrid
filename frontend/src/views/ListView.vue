@@ -883,12 +883,24 @@ onUnmounted(() => {
         <p class="sheet-support">Sortiere die Kategorien, damit sie deinem Weg durch den Markt entsprechen.</p>
         
         <div class="sort-list" ref="sortListRef">
-          <div v-for="(catName, index) in categoryOrder" :key="catName" class="sort-item" :data-id="catName" :style="{ background: getCategoryDef(catName).bg, color: '#0f172a', border: 'none' }">
-            <div class="sort-info">
-               <span>{{ catName }}</span>
+          <div
+            v-for="(catName, index) in categoryOrder"
+            :key="catName"
+            class="sort-item"
+            :data-id="catName"
+          >
+            <div class="sort-info flex items-center gap-3">
+               <div
+                 class="sort-category-glow-bar"
+                 :style="{
+                   backgroundColor: getCategoryDef(catName).color,
+                   boxShadow: '0 0 10px ' + getCategoryDef(catName).color
+                 }"
+               ></div>
+               <span class="sort-category-name text-slate-100 font-medium text-sm">{{ formatCategoryName(catName) }}</span>
             </div>
             <div class="sort-actions">
-              <span class="drag-handle" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
+              <span class="drag-handle" :style="{ color: getCategoryDef(catName).color }" style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px;">
                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 15v-2h18v2H3Zm0-4V9h18v2H3Z"/></svg>
               </span>
             </div>
@@ -1027,19 +1039,24 @@ onUnmounted(() => {
                   </button>
               </h2>
         
-        <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full">
-          <div v-for="item in completedItems" :key="item.id" class="grid-card completed" @click="toggleItemStatus(item)">
-              <div class="w-[55px] h-[55px] mb-2 rounded-xl flex items-center justify-center" :style="{ color: getCategoryDef(item.category).bg, backgroundColor: 'rgba(255, 255, 255, 0.02)' }" style="width: 55px; height: 55px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px;">
-                <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="55" style="opacity: 0.5;" />
-              </div>
-            <div class="card-text-area mb-2">
-              <span class="item-name" style="opacity: 0.5; text-decoration: line-through;">{{ item.name }}</span>
-              <span class="item-regular-tags" style="opacity: 0.5;">
-                {{ formatQuantity(item) ? (formatQuantity(item) + ' ' + (item.unit || '')) : '&nbsp;' }}
-              </span>
-            </div>
-            <button class="delete-btn" @click.stop="confirmDeleteItem(item)" aria-label="Löschen" style="margin-top: auto; padding-top: 12px; display: flex; align-items: center; justify-content: center; opacity: 0.8;">
-              <svg viewBox="0 0 24 24" style="width: 24px; height: 24px; fill: var(--ks-text-muted);"><path d="M7 21q-.825 0-1.412-.587Q5 19.825 5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413Q17.825 21 17 21Zm2-4h2V8H9Zm4 0h2V8h-2Z"/></svg>
+        <transition-group name="list" tag="div" class="flex flex-wrap gap-2 w-full pt-1">
+          <div
+            v-for="item in completedItems"
+            :key="item.id"
+            class="completed-chip inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-800/80 border border-slate-700/60 hover:border-slate-500 text-slate-300 shadow-sm cursor-pointer active:scale-95 transition-all select-none"
+            @click="toggleItemStatus(item)"
+          >
+            <span class="w-4 h-4 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-[10px] font-bold">✓</span>
+            <span class="text-xs line-through text-slate-400 font-medium">
+              {{ item.name }}
+              <span v-if="formatQuantity(item)" class="text-[11px] text-slate-500 ml-0.5">({{ formatQuantity(item) }} {{ item.unit || '' }})</span>
+            </span>
+            <button
+              class="completed-chip-delete w-4 h-4 rounded flex items-center justify-center text-slate-500 hover:text-rose-400 ml-0.5 text-xs transition-colors"
+              @click.stop="confirmDeleteItem(item)"
+              aria-label="Löschen"
+            >
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
           </div>
         </transition-group>
@@ -1391,14 +1408,27 @@ onUnmounted(() => {
 /* Sort List */
 .sort-list {
   display: flex; flex-direction: column; gap: 8px;
-
 }
 .sort-item {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 16px; background: rgba(255,255,255,0.03);
-  border-radius: var(--ks-radius-xs); border: 1px solid var(--ks-border);
+  padding: 12px 14px;
+  background: rgba(30, 41, 59, 0.75);
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   cursor: grab;
   user-select: none;
+  transition: border-color 0.2s ease, transform 0.15s ease;
+}
+.sort-item:active {
+  cursor: grabbing;
+  transform: scale(0.99);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+.sort-category-glow-bar {
+  width: 4px;
+  height: 22px;
+  border-radius: 999px;
+  flex-shrink: 0;
 }
 .sort-info { display: flex; align-items: center; gap: 12px; font-weight: 500; }
 .sort-actions { display: flex; gap: 4px; }

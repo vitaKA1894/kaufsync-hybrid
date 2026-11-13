@@ -704,8 +704,9 @@ watch(() => props.isOpen, (newVal) => {
 .modal-backdrop {
   position: fixed;
   top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(11, 15, 23, 0.45);
+  backdrop-filter: blur(1.5px);
+  -webkit-backdrop-filter: blur(1.5px);
   z-index: 100;
   display: flex;
   align-items: flex-end; /* Align bottom for sheet */
@@ -713,15 +714,20 @@ watch(() => props.isOpen, (newVal) => {
 }
 
 .modal-content {
-  background: #0f172a; /* bg-slate-900 */
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: none;
   width: 100%;
   max-width: var(--ks-page-width);
-  max-height: 90vh; /* Fixed max height for the sheet */
+  max-height: 85vh; /* Fixed max height for the sheet */
   display: flex;
   flex-direction: column;
-  border-radius: 24px 24px 0 0;
+  border-radius: 28px 28px 0 0;
   padding: 16px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.6);
   transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
