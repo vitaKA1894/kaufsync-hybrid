@@ -1042,8 +1042,8 @@ onUnmounted(() => {
                 <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
-                  {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
+                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length, 'has-marquee': formatTags(item.tags).length > 13 }">
+                  <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
@@ -1085,8 +1085,8 @@ onUnmounted(() => {
                 <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
-                  {{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}
+                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length, 'has-marquee': formatTags(item.tags).length > 13 }">
+                  <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
@@ -1411,12 +1411,42 @@ onUnmounted(() => {
 }
 
 .item-regular-tags {
-  font-size: 11px; color: #94a3b8; line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.2;
   width: 100%;
   padding: 0 4px;
   height: 14px;
   display: block;
+  text-align: center;
+}
+
+.item-regular-tags-text {
+  display: inline-block;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Marquee Ping-Pong bei langen Tags/Constellations */
+.item-regular-tags.has-marquee {
+  text-align: left;
+  mask-image: linear-gradient(90deg, transparent 0%, black 6px, black calc(100% - 6px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, black 6px, black calc(100% - 6px), transparent 100%);
+}
+
+.item-regular-tags.has-marquee .item-regular-tags-text {
+  max-width: none !important;
+  overflow: visible;
+  text-overflow: clip;
+  padding-left: 2px;
+  animation: marquee-pingpong-tags 7s ease-in-out infinite alternate;
+}
+
+@keyframes marquee-pingpong-tags {
+  0%, 25% { transform: translateX(0); }
+  75%, 100% { transform: translateX(calc(-100% + 75px)); }
 }
 
 .quantity-controls {

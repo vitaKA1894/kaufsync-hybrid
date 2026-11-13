@@ -341,7 +341,8 @@
       "constellations": [
         "Bio",
         "Regional",
-        "125g Schale"
+        "125g Schale",
+        "250g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -523,7 +524,9 @@
         "Saft",
         "Bio",
         "Sauer",
-        "Backen"
+        "Backen",
+        "200g Schale",
+        "350g"
       ],
       "global_meta": [
         "Dringend",
@@ -636,8 +639,8 @@
       ],
       "constellations": [
         "TK",
-        "Konserve n & Möhren",
-        "Frische nschoten",
+        "Konserve Erbsen & Möhren",
+        "Frische Erbsenschoten",
         "Grün",
         "Süß",
         "Iglo"
@@ -669,7 +672,8 @@
         "Süß",
         "Gewaschen",
         "250g Schale",
-        "500g Schale"
+        "500g Schale",
+        "1 kg"
       ],
       "global_meta": [
         "Dringend",
@@ -982,7 +986,8 @@
         "Waldheidelbeeren",
         "125 g",
         "300 g",
-        "500g Schale"
+        "500g Schale",
+        "250g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -1009,7 +1014,8 @@
         "Bio",
         "Regional",
         "125g Schale",
-        "250g Schale"
+        "250g Schale",
+        "500g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -1100,7 +1106,8 @@
         "Rot",
         "Schwarz",
         "Bio",
-        "250g Schale"
+        "250g Schale",
+        "500g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -1261,7 +1268,9 @@
         "Sauer",
         "Bio",
         "Regional",
-        "Saisonal"
+        "Saisonal",
+        "500g Schale",
+        "1 kg"
       ],
       "global_meta": [
         "Dringend",
@@ -1890,7 +1899,7 @@
         "Topf",
         "Teebeutel",
         "Kräuter",
-        "Toastfrischend"
+        "Erfrischend"
       ],
       "global_meta": [
         "Dringend",
@@ -1951,10 +1960,10 @@
         "5"
       ],
       "constellations": [
-        "Grüne n ohne Kern",
-        "Schwarze n geschwärzt",
-        "Grüne n mit Knoblauch",
-        "Kalamata n mit Kern",
+        "Grüne Oliven ohne Kern",
+        "Schwarze Oliven geschwärzt",
+        "Grüne Oliven mit Knoblauch",
+        "Kalamata Oliven mit Kern",
         "Glas",
         "Snack",
         "Mediterran",
@@ -2285,7 +2294,9 @@
       "constellations": [
         "Klassisch",
         "Exotisch",
-        "Deko"
+        "Deko",
+        "100g Schale",
+        "200g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -2317,7 +2328,9 @@
         "TK",
         "Sauer",
         "Wildobst",
-        "Beilagen"
+        "Beilagen",
+        "250g Schale",
+        "500g Schale"
       ],
       "global_meta": [
         "Dringend",
@@ -3554,7 +3567,10 @@
         "Weide",
         "Backen",
         "250 g",
-        "500 g"
+        "500 g",
+        "Kerrygold",
+        "Meggle",
+        "Weihenstephan"
       ],
       "global_meta": [
         "Dringend",
@@ -3918,7 +3934,9 @@
         "Streichfähig",
         "150 g",
         "200 g",
-        "300 g"
+        "300 g",
+        "Buko",
+        "Exquisa"
       ],
       "global_meta": [
         "Dringend",
@@ -5092,7 +5110,9 @@
         "High Protein",
         "Cremig",
         "250 g",
-        "500 g"
+        "500 g",
+        "Milram",
+        "Exquisa"
       ],
       "global_meta": [
         "Dringend",
@@ -6088,7 +6108,9 @@
         "Pfanne",
         "Schnell",
         "10er",
-        "15er Pack (450g)"
+        "15er Pack (450g)",
+        "Iglo",
+        "Käpt'n Iglo"
       ],
       "global_meta": [
         "Dringend",
@@ -8226,7 +8248,10 @@
         "Sandwich",
         "Sandwich- extra groß",
         "Toast",
-        "Vollkorn"
+        "Vollkorn",
+        "Golden Toast",
+        "Harry Toast",
+        "Lieken Urkorn"
       ],
       "global_meta": [
         "Dringend",
@@ -8665,7 +8690,9 @@
         "Flasche",
         "6er Träger",
         "5 L",
-        "33l Dose"
+        "33l Dose",
+        "Coca-Cola",
+        "Fritz-Kola"
       ],
       "global_meta": [
         "Dringend",
@@ -10706,7 +10733,10 @@
         "Süßwaren",
         "Süß",
         "Kinder",
-        "Gelatinefrei"
+        "Gelatinefrei",
+        "Haribo",
+        "Katjes",
+        "Trolli"
       ],
       "global_meta": [
         "Dringend",
@@ -10806,7 +10836,10 @@
         "Mild",
         "Scharf",
         "Kühne (Marke)",
-        "720ml (Glas)"
+        "720ml (Glas)",
+        "Kühne",
+        "Hengstenberg",
+        "Spreewaldhof"
       ],
       "global_meta": [
         "Dringend",
@@ -10946,7 +10979,9 @@
         "Vollkorn",
         "Superfood",
         "500 g",
-        "1 kg"
+        "1 kg",
+        "Köllnflocken",
+        "Kölln"
       ],
       "global_meta": [
         "Dringend",
@@ -11238,7 +11273,11 @@
         "Snack",
         "Knusprig",
         "Abend",
-        "Tüte"
+        "Tüte",
+        "Funny-frisch",
+        "Lay's",
+        "Pringles",
+        "Chio"
       ],
       "global_meta": [
         "Dringend",
@@ -11387,7 +11426,10 @@
         "Grillen",
         "Flasche",
         "500ml",
-        "800ml"
+        "800ml",
+        "Heinz",
+        "Hela",
+        "Werder"
       ],
       "global_meta": [
         "Dringend",
@@ -11991,7 +12033,10 @@
         "Tube",
         "Glas",
         "250ml",
-        "500ml"
+        "500ml",
+        "Thomy",
+        "Heinz",
+        "Miracle Whip"
       ],
       "global_meta": [
         "Dringend",
@@ -12181,7 +12226,10 @@
         "Ballaststoffreich",
         "Crunchy",
         "500 g",
-        "750 g"
+        "750 g",
+        "Vitalis",
+        "Kölln Müsli",
+        "Seitenbacher"
       ],
       "global_meta": [
         "Dringend",
@@ -12265,7 +12313,10 @@
         "Vollkorn",
         "Dinkel",
         "500 g",
-        "1 kg"
+        "1 kg",
+        "Barilla",
+        "Buitoni",
+        "De Cecco"
       ],
       "global_meta": [
         "Dringend",
@@ -12310,7 +12361,8 @@
         "Brotaufstrich",
         "450 g",
         "750 g",
-        "1 kg"
+        "1 kg",
+        "Bionella"
       ],
       "global_meta": [
         "Dringend",
@@ -13267,7 +13319,8 @@
         "Kakao",
         "Süß",
         "100 g",
-        "300 g"
+        "300 g",
+        "Lindt"
       ],
       "global_meta": [
         "Dringend",
@@ -13379,7 +13432,9 @@
         "Grillen",
         "Tube",
         "Glas",
-        "200ml (Tube/Glas)"
+        "200ml (Tube/Glas)",
+        "Löwensenf",
+        "Thomy"
       ],
       "global_meta": [
         "Dringend",
@@ -14584,7 +14639,9 @@
         "Duft",
         "Schweißschutz",
         "150ml (Spray)",
-        "50ml (Roll-on)"
+        "50ml (Roll-on)",
+        "Dove",
+        "Axe"
       ],
       "global_meta": [
         "Dringend",
@@ -14628,7 +14685,9 @@
         "Duft",
         "Reinigung",
         "250ml",
-        "300ml"
+        "300ml",
+        "Dove",
+        "Axe"
       ],
       "global_meta": [
         "Dringend",
@@ -15470,7 +15529,8 @@
         "Küche",
         "Papier",
         "4 Rollen",
-        "8 Rollen"
+        "8 Rollen",
+        "Plenty"
       ],
       "global_meta": [
         "Dringend",
@@ -16049,7 +16109,11 @@
         "Bad",
         "Haare",
         "250ml",
-        "300ml"
+        "300ml",
+        "Head & Shoulders",
+        "Schauma",
+        "Pantene Pro-V",
+        "Garnier"
       ],
       "global_meta": [
         "Dringend",
@@ -16198,7 +16262,8 @@
         "Fettlösend",
         "Haushalt",
         "500ml",
-        "900ml"
+        "900ml",
+        "Frosch"
       ],
       "global_meta": [
         "Dringend",
@@ -16403,7 +16468,8 @@
         "Papier",
         "10x10er",
         "30x10er",
-        "Box (100er)"
+        "Box (100er)",
+        "Softis"
       ],
       "global_meta": [
         "Dringend",
@@ -16580,7 +16646,9 @@
         "20 Wl",
         "40 Wl",
         "80 Wl",
-        "100 Wl"
+        "100 Wl",
+        "Lenor",
+        "Spee"
       ],
       "global_meta": [
         "Dringend",
@@ -16761,7 +16829,8 @@
         "Hygiene",
         "Saugfähig",
         "Mega-Pack",
-        "Jumbo-Pack"
+        "Jumbo-Pack",
+        "Babydream"
       ],
       "global_meta": [
         "Dringend",
@@ -16879,7 +16948,11 @@
         "Mundhygiene",
         "Frische",
         "75ml",
-        "100ml"
+        "100ml",
+        "Aronal",
+        "Sensodyne",
+        "Colgate",
+        "Odol-med3"
       ],
       "global_meta": [
         "Dringend",
