@@ -220,11 +220,16 @@ const fetchRecipe = async () => {
       throw new Error('Kein Rezept mit strukturierten Zutaten gefunden.');
     }
 
+    if (data && data.ingredients) {
+      data.ingredients.forEach(item => {
+        if (item.selected === undefined) {
+          item.selected = true;
+        }
+      });
+    }
+
     recipeData.value = data;
     currentServings.value = data.servings || 4;
-
-    // Default Name für neue Liste: Name des Gerichts + " Liste"
-    newListNameInput.value = (data.title ? `${data.title} Liste` : 'Neue Liste').trim();
   } catch (err) {
     errorMessage.value = err.message || 'Verbindung zum Server fehlgeschlagen.';
   } finally {
@@ -303,6 +308,24 @@ const selectedCount = computed(() => {
   if (!recipeData.value?.ingredients) return 0;
   return recipeData.value.ingredients.filter(i => i.selected).length;
 });
+
+// Toggle staples (Gewürze & Vorrat)
+const areStaplesSelected = computed(() => {
+  if (!recipeData.value?.ingredients) return false;
+  const staples = recipeData.value.ingredients.filter(i => i.is_staple);
+  if (staples.length === 0) return false;
+  return staples.some(i => i.selected);
+});
+
+const toggleStaples = () => {
+  if (!recipeData.value?.ingredients) return;
+  const shouldSelect = !areStaplesSelected.value;
+  recipeData.value.ingredients.forEach(i => {
+    if (i.is_staple) {
+      i.selected = shouldSelect;
+    }
+  });
+};
 
 // --- PREDEFINED STORES (LOGOS & PRESETS) ---
 const predefinedStores = [
@@ -505,6 +528,14 @@ const getHostname = (link) => {
         <span>{{ errorMessage }}</span>
       </div>
 
+      <!-- RECIPE DISCLAIMER BANNER (TOP) -->
+      <div v-if="recipeData" class="recipe-disclaimer-box top-disclaimer">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+        </svg>
+        <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch aus dem Rezept übernommen. Bitte prüfe die Angaben kurz vor dem Import.</span>
+      </div>
+
       <!-- PHASE 1: URL INPUT (IF NO RECIPE LOADED YET) -->
       <div v-if="!recipeData" class="url-input-section">
         <div class="input-wrapper">
@@ -565,20 +596,18 @@ const getHostname = (link) => {
             </div>
           </div>
 
-          <!-- DISCLAIMER HINT BOX -->
-          <div class="recipe-disclaimer-box">
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-            </svg>
-            <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch analysiert. Tippe auf ✏️, um einen Artikel vor dem Import anzupassen.</span>
-          </div>
-
           <!-- SELECTION BAR -->
           <div class="selection-bar">
-            <div class="staples-hint">
-              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-              Wasser & Gewürze vorab abgewählt
-            </div>
+            <button
+              type="button"
+              class="staple-toggle-btn"
+              :class="{ 'staples-active': areStaplesSelected }"
+              @click="toggleStaples"
+              title="Gewürze & Vorratsartikel ein- oder abwählen"
+            >
+              <span class="toggle-icon">🧂</span>
+              <span>Gewürze & Vorrat {{ areStaplesSelected ? 'abwählen' : 'auswählen' }}</span>
+            </button>
             <div class="selection-actions">
               <button type="button" class="text-link" @click="selectAll">Alle</button>
               <span class="divider">|</span>
@@ -741,23 +770,23 @@ const getHostname = (link) => {
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- FIXED FOOTER ACTIONS -->
-        <div class="modal-footer">
-          <button type="button" class="ks-btn-pill-secondary" @click="recipeData = null">
-            Anderes Rezept
-          </button>
-          <button
-            type="button"
-            class="ks-btn-pill-primary flex-1"
-            :disabled="isImporting || selectedCount === 0 || !selectedListId"
-            @click="importSelectedItems"
-          >
-            <span v-if="isImporting" class="spinner"></span>
-            <span v-else-if="!selectedListId">Liste unten auswählen</span>
-            <span v-else>{{ selectedCount }} Zutaten zu {{ getSelectedListName }} hinzufügen</span>
-          </button>
+          <!-- STATIC FOOTER ACTIONS (SCROLLS WITH CONTENT) -->
+          <div class="modal-footer static-footer">
+            <button type="button" class="ks-btn-pill-secondary" @click="recipeData = null">
+              Anderes Rezept
+            </button>
+            <button
+              type="button"
+              class="ks-btn-pill-primary flex-1"
+              :disabled="isImporting || selectedCount === 0 || !selectedListId"
+              @click="importSelectedItems"
+            >
+              <span v-if="isImporting" class="spinner"></span>
+              <span v-else-if="!selectedListId">Liste auswählen</span>
+              <span v-else>{{ selectedCount }} Zutaten zu {{ getSelectedListName }} hinzufügen</span>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1005,6 +1034,7 @@ const getHostname = (link) => {
   min-height: 0;
   overflow-y: auto;
   padding-right: 4px;
+  padding-bottom: 24px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -1127,6 +1157,11 @@ const getHostname = (link) => {
   color: #fde68a;
 }
 
+.recipe-disclaimer-box.top-disclaimer {
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
 .recipe-disclaimer-box svg {
   flex-shrink: 0;
   fill: #f59e0b;
@@ -1141,12 +1176,39 @@ const getHostname = (link) => {
   margin-bottom: 6px;
 }
 
-.staples-hint {
-  font-size: 11px;
-  color: #94a3b8;
-  display: flex;
+.staple-toggle-btn {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 9999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.staple-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.staple-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+.staple-toggle-btn.staples-active {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+}
+
+.staple-toggle-btn .toggle-icon {
+  font-size: 13px;
 }
 
 .selection-actions {
@@ -1628,6 +1690,12 @@ const getHostname = (link) => {
   padding-top: 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+}
+
+.modal-footer.static-footer {
+  margin-top: 14px;
+  padding-top: 14px;
+  padding-bottom: 8px;
 }
 
 .flex-1 {

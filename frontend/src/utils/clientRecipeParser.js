@@ -388,7 +388,7 @@ export async function parseRecipeClientSide(url) {
       icon,
       matched: isMatched,
       is_staple: isStaple,
-      selected: !isStaple
+      selected: true
     });
   }
 
