@@ -1186,17 +1186,13 @@ onUnmounted(() => {
         <div style="display: flex; gap: 8px; width: 100%; max-width: var(--ks-page-width);">
             <button class="add-trigger-btn" @click="openAddModal" style="flex: 1;">
                 <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
-                Neuen Artikel hinzufügen
+                <span>Artikel hinzufügen</span>
             </button>
-            <button class="add-trigger-btn barcode-trigger-btn" @click="openScannerModal" aria-label="Scanner öffnen" title="Barcode scannen">
+            <button class="add-trigger-btn barcode-trigger-btn" @click="openScannerModal" aria-label="Barcode scannen" title="Barcode scannen">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="barcode-icon">
                   <path d="M3 4h4v2H5v2H3V4zm2 16H3v-4h2v2h2v2zm16-4h-2v2h-2v2h4v-4zm-2-12h-2V2h4v4h-2V4zM7 6h2v12H7V6zm3 0h1v12h-1V6zm2 0h3v12h-3V6zm4 0h1v12h-1V6zm2 0h1v12h-1V6z"/>
                 </svg>
-            </button>
-            <button class="add-trigger-btn barcode-trigger-btn" @click="openRecipeModal()" aria-label="Rezept importieren" title="Rezept importieren">
-                <svg viewBox="0 0 24 24" fill="currentColor" class="barcode-icon">
-                  <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
-                </svg>
+                <span>Barcode</span>
             </button>
         </div>
     </div>
@@ -1559,15 +1555,18 @@ onUnmounted(() => {
 
 .barcode-trigger-btn {
   flex-shrink: 0;
-  width: 56px;
-  height: 56px;
-  padding: 0;
+  width: auto;
+  min-height: 56px;
+  padding: 0 16px;
+  gap: 8px;
   border-radius: 18px;
   background: rgba(30, 41, 59, 0.95);
   color: #38bdf8;
   border: 1px solid rgba(56, 189, 248, 0.3);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
   display: flex; align-items: center; justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.2s ease;
 }

@@ -137,10 +137,12 @@ const handleWebScannerClose = () => {
 };
 
 const isBarcodeLoading = ref(false);
+const barcodeError = ref('');
 
 const handleScan = async (barcode) => {
     showScanner.value = false;
     isBarcodeLoading.value = true;
+    barcodeError.value = '';
 
     try {
         let productData = null;
@@ -225,22 +227,22 @@ const handleScan = async (barcode) => {
                 }
             }
         } else {
-            // Barcode nicht in OpenFoodFacts gefunden: Trotzdem Detail-Ansicht öffnen statt Schließen!
-            const fallbackItem = {
-                name: 'Barcode ' + barcode,
-                category: 'Sonstiges',
-                tags: { quantities: [], constellations: [], global_meta: [] }
-            };
-            proceedToDetails(fallbackItem);
+            // Barcode nicht in OpenFoodFacts gefunden: Kein sinnloses Barcode-Item anlegen, sondern Fehler melden & manuelle Eingabe erlauben!
+            selectedItem.value = null;
+            query.value = '';
+            barcodeError.value = `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
+            nextTick(() => {
+                inputRef.value?.focus({ preventScroll: true });
+            });
         }
     } catch (e) {
         console.error("Error fetching barcode info:", e);
-        const fallbackItem = {
-            name: 'Barcode ' + barcode,
-            category: 'Sonstiges',
-            tags: { quantities: [], constellations: [], global_meta: [] }
-        };
-        proceedToDetails(fallbackItem);
+        selectedItem.value = null;
+        query.value = '';
+        barcodeError.value = `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
+        nextTick(() => {
+            inputRef.value?.focus({ preventScroll: true });
+        });
     } finally {
         isBarcodeLoading.value = false;
     }
@@ -540,6 +542,7 @@ const closeModal = () => {
   manualQuantity.value = '';
   manualUnit.value = '';
   duplicateWarning.value = false;
+  barcodeError.value = '';
   emit('close');
 };
 
@@ -675,6 +678,12 @@ watch(() => props.isOpen, (newVal) => {
 
           <div class="modal-header">
             <div style="flex: 1; display: flex; flex-direction: column; position: relative;">
+              <div v-if="barcodeError" class="barcode-not-found-banner">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <span>{{ barcodeError }}</span>
+              </div>
               <div v-if="duplicateWarning" class="duplicate-warning">
                 Dieser Artikel steht bereits auf der Liste.
                 <button class="duplicate-bypass-btn" @click="proceedToDetails(results.find(r => r.name.toLowerCase() === query.toLowerCase()) || {name: query})">Trotzdem hinzufügen</button>
@@ -683,7 +692,7 @@ watch(() => props.isOpen, (newVal) => {
                 <input
                   ref="inputRef"
                   v-model="query"
-                  @input="handleInput($event); duplicateWarning = false;"
+                  @input="handleInput($event); duplicateWarning = false; barcodeError = '';"
                   type="text"
                   class="modal-input"
                   :class="{ 'input-error': duplicateWarning }"
@@ -904,6 +913,24 @@ watch(() => props.isOpen, (newVal) => {
 }
 .modal-input::placeholder {
   color: var(--ks-text-muted);
+}
+
+.barcode-not-found-banner {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  color: #fca5a5;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+.barcode-not-found-banner svg {
+  flex-shrink: 0;
+  fill: #ef4444;
 }
 
 .duplicate-warning {

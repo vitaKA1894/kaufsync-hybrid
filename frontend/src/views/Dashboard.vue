@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
+import RecipeImportModal from '../components/RecipeImportModal.vue';
 
 const router = useRouter();
 const shoppingLists = ref([]);
@@ -20,7 +21,7 @@ const newListName = ref('');
 const selectedIcon = ref(''); 
 const showScanner = ref(false);
 
-const showRecipeListPicker = ref(false);
+const showRecipeModal = ref(false);
 const pendingRecipeUrl = ref('');
 
 const checkPendingRecipeImport = () => {
@@ -30,36 +31,31 @@ const checkPendingRecipeImport = () => {
     const parsed = JSON.parse(pending);
     if (!parsed.url) return;
     pendingRecipeUrl.value = parsed.url;
-    if (shoppingLists.value.length === 1) {
-      localStorage.removeItem('pending_recipe_import');
-      router.push(`/list/${shoppingLists.value[0].id}?importRecipe=1&url=${encodeURIComponent(parsed.url)}`);
-    } else if (shoppingLists.value.length > 1) {
-      showRecipeListPicker.value = true;
-    }
+    showRecipeModal.value = true;
+    localStorage.removeItem('pending_recipe_import');
   } catch (err) {
     localStorage.removeItem('pending_recipe_import');
   }
 };
 
-const openRecipeListPickerModal = () => {
-  if (shoppingLists.value.length === 0) {
-    errorMessage.value = 'Bitte erstelle zuerst eine Einkaufsliste.';
-    setTimeout(() => errorMessage.value = '', 3000);
-    return;
-  }
+const openRecipeImportModal = () => {
   pendingRecipeUrl.value = '';
-  showRecipeListPicker.value = true;
+  showRecipeModal.value = true;
 };
 
-const selectListForRecipe = (targetListId) => {
-  showRecipeListPicker.value = false;
-  const targetUrl = pendingRecipeUrl.value;
-  localStorage.removeItem('pending_recipe_import');
-  if (targetUrl) {
-    router.push(`/list/${targetListId}?importRecipe=1&url=${encodeURIComponent(targetUrl)}`);
-  } else {
-    router.push(`/list/${targetListId}?openRecipeImport=1`);
+const handleRecipeImported = async (info) => {
+  showRecipeModal.value = false;
+  pendingRecipeUrl.value = '';
+  await loadLists();
+  successMessage.value = `${info.count} Zutaten hinzugefügt!`;
+  setTimeout(() => { successMessage.value = ''; }, 3500);
+  if (info.listId) {
+    router.push(`/list/${info.listId}`);
   }
+};
+
+const handleNewListCreatedFromRecipe = async () => {
+  await loadLists();
 };
 
 const handleScanCode = (scannedValue) => {
@@ -501,7 +497,7 @@ onUnmounted(() => {
           <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
           <span>Neue Liste</span>
         </button>
-        <button class="ks-fab ks-fab-recipe" @click="openRecipeListPickerModal" title="Artikel aus Rezept importieren">
+        <button class="ks-fab ks-fab-recipe" @click="openRecipeImportModal" title="Artikel aus Rezept importieren">
           <svg viewBox="0 0 24 24" fill="currentColor">
             <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
           </svg>
@@ -564,55 +560,15 @@ onUnmounted(() => {
       </div>
     </transition>
 
-    <!-- MODAL FÜR REZEPT-ZIEL-LISTE (SUPERMARKT AUSWAHL) -->
-    <transition name="dialog-fade">
-      <div v-if="showRecipeListPicker" class="ks-dialog-scrim" @click.self="showRecipeListPicker = false">
-        <div class="ks-dialog" style="max-width: 440px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
-              </svg>
-            </div>
-            <div>
-              <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #f8fafc;">Rezept importieren</h3>
-              <p style="margin: 0; font-size: 12px; color: #94a3b8;">Wähle die Einkaufsliste für den Import</p>
-            </div>
-          </div>
-
-          <div style="display: flex; flex-direction: column; gap: 10px; margin: 16px 0; max-height: 55vh; overflow-y: auto;">
-            <button
-              v-for="list in sortedShoppingLists"
-              :key="list.id"
-              class="recipe-list-pick-btn"
-              @click="selectListForRecipe(list.id)"
-            >
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <div class="store-svg-container" style="width: 34px; height: 34px; flex-shrink: 0; background: rgba(255,255,255,0.06); border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 4px;">
-                  <img v-if="getStoreIcon(list.name)" :src="getStoreIcon(list.name)" :alt="list.name" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
-                  <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="color: #94a3b8;"><path d="M17 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm0-3l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/></svg>
-                </div>
-                <div style="display: flex; flex-direction: column; align-items: flex-start;">
-                  <span style="font-weight: 600; color: #f8fafc; font-size: 15px;">{{ list.name }}</span>
-                  <span style="font-size: 12px; color: #94a3b8;">{{ getActiveCount(list) }} Artikel</span>
-                </div>
-              </div>
-              <span style="font-size: 13px; color: #38bdf8; font-weight: 600;">Auswählen →</span>
-            </button>
-          </div>
-
-          <div class="ks-btn-row" style="margin-top: 16px;">
-            <button
-              class="ks-btn-text"
-              style="width: 100%; color: #94a3b8;"
-              @click="showRecipeListPicker = false; localStorage.removeItem('pending_recipe_import');"
-            >
-              Abbrechen
-            </button>
-          </div>
-        </div>
-      </div>
-    </transition>
+    <!-- MODAL FÜR REZEPT IMPORT (ERST ARTIKEL, DANN ZIEL-LISTE WÄHLEN) -->
+    <RecipeImportModal
+      :is-open="showRecipeModal"
+      :initial-url="pendingRecipeUrl"
+      :shopping-lists="shoppingLists"
+      @close="showRecipeModal = false; pendingRecipeUrl = '';"
+      @imported="handleRecipeImported"
+      @list-created="handleNewListCreatedFromRecipe"
+    />
 
   </div>
 </template>

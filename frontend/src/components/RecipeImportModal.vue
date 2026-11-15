@@ -11,15 +11,19 @@ const props = defineProps({
   },
   listId: {
     type: String,
-    required: true
+    default: ''
   },
   initialUrl: {
     type: String,
     default: ''
+  },
+  shoppingLists: {
+    type: Array,
+    default: () => []
   }
 });
 
-const emit = defineEmits(['close', 'imported']);
+const emit = defineEmits(['close', 'imported', 'list-created']);
 
 // State
 const url = ref('');
@@ -30,6 +34,41 @@ const recipeData = ref(null);
 const currentServings = ref(4);
 const inputRef = ref(null);
 
+// Target list selection & inline creation
+const selectedListId = ref(props.listId || '');
+const availableLists = ref([]);
+const isCreatingNewList = ref(false);
+const newListNameInput = ref('');
+const isCreatingListLoading = ref(false);
+const newListError = ref('');
+const newListNameInputRef = ref(null);
+
+const loadAvailableLists = async () => {
+  if (props.shoppingLists && props.shoppingLists.length > 0) {
+    availableLists.value = [...props.shoppingLists];
+  } else {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const response = await fetch(apiUrl('/api/lists'), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        availableLists.value = await response.json();
+      }
+    } catch (err) {
+      console.error('Fehler beim Laden der Listen:', err);
+    }
+  }
+
+  // Pre-select if listId passed
+  if (props.listId) {
+    selectedListId.value = props.listId;
+  } else {
+    selectedListId.value = '';
+  }
+};
+
 // Reset state
 const resetState = () => {
   url.value = props.initialUrl || '';
@@ -38,10 +77,15 @@ const resetState = () => {
   errorMessage.value = '';
   recipeData.value = null;
   currentServings.value = 4;
+  selectedListId.value = props.listId || '';
+  isCreatingNewList.value = false;
+  newListNameInput.value = '';
+  newListError.value = '';
 };
 
-watch(() => props.isOpen, (newVal) => {
+watch(() => props.isOpen, async (newVal) => {
   if (newVal) {
+    await loadAvailableLists();
     if (props.initialUrl) {
       url.value = props.initialUrl;
       fetchRecipe();
@@ -54,6 +98,12 @@ watch(() => props.isOpen, (newVal) => {
     resetState();
   }
 });
+
+watch(() => props.shoppingLists, (newVal) => {
+  if (newVal && newVal.length > 0) {
+    availableLists.value = [...newVal];
+  }
+}, { deep: true });
 
 // Paste from clipboard helper
 const pasteFromClipboard = async () => {
@@ -116,6 +166,9 @@ const fetchRecipe = async () => {
 
     recipeData.value = data;
     currentServings.value = data.servings || 4;
+
+    // Default Name für neue Liste: Name des Gerichts + " Liste"
+    newListNameInput.value = (data.title ? `${data.title} Liste` : 'Neue Liste').trim();
   } catch (err) {
     errorMessage.value = err.message || 'Verbindung zum Server fehlgeschlagen.';
   } finally {
@@ -195,9 +248,73 @@ const selectedCount = computed(() => {
   return recipeData.value.ingredients.filter(i => i.selected).length;
 });
 
+// Dropdown change
+const onDropdownChange = () => {
+  if (selectedListId.value === '__NEW__') {
+    startCreatingNewList();
+  }
+};
+
+const startCreatingNewList = () => {
+  isCreatingNewList.value = true;
+  newListError.value = '';
+  if (!newListNameInput.value && recipeData.value?.title) {
+    newListNameInput.value = `${recipeData.value.title} Liste`;
+  }
+  nextTick(() => {
+    newListNameInputRef.value?.focus();
+    newListNameInputRef.value?.select();
+  });
+};
+
+const cancelCreatingNewList = () => {
+  isCreatingNewList.value = false;
+  selectedListId.value = availableLists.value.length > 0 ? (props.listId || '') : '';
+  newListError.value = '';
+};
+
+const createNewListInline = async () => {
+  const name = newListNameInput.value.trim();
+  if (!name) return;
+
+  isCreatingListLoading.value = true;
+  newListError.value = '';
+
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(apiUrl('/api/lists'), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        name: name,
+        icon: 'mdi-cart'
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}));
+      throw new Error(errData.detail || 'Fehler beim Erstellen der Liste');
+    }
+
+    const created = await response.json();
+    availableLists.value.push(created);
+    selectedListId.value = created.id;
+    isCreatingNewList.value = false;
+    emit('list-created', created);
+  } catch (err) {
+    newListError.value = err.message || 'Konnte Liste nicht erstellen.';
+  } finally {
+    isCreatingListLoading.value = false;
+  }
+};
+
 // Import into KaufSync list
 const importSelectedItems = async () => {
-  if (!recipeData.value || selectedCount.value === 0) return;
+  const targetId = selectedListId.value;
+  if (!recipeData.value || selectedCount.value === 0 || !targetId || targetId === '__NEW__') return;
 
   const itemsToCreate = recipeData.value.ingredients
     .filter(i => i.selected)
@@ -223,7 +340,7 @@ const importSelectedItems = async () => {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/lists/${props.listId}/items/bulk`), {
+    const response = await fetch(apiUrl(`/api/lists/${targetId}/items/bulk`), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -239,7 +356,7 @@ const importSelectedItems = async () => {
       if (response.status === 405 || response.status === 404) {
         // Fallback: Einzeln anlegen falls Server-Bulk-Endpoint noch nicht geupdatet
         for (const item of itemsToCreate) {
-          await fetch(apiUrl(`/api/lists/${props.listId}/items`), {
+          await fetch(apiUrl(`/api/lists/${targetId}/items`), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -256,7 +373,8 @@ const importSelectedItems = async () => {
 
     emit('imported', {
       count: itemsToCreate.length,
-      title: recipeData.value.title
+      title: recipeData.value.title,
+      listId: targetId
     });
     emit('close');
   } catch (err) {
@@ -406,7 +524,80 @@ const getHostname = (link) => {
                 <span class="cat-pill">{{ item.category }}</span>
                 <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
               </div>
+              <div v-if="item.raw" class="ing-basis" :title="item.raw">
+                <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
+              </div>
             </div>
+          </div>
+        </div>
+
+        <!-- TARGET LIST SECTION -->
+        <div class="target-list-section">
+          <div class="target-list-top-row">
+            <span class="target-list-heading">In welche Liste importieren?</span>
+            <button
+              v-if="!isCreatingNewList"
+              type="button"
+              class="quick-new-list-link"
+              @click="startCreatingNewList"
+            >
+              + Neue Liste
+            </button>
+          </div>
+
+          <!-- STANDARD DROPDOWN -->
+          <div v-if="!isCreatingNewList" class="dropdown-wrapper">
+            <select
+              v-model="selectedListId"
+              class="custom-select"
+              :class="{ 'has-selection': !!selectedListId }"
+              @change="onDropdownChange"
+            >
+              <option value="" disabled>-- Bitte Liste auswählen --</option>
+              <option v-for="l in availableLists" :key="l.id" :value="l.id">
+                {{ l.name }}
+              </option>
+              <option value="__NEW__">➕ Neue Liste erstellen...</option>
+            </select>
+            <div class="dropdown-chevron">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M7 10l5 5 5-5z"/>
+              </svg>
+            </div>
+          </div>
+
+          <!-- INLINE NEUE LISTE ERSTELLEN -->
+          <div v-else class="new-list-box">
+            <div class="new-list-inputs">
+              <input
+                ref="newListNameInputRef"
+                v-model="newListNameInput"
+                type="text"
+                class="new-list-field"
+                placeholder="Name der Liste"
+                @keyup.enter="createNewListInline"
+                :disabled="isCreatingListLoading"
+              />
+              <button
+                type="button"
+                class="create-list-submit-btn"
+                :disabled="!newListNameInput.trim() || isCreatingListLoading"
+                @click="createNewListInline"
+              >
+                <span v-if="isCreatingListLoading" class="spinner-small"></span>
+                <span v-else>Erstellen</span>
+              </button>
+              <button
+                type="button"
+                class="create-list-abort-btn"
+                @click="cancelCreatingNewList"
+                :disabled="isCreatingListLoading"
+                title="Abbrechen"
+              >
+                ✕
+              </button>
+            </div>
+            <div v-if="newListError" class="new-list-err-msg">{{ newListError }}</div>
           </div>
         </div>
 
@@ -418,10 +609,11 @@ const getHostname = (link) => {
           <button
             type="button"
             class="primary-action-btn flex-1"
-            :disabled="isImporting || selectedCount === 0"
+            :disabled="isImporting || selectedCount === 0 || !selectedListId || selectedListId === '__NEW__' || isCreatingNewList"
             @click="importSelectedItems"
           >
             <span v-if="isImporting" class="spinner"></span>
+            <span v-else-if="!selectedListId">Liste auswählen</span>
             <span v-else>{{ selectedCount }} Zutaten hinzufügen</span>
           </button>
         </div>
@@ -798,14 +990,14 @@ const getHostname = (link) => {
 /* INGREDIENTS LIST */
 .ingredients-list {
   flex: 1;
-  min-height: 180px;
-  max-height: 42vh;
+  min-height: 140px;
+  max-height: 36vh;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding-right: 4px;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
 }
 
 .ingredient-row {
@@ -900,6 +1092,180 @@ const getHostname = (link) => {
   background: rgba(245, 158, 11, 0.1);
   padding: 1px 6px;
   border-radius: 4px;
+}
+
+.ing-basis {
+  font-size: 11px;
+  color: #94a3b8;
+  font-style: italic;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.75;
+}
+
+.basis-prefix {
+  font-style: normal;
+  font-weight: 500;
+  color: #64748b;
+  margin-right: 2px;
+}
+
+/* TARGET LIST SECTION */
+.target-list-section {
+  background: #1a202c;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+}
+
+.target-list-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.target-list-heading {
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+}
+
+.quick-new-list-link {
+  background: none;
+  border: none;
+  color: #38bdf8;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 6px;
+}
+
+.quick-new-list-link:hover {
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.dropdown-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.custom-select {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background: #242c3b;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  padding: 10px 36px 10px 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.custom-select.has-selection {
+  color: #f8fafc;
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.custom-select:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.custom-select option {
+  background: #0f172a;
+  color: #f8fafc;
+  padding: 8px;
+}
+
+.dropdown-chevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+}
+
+/* Inline new list creation */
+.new-list-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.new-list-inputs {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.new-list-field {
+  flex: 1;
+  background: #0f172a;
+  border: 1px solid #38bdf8;
+  color: #f8fafc;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  outline: none;
+}
+
+.create-list-submit-btn {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.create-list-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.create-list-abort-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.create-list-abort-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.new-list-err-msg {
+  font-size: 11px;
+  color: #ef4444;
+}
+
+.spinner-small {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
 }
 
 .modal-footer {
