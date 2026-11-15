@@ -113,11 +113,21 @@ const triggerScan = async () => {
                 }
             }
         } catch (err) {
-            console.warn("Nativer Scan abgebrochen oder fehlgeschlagen, nutze Web-Fallback:", err);
-            showScanner.value = true;
+            console.log("Nativer Scan abgebrochen oder fehlgeschlagen:", err);
+            // Auf nativer Plattform NICHT in den Web-Scanner fallen, sondern komplett schließen
+            if (props.startWithScanner && !selectedItem.value && !query.value) {
+                closeModal();
+            }
         }
     } else {
         showScanner.value = true;
+    }
+};
+
+const handleWebScannerClose = () => {
+    showScanner.value = false;
+    if (props.startWithScanner && !selectedItem.value && !query.value) {
+        closeModal();
     }
 };
 
@@ -131,7 +141,8 @@ const handleScan = async (barcode) => {
             const data = await response.json();
             if (data.product) {
                 const product = data.product;
-                const searchString = product.product_name || product.abbreviated_product_name || product.generic_name_de || product.generic_name || product.product_name_de || '';
+                const productName = product.product_name || product.abbreviated_product_name || product.product_name_de || '';
+                const genericName = product.generic_name_de || product.generic_name || '';
                 const brandsStr = product.brands || '';
                 let brand = '';
 
@@ -139,35 +150,46 @@ const handleScan = async (barcode) => {
                     brand = brandsStr.split(',')[0].trim();
                 }
 
-                // Set query to generic product name
-                query.value = searchString;
-
-                // Do taxonomy search using generic name
-                const searchResults = searchTaxonomy(searchString);
+                // Query taxonomy by generic name, brand, or product name
+                let searchTarget = genericName || productName;
+                let searchResults = searchTaxonomy(searchTarget);
+                if ((!searchResults || searchResults.length === 0) && brand) {
+                    searchResults = searchTaxonomy(brand);
+                }
+                if ((!searchResults || searchResults.length === 0) && productName) {
+                    searchResults = searchTaxonomy(productName);
+                }
 
                 let matchingItem;
+                let auspraegung = '';
+
                 if (searchResults && searchResults.length > 0) {
-                    // Fall A: Found in taxonomy
                     matchingItem = searchResults[0];
+                    if (brand && !matchingItem.name.toLowerCase().includes(brand.toLowerCase())) {
+                        auspraegung = brand;
+                    } else if (productName && productName.toLowerCase() !== matchingItem.name.toLowerCase()) {
+                        auspraegung = productName;
+                    }
                 } else {
-                    // Fall B: Not found -> "Sonstiges Produkt"
                     matchingItem = {
-                        name: searchString,
+                        name: genericName || productName || 'Unbekanntes Produkt',
                         category: 'Sonstiges',
                         tags: { quantities: [], constellations: [], global_meta: [] }
                     };
+                    auspraegung = brand || productName;
                 }
 
                 proceedToDetails(matchingItem);
 
-                // Add brand to Ausprägung
-                if (brand) {
-                    manualUnit.value = brand;
+                // Add brand/product as Ausprägung
+                if (auspraegung && auspraegung.toLowerCase() !== matchingItem.name.toLowerCase()) {
+                    if (!activeTags.value.includes(auspraegung)) {
+                        activeTags.value.push(auspraegung);
+                    }
                 }
             }
         } else {
             console.warn("Product not found or API error:", response.status);
-            // Optionally could show a message here
         }
     } catch (e) {
         console.error("Error fetching barcode info:", e);
@@ -211,21 +233,42 @@ const enhancedQuantities = computed(() => {
 });
 
 const selectItem = (item) => {
-  let finalItem = item;
-
-  if (item.matchedAlias) {
-    finalItem = { ...item, name: item.matchedAlias, originalName: item.name };
-  }
+  // Always keep generic/main taxonomy name as primary name
+  const primaryName = item.name;
+  const matchedAlias = item.matchedAlias;
 
   const isDuplicate = !props.editItem && props.activeItems.some(
-    i => i.name.trim().toLowerCase() === finalItem.name.trim().toLowerCase()
+    i => i.name.trim().toLowerCase() === primaryName.trim().toLowerCase()
   );
   if (isDuplicate) {
     duplicateWarning.value = true;
     return;
   }
 
-  proceedToDetails(finalItem);
+  proceedToDetails(item);
+
+  // If user searched for an alias (e.g. "Nutella" matching "Nuss-Nougat-Creme"),
+  // the matched alias must become the Ausprägung (tag), NOT the title!
+  if (matchedAlias && matchedAlias.toLowerCase() !== primaryName.toLowerCase()) {
+    if (item.tags?.constellations) {
+      const matchInConst = item.tags.constellations.find(
+        c => c.toLowerCase() === matchedAlias.toLowerCase()
+      );
+      if (matchInConst) {
+        if (!activeTags.value.includes(matchInConst)) {
+          activeTags.value.push(matchInConst);
+        }
+      } else {
+        if (!activeTags.value.includes(matchedAlias)) {
+          activeTags.value.push(matchedAlias);
+        }
+      }
+    } else {
+      if (!activeTags.value.includes(matchedAlias)) {
+        activeTags.value.push(matchedAlias);
+      }
+    }
+  }
 };
 
 const proceedToDetails = (item) => {
@@ -256,7 +299,7 @@ const proceedToDetails = (item) => {
 
   activeTags.value = []; // Reset selected tags
   showManualAmount.value = false;
-  manualQuantity.value = item.originalName || '';
+  manualQuantity.value = '';
   manualUnit.value = '';
 };
 
@@ -300,13 +343,20 @@ const parseQuantity = (input) => {
 
 const confirmSelection = (bypassWarning = false) => {
   if (!selectedItem.value && query.value && query.value.trim() !== '') {
-    // If no item selected, try to find an exact match in the taxonomy
+    // If no item selected, try to find an exact or close match in the taxonomy
     const qLower = query.value.trim().toLowerCase();
-    const taxonomyMatch = searchTaxonomy(query.value).find(
-      t => t.name.toLowerCase() === qLower || t.aliases.some(a => a.toLowerCase() === qLower)
+    const searchRes = searchTaxonomy(query.value);
+    const exactMatch = searchRes.find(
+      t => t.name.toLowerCase() === qLower || (t.aliases && t.aliases.some(a => a.toLowerCase() === qLower))
     );
-    if (taxonomyMatch) {
-      selectedItem.value = taxonomyMatch;
+    const chosenMatch = exactMatch || (searchRes.length > 0 ? searchRes[0] : null);
+
+    if (chosenMatch) {
+      if (chosenMatch.name.toLowerCase() !== qLower) {
+        chosenMatch.matchedAlias = query.value.trim();
+      }
+      selectItem(chosenMatch);
+      return;
     }
   }
 
@@ -545,7 +595,7 @@ watch(() => props.isOpen, (newVal) => {
         <!-- STEP 1: Search -->
         <div v-if="!selectedItem" class="search-step-container" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
         <!-- Scanner View -->
-        <BarcodeScanner v-if="showScanner" @close="showScanner = false" @scan="handleScan" />
+        <BarcodeScanner v-if="showScanner" @close="handleWebScannerClose" @scan="handleScan" />
 
         <!-- STEP 1: Search -->
         <div class="search-step" v-show="!showScanner" style="flex-direction: column-reverse;">
@@ -562,8 +612,8 @@ watch(() => props.isOpen, (newVal) => {
                   <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="64" />
                 </div>
                 <div class="card-text-area">
-                  <span class="item-name" v-html="highlightText(item.matchedAlias || item.name, query)"></span>
-                  <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.name }}</span>
+                  <span class="item-name" v-html="highlightText(item.name, query)"></span>
+                  <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.matchedAlias }}</span>
                 </div>
               </div>
             </div>
