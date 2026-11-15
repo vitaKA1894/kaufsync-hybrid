@@ -1,0 +1,335 @@
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
+import taxonomy from '../assets/taxonomy.json' with { type: 'json' };
+
+const KNOWN_UNITS = {
+  g: 'g', gramm: 'g', kg: 'kg', kilogramm: 'kg',
+  ml: 'ml', milliliter: 'ml', cl: 'cl', dl: 'dl',
+  l: 'l', liter: 'l',
+  tl: 'TL', teelöffel: 'TL', tsp: 'TL',
+  el: 'EL', esslöffel: 'EL', tbsp: 'EL',
+  prise: 'Prise', prisen: 'Prise', pinch: 'Prise',
+  bund: 'Bund', bündel: 'Bund', bunde: 'Bund',
+  dose: 'Dose', dosen: 'Dose', can: 'Dose',
+  glas: 'Glas', gläser: 'Glas',
+  packung: 'Pck.', packungen: 'Pck.', pck: 'Pck.', 'pck.': 'Pck.', pkg: 'Pck.', 'pkg.': 'Pck.',
+  flasche: 'Fl.', flaschen: 'Fl.',
+  zehe: 'Zehe', zehen: 'Zehe', clove: 'Zehe', cloves: 'Zehe',
+  knolle: 'Knolle', knollen: 'Knolle',
+  stange: 'Stange', stangen: 'Stange',
+  scheibe: 'Scheibe', scheiben: 'Scheibe',
+  zweig: 'Zweig', zweige: 'Zweig',
+  blatt: 'Blatt', blätter: 'Blatt',
+  becher: 'Becher',
+  stk: 'Stk', stück: 'Stk', st: 'Stk'
+};
+
+const STAPLES_KEYWORDS = [
+  'wasser', 'leitungswasser', 'salz', 'speisesalz', 'meersalz', 'steinsalz',
+  'pfeffer', 'schwarzer pfeffer', 'weißer pfeffer', 'bunter pfeffer', 'cayennepfeffer',
+  'muskat', 'muskatnuss', 'olivenöl', 'speiseöl', 'sonnenblumenöl', 'rapsöl',
+  'pflanzenöl', 'bratöl', 'brühe', 'gemüsebrühe', 'fleischbrühe', 'hühnerbrühe',
+  'essig', 'balsamico', 'weißweinessig', 'rotweinessig', 'zucker', 'kristallzucker'
+];
+
+export function isStapleOrSpice(name) {
+  if (!name) return false;
+  const clean = name.toLowerCase().trim();
+  for (const staple of STAPLES_KEYWORDS) {
+    if (clean === staple || new RegExp(`\\b${staple}\\b`, 'i').test(clean)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+export function parseIngredientLine(text) {
+  let normalized = (text || '').trim();
+  const fractionsMap = {
+    '½': ' 1/2', '¼': ' 1/4', '¾': ' 3/4',
+    '⅓': ' 1/3', '⅔': ' 2/3', '⅛': ' 1/8'
+  };
+  for (const [char, rep] of Object.entries(fractionsMap)) {
+    normalized = normalized.replaceAll(char, rep);
+  }
+
+  const pattern = /^([\d\s\.,\/\-]+)\s*([a-zA-ZäöüÄÖÜß°\.]*)\s+(.*)$/;
+  const match = normalized.match(pattern);
+
+  let quantity = 1.0;
+  let unit = 'Stk';
+  let name = normalized;
+
+  if (match) {
+    const rawQty = match[1].trim();
+    const rawUnit = match[2].trim().toLowerCase().replace(/\.$/, '');
+    const remName = match[3].trim();
+
+    let parsedQty = null;
+    if (rawQty.includes('-')) {
+      const parts = rawQty.split('-');
+      const last = parseFloat(parts[parts.length - 1].trim().replace(',', '.'));
+      if (!isNaN(last)) parsedQty = last;
+    } else if (rawQty.includes('/')) {
+      const parts = rawQty.split(/\s+/);
+      let total = 0;
+      let valid = true;
+      for (const p of parts) {
+        if (p.includes('/')) {
+          const [n, d] = p.split('/');
+          const val = parseFloat(n) / parseFloat(d);
+          if (!isNaN(val)) total += val;
+          else valid = false;
+        } else {
+          const val = parseFloat(p.replace(',', '.'));
+          if (!isNaN(val)) total += val;
+          else valid = false;
+        }
+      }
+      if (valid && total > 0) parsedQty = Math.round(total * 100) / 100;
+    } else {
+      const val = parseFloat(rawQty.replace(',', '.'));
+      if (!isNaN(val)) parsedQty = val;
+    }
+
+    if (parsedQty !== null && parsedQty > 0) {
+      quantity = parsedQty;
+      if (KNOWN_UNITS[rawUnit]) {
+        unit = KNOWN_UNITS[rawUnit];
+        name = remName;
+      } else if (rawUnit === '') {
+        unit = 'Stk';
+        name = remName;
+      } else {
+        name = `${match[2]} ${remName}`.trim();
+        unit = 'Stk';
+      }
+    } else {
+      name = text;
+    }
+  }
+
+  // Clean name
+  name = name.replace(/^(ca\.|etwas|frische[srn]?|feine[srn]?|gehackte[srn]?)\s+/i, '').trim();
+  name = name.replace(/[,;].*$/, '').trim();
+  name = name.replace(/\(.*?\)/g, '').trim();
+
+  if (name.length > 0) {
+    name = name.charAt(0).toUpperCase() + name.slice(1);
+  }
+
+  return { raw: text, quantity, unit, name };
+}
+
+// Build dynamic taxonomy lookup structures
+const itemsByName = new Map();
+const aliasToItem = new Map();
+const constellationToItem = new Map();
+
+taxonomy.forEach(item => {
+  if (item.name) itemsByName.set(item.name.toLowerCase().trim(), item);
+  if (Array.isArray(item.aliases)) {
+    item.aliases.forEach(a => aliasToItem.set(a.toLowerCase().trim(), item));
+  }
+  if (item.tags && Array.isArray(item.tags.constellations)) {
+    item.tags.constellations.forEach(c => constellationToItem.set(c.toLowerCase().trim(), item));
+  }
+});
+
+export function matchIngredientToTaxonomy(name) {
+  if (!name) return null;
+  let clean = name.toLowerCase().trim();
+  clean = clean.replace(/^(frische[srn]?|feine[srn]?|gehackte[srn]?|getrocknete[srn]?|gemahlene[srn]?|gekochte[srn]?|große[srn]?|kleine[srn]?|mittelgroße[srn]?)\s+/i, '').trim();
+
+  // 1. Exact match on item name
+  if (itemsByName.has(clean)) return itemsByName.get(clean);
+
+  // 2. Exact match on alias
+  if (aliasToItem.has(clean)) return aliasToItem.get(clean);
+
+  // 3. Match on constellation
+  if (constellationToItem.has(clean)) return constellationToItem.get(clean);
+
+  // 4. Plural / Singular variations
+  const variations = [clean];
+  if (clean.endsWith('n') && clean.length > 3) variations.push(clean.slice(0, -1));
+  if (clean.endsWith('en') && clean.length > 4) variations.push(clean.slice(0, -2));
+  if (clean.endsWith('e') && clean.length > 3) variations.push(clean.slice(0, -1));
+  if (clean.endsWith('s') && clean.length > 3) variations.push(clean.slice(0, -1));
+
+  for (const v of variations) {
+    if (itemsByName.has(v)) return itemsByName.get(v);
+    if (aliasToItem.has(v)) return aliasToItem.get(v);
+  }
+
+  // 5. Substring / compound word matching
+  let bestMatch = null;
+  let longestLen = 0;
+
+  for (const [candidate, item] of itemsByName.entries()) {
+    if (candidate.length >= 4) {
+      if (clean.includes(candidate) || candidate.includes(clean)) {
+        if (candidate.length > longestLen) {
+          longestLen = candidate.length;
+          bestMatch = item;
+        }
+      }
+    }
+  }
+
+  for (const [candidate, item] of aliasToItem.entries()) {
+    if (candidate.length >= 4) {
+      if (clean.includes(candidate) || candidate.includes(clean)) {
+        if (candidate.length > longestLen) {
+          longestLen = candidate.length;
+          bestMatch = item;
+        }
+      }
+    }
+  }
+
+  return bestMatch;
+}
+
+export async function fetchHtmlOrData(url) {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const resp = await CapacitorHttp.get({
+        url,
+        headers: {
+          'Accept': 'text/html,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.8',
+          'User-Agent': 'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 KaufSync/1.0'
+        }
+      });
+      return resp.data;
+    } catch (err) {
+      console.warn('CapacitorHttp failed, trying standard fetch:', err);
+    }
+  }
+
+  const resp = await fetch(url, {
+    headers: {
+      'Accept': 'text/html,application/xhtml+xml,application/xml,application/json;q=0.9,*/*;q=0.8'
+    }
+  });
+  return await resp.text();
+}
+
+export async function parseRecipeClientSide(url) {
+  let targetUrl = url.trim();
+  if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
+    targetUrl = 'https://' + targetUrl;
+  }
+
+  const rawContent = await fetchHtmlOrData(targetUrl);
+  let html = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent);
+
+  // Search for ld+json scripts
+  const scriptRegex = /<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  let match;
+  let recipeObj = null;
+
+  function findRecipe(obj) {
+    if (!obj) return null;
+    if (typeof obj === 'object') {
+      if (obj['@type'] === 'Recipe' || (Array.isArray(obj['@type']) && obj['@type'].includes('Recipe'))) {
+        return obj;
+      }
+      if (Array.isArray(obj['@graph'])) {
+        for (const item of obj['@graph']) {
+          const res = findRecipe(item);
+          if (res) return res;
+        }
+      }
+      if (Array.isArray(obj)) {
+        for (const item of obj) {
+          const res = findRecipe(item);
+          if (res) return res;
+        }
+      }
+    }
+    return null;
+  }
+
+  while ((match = scriptRegex.exec(html)) !== null) {
+    try {
+      const json = JSON.parse(match[1].trim());
+      const found = findRecipe(json);
+      if (found) {
+        recipeObj = found;
+        break;
+      }
+    } catch (e) {}
+  }
+
+  if (!recipeObj) {
+    throw new Error('Kein Rezept mit strukturierten Zutaten gefunden.');
+  }
+
+  const title = recipeObj.name || 'Importiertes Rezept';
+  let image = null;
+  if (typeof recipeObj.image === 'string') image = recipeObj.image;
+  else if (Array.isArray(recipeObj.image) && recipeObj.image.length > 0) {
+    image = typeof recipeObj.image[0] === 'string' ? recipeObj.image[0] : recipeObj.image[0]?.url;
+  } else if (recipeObj.image?.url) {
+    image = recipeObj.image.url;
+  }
+
+  let servings = 4.0;
+  if (recipeObj.recipeYield) {
+    const sStr = String(recipeObj.recipeYield);
+    const numMatch = sStr.match(/(\d+([.,]\d+)?)/);
+    if (numMatch) {
+      const parsed = parseFloat(numMatch[1].replace(',', '.'));
+      if (!isNaN(parsed) && parsed > 0) servings = parsed;
+    }
+  }
+
+  const rawIngredients = Array.isArray(recipeObj.recipeIngredient)
+    ? recipeObj.recipeIngredient
+    : (recipeObj.recipeIngredient ? [recipeObj.recipeIngredient] : []);
+
+  const ingredients = [];
+
+  for (const rawLine of rawIngredients) {
+    if (!rawLine || !String(rawLine).trim()) continue;
+    const parsed = parseIngredientLine(String(rawLine));
+    const matched = matchIngredientToTaxonomy(parsed.name);
+
+    let itemName = parsed.name;
+    let category = 'Sonstiges';
+    let icon = null;
+    let isMatched = false;
+
+    if (matched) {
+      itemName = matched.name || parsed.name;
+      category = matched.category || 'Sonstiges';
+      icon = matched.icon || null;
+      isMatched = true;
+    }
+
+    const isStaple = isStapleOrSpice(parsed.name) || isStapleOrSpice(itemName);
+
+    ingredients.push({
+      raw: parsed.raw,
+      name: itemName,
+      original_name: parsed.name,
+      quantity: parsed.quantity,
+      base_quantity: parsed.quantity,
+      unit: parsed.unit,
+      category,
+      icon,
+      matched: isMatched,
+      is_staple: isStaple,
+      selected: !isStaple
+    });
+  }
+
+  return {
+    title,
+    image,
+    servings,
+    source: 'web',
+    url: targetUrl,
+    ingredients
+  };
+}

@@ -1,3 +1,40 @@
+<script setup>
+import { onMounted } from 'vue';
+import { useRouter } from 'vue-router';
+import { App as CapApp } from '@capacitor/app';
+
+const router = useRouter();
+
+const handleIncomingShare = (sharedText) => {
+  if (!sharedText) return;
+  const match = sharedText.match(/https?:\/\/[^\s]+/i);
+  const targetUrl = match ? match[0] : sharedText.trim();
+
+  if (targetUrl) {
+    localStorage.setItem('pending_recipe_import', JSON.stringify({ url: targetUrl }));
+    router.push(`/share-target?url=${encodeURIComponent(targetUrl)}`);
+  }
+};
+
+onMounted(() => {
+  // Listen for native Android SEND intent dispatched from MainActivity
+  window.addEventListener('appShareTarget', (e) => {
+    if (e.detail && e.detail.text) {
+      handleIncomingShare(e.detail.text);
+    }
+  });
+
+  // Listen for deep link URLs opened via Capacitor App plugin
+  try {
+    CapApp.addListener('appUrlOpen', (data) => {
+      if (data && data.url) {
+        handleIncomingShare(data.url);
+      }
+    });
+  } catch (err) {}
+});
+</script>
+
 <template>
   <div class="app-shell bg-slate-900 shadow-2xl overflow-hidden relative">
     <div class="app-shell__glow app-shell__glow--one"></div>

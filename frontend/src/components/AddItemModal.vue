@@ -5,7 +5,7 @@ import { useRoute } from 'vue-router';
 import { searchTaxonomy, debounce } from '../utils/search';
 import CategoryIcon from './CategoryIcon.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
-import { Capacitor } from '@capacitor/core';
+import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { scanBarcodeNative } from '../utils/nativeBarcode';
 
 // --- KATEGORIE DEFINITIONEN ---
@@ -58,14 +58,17 @@ const sheetRef = ref(null);
 const sheetStyle = ref({});
 let startY = 0;
 let currentY = 0;
+let isDragging = false;
 
 const onTouchStart = (e) => {
   startY = e.touches[0].clientY;
   currentY = startY;
+  isDragging = true;
   sheetStyle.value = { transition: 'none' };
 };
 
 const onTouchMove = (e) => {
+  if (!isDragging) return;
   const y = e.touches[0].clientY;
   currentY = y;
   const delta = Math.max(0, y - startY); // Only allow dragging down
@@ -75,6 +78,8 @@ const onTouchMove = (e) => {
 };
 
 const onTouchEnd = () => {
+  if (!isDragging) return;
+  isDragging = false;
   const delta = currentY - startY;
   if (delta > 100) {
     closeModal();
@@ -131,68 +136,113 @@ const handleWebScannerClose = () => {
     }
 };
 
+const isBarcodeLoading = ref(false);
+
 const handleScan = async (barcode) => {
     showScanner.value = false;
+    isBarcodeLoading.value = true;
 
     try {
-        const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${barcode}`);
+        let productData = null;
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.product) {
-                const product = data.product;
-                const productName = product.product_name || product.abbreviated_product_name || product.product_name_de || '';
-                const genericName = product.generic_name_de || product.generic_name || '';
-                const brandsStr = product.brands || '';
-                let brand = '';
-
-                if (brandsStr) {
-                    brand = brandsStr.split(',')[0].trim();
-                }
-
-                // Query taxonomy by generic name, brand, or product name
-                let searchTarget = genericName || productName;
-                let searchResults = searchTaxonomy(searchTarget);
-                if ((!searchResults || searchResults.length === 0) && brand) {
-                    searchResults = searchTaxonomy(brand);
-                }
-                if ((!searchResults || searchResults.length === 0) && productName) {
-                    searchResults = searchTaxonomy(productName);
-                }
-
-                let matchingItem;
-                let auspraegung = '';
-
-                if (searchResults && searchResults.length > 0) {
-                    matchingItem = searchResults[0];
-                    if (brand && !matchingItem.name.toLowerCase().includes(brand.toLowerCase())) {
-                        auspraegung = brand;
-                    } else if (productName && productName.toLowerCase() !== matchingItem.name.toLowerCase()) {
-                        auspraegung = productName;
+        // 1. Auf nativer Android-Plattform: CapacitorHttp mit KaufSync User-Agent (umgeht 403 Forbidden & CORS)
+        if (Capacitor.isNativePlatform()) {
+            try {
+                const nativeResp = await CapacitorHttp.get({
+                    url: `https://world.openfoodfacts.org/api/v3/product/${barcode}`,
+                    headers: {
+                        'User-Agent': 'KaufSync - Android - Version 1.0 (admin@kaufsync.com)'
                     }
-                } else {
-                    matchingItem = {
-                        name: genericName || productName || 'Unbekanntes Produkt',
-                        category: 'Sonstiges',
-                        tags: { quantities: [], constellations: [], global_meta: [] }
-                    };
-                    auspraegung = brand || productName;
+                });
+                if (nativeResp.status === 200 && nativeResp.data && nativeResp.data.product) {
+                    productData = nativeResp.data.product;
                 }
+            } catch (httpErr) {
+                console.warn("CapacitorHttp barcode fetch failed:", httpErr);
+            }
+        }
 
-                proceedToDetails(matchingItem);
-
-                // Add brand/product as Ausprägung
-                if (auspraegung && auspraegung.toLowerCase() !== matchingItem.name.toLowerCase()) {
-                    if (!activeTags.value.includes(auspraegung)) {
-                        activeTags.value.push(auspraegung);
+        // 2. Fallback: Standard fetch
+        if (!productData) {
+            try {
+                const response = await fetch(`https://world.openfoodfacts.org/api/v3/product/${barcode}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.product) {
+                        productData = data.product;
                     }
+                }
+            } catch (fetchErr) {
+                console.warn("Web fetch barcode error:", fetchErr);
+            }
+        }
+
+        if (productData) {
+            const productName = productData.product_name || productData.abbreviated_product_name || productData.product_name_de || '';
+            const genericName = productData.generic_name_de || productData.generic_name || '';
+            const brandsStr = productData.brands || '';
+            let brand = '';
+
+            if (brandsStr) {
+                brand = brandsStr.split(',')[0].trim();
+            }
+
+            // Query taxonomy by generic name, brand, or product name
+            let searchTarget = genericName || productName;
+            let searchResults = searchTaxonomy(searchTarget);
+            if ((!searchResults || searchResults.length === 0) && brand) {
+                searchResults = searchTaxonomy(brand);
+            }
+            if ((!searchResults || searchResults.length === 0) && productName) {
+                searchResults = searchTaxonomy(productName);
+            }
+
+            let matchingItem;
+            let auspraegung = '';
+
+            if (searchResults && searchResults.length > 0) {
+                matchingItem = searchResults[0];
+                if (brand && !matchingItem.name.toLowerCase().includes(brand.toLowerCase())) {
+                    auspraegung = brand;
+                } else if (productName && productName.toLowerCase() !== matchingItem.name.toLowerCase()) {
+                    auspraegung = productName;
+                }
+            } else {
+                matchingItem = {
+                    name: genericName || productName || 'Unbekanntes Produkt',
+                    category: 'Sonstiges',
+                    tags: { quantities: [], constellations: [], global_meta: [] }
+                };
+                auspraegung = brand || productName;
+            }
+
+            proceedToDetails(matchingItem);
+
+            // Add brand/product as Ausprägung
+            if (auspraegung && auspraegung.toLowerCase() !== matchingItem.name.toLowerCase()) {
+                if (!activeTags.value.includes(auspraegung)) {
+                    activeTags.value.push(auspraegung);
                 }
             }
         } else {
-            console.warn("Product not found or API error:", response.status);
+            // Barcode nicht in OpenFoodFacts gefunden: Trotzdem Detail-Ansicht öffnen statt Schließen!
+            const fallbackItem = {
+                name: 'Barcode ' + barcode,
+                category: 'Sonstiges',
+                tags: { quantities: [], constellations: [], global_meta: [] }
+            };
+            proceedToDetails(fallbackItem);
         }
     } catch (e) {
         console.error("Error fetching barcode info:", e);
+        const fallbackItem = {
+            name: 'Barcode ' + barcode,
+            category: 'Sonstiges',
+            tags: { quantities: [], constellations: [], global_meta: [] }
+        };
+        proceedToDetails(fallbackItem);
+    } finally {
+        isBarcodeLoading.value = false;
     }
 };
 

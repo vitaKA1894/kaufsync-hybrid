@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { apiUrl } from '../config/api';
 import CategoryIcon from './CategoryIcon.vue';
+import { parseRecipeClientSide } from '../utils/clientRecipeParser';
 
 const props = defineProps({
   isOpen: {
@@ -81,18 +82,36 @@ const fetchRecipe = async () => {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl('/api/recipes/parse'), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ url: targetUrl })
-    });
+    let data = null;
 
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.detail || 'Rezept konnte nicht geladen werden.');
+    try {
+      const response = await fetch(apiUrl('/api/recipes/parse'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ url: targetUrl })
+      });
+
+      if (response.ok) {
+        data = await response.json();
+      } else if (response.status === 405 || response.status === 404) {
+        // Backend noch nicht aktualisiert -> Client-seitiger Fallback-Parser
+        data = await parseRecipeClientSide(targetUrl);
+      } else {
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.detail || 'Rezept konnte nicht geladen werden.');
+      }
+    } catch (netErr) {
+      // Wenn der Server nicht erreichbar ist oder Endpoint fehlt, nutze Client-Parser
+      if (!data) {
+        data = await parseRecipeClientSide(targetUrl);
+      }
+    }
+
+    if (!data) {
+      throw new Error('Kein Rezept mit strukturierten Zutaten gefunden.');
     }
 
     recipeData.value = data;
@@ -174,8 +193,22 @@ const importSelectedItems = async () => {
     });
 
     if (!response.ok) {
-      const errData = await response.json();
-      throw new Error(errData.detail || 'Fehler beim Hinzufügen der Artikel.');
+      if (response.status === 405 || response.status === 404) {
+        // Fallback: Einzeln anlegen falls Server-Bulk-Endpoint noch nicht geupdatet
+        for (const item of itemsToCreate) {
+          await fetch(apiUrl(`/api/lists/${props.listId}/items`), {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(item)
+          });
+        }
+      } else {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.detail || 'Fehler beim Hinzufügen der Artikel.');
+      }
     }
 
     emit('imported', {
