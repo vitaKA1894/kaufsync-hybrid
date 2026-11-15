@@ -135,10 +135,44 @@ const updateServings = (delta) => {
   if (recipeData.value && recipeData.value.ingredients) {
     const factor = currentServings.value / baseServings.value;
     recipeData.value.ingredients.forEach(item => {
-      if (item.base_quantity != null && item.base_quantity > 0) {
-        const scaled = item.base_quantity * factor;
-        // Clean round to at most 1 decimal
-        item.quantity = Math.round(scaled * 10) / 10;
+      const origRecipeQty = item.recipe_quantity ?? item.base_quantity;
+      const unit = item.recipe_unit || item.unit || '';
+      const uClean = unit.toLowerCase().replace(/\.$/, '');
+      const isWeightOrVol = ['g', 'gramm', 'kg', 'kilogramm', 'ml', 'milliliter', 'cl', 'dl', 'l', 'liter'].includes(uClean);
+      const isSpoonOrPinch = ['el', 'esslöffel', 'tl', 'teelöffel', 'prise', 'prisen', 'msp', 'msp.', 'n.b.', 'n. b.'].includes(uClean);
+      const isContainer = ['dose', 'dosen', 'becher', 'glas', 'gläser', 'packung', 'pck', 'pck.', 'bund', 'bündel', 'flasche', 'fl.'].includes(uClean);
+
+      if (origRecipeQty != null && origRecipeQty > 0) {
+        let scaledRecipeQty = origRecipeQty * factor;
+        scaledRecipeQty = Math.round(scaledRecipeQty * 10) / 10;
+        const qStr = Number.isInteger(scaledRecipeQty) ? scaledRecipeQty.toString() : scaledRecipeQty.toString();
+
+        if (isWeightOrVol) {
+          item.quantity = 1.0;
+          item.tags = [`${qStr}${unit}`];
+          item.display_amount = `${qStr} ${unit}`.trim();
+        } else if (isSpoonOrPinch) {
+          item.quantity = 1.0;
+          item.tags = [`${qStr} ${unit}`.trim()];
+          item.display_amount = `${qStr} ${unit}`.trim();
+        } else if (isContainer) {
+          item.quantity = Math.max(1, Math.round(scaledRecipeQty * 10) / 10);
+          item.display_amount = `${qStr} ${unit}`.trim();
+          if (['dose', 'dosen'].includes(uClean)) {
+            item.tags = [item.quantity > 1 ? `${item.quantity} Dosen` : 'Dose'];
+          } else if (['becher'].includes(uClean)) {
+            item.tags = ['Becher'];
+          } else if (['glas', 'gläser'].includes(uClean)) {
+            item.tags = ['Glas'];
+          } else if (['bund', 'bündel'].includes(uClean)) {
+            item.tags = ['Bund'];
+          } else {
+            item.tags = [unit];
+          }
+        } else {
+          item.quantity = Math.max(0.5, Math.round(scaledRecipeQty * 10) / 10);
+          item.display_amount = `${qStr} ${unit}`.trim();
+        }
       }
     });
   }
@@ -167,13 +201,22 @@ const importSelectedItems = async () => {
 
   const itemsToCreate = recipeData.value.ingredients
     .filter(i => i.selected)
-    .map(i => ({
-      name: i.name.trim(),
-      category: i.category || 'Sonstiges',
-      quantity: parseFloat(i.quantity) || 1.0,
-      unit: i.unit || 'Stk',
-      note: i.original_name !== i.name ? `Rezept: ${i.original_name}` : null
-    }));
+    .map(i => {
+      let tagsVal = null;
+      if (i.tags && Array.isArray(i.tags) && i.tags.length > 0) {
+        tagsVal = JSON.stringify(i.tags);
+      } else if (typeof i.tags === 'string' && i.tags.trim()) {
+        tagsVal = i.tags;
+      }
+      return {
+        name: i.name.trim(),
+        category: i.category || 'Sonstiges',
+        quantity: parseFloat(i.quantity) || 1.0,
+        unit: i.unit || 'Stk',
+        tags: tagsVal,
+        note: i.original_name !== i.name ? `Rezept: ${i.original_name}` : null
+      };
+    });
 
   isImporting.value = true;
   errorMessage.value = '';
@@ -355,7 +398,8 @@ const getHostname = (link) => {
             <!-- DETAILS -->
             <div class="ing-details">
               <div class="ing-main-line">
-                <span class="ing-qty" v-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
+                <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
+                <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
                 <span class="ing-name">{{ item.name }}</span>
               </div>
               <div class="ing-sub-line">

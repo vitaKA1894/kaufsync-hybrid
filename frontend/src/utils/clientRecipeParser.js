@@ -28,12 +28,16 @@ const STAPLES_KEYWORDS = [
   'pfeffer', 'schwarzer pfeffer', 'weißer pfeffer', 'bunter pfeffer', 'cayennepfeffer',
   'muskat', 'muskatnuss', 'olivenöl', 'speiseöl', 'sonnenblumenöl', 'rapsöl',
   'pflanzenöl', 'bratöl', 'brühe', 'gemüsebrühe', 'fleischbrühe', 'hühnerbrühe',
-  'essig', 'balsamico', 'weißweinessig', 'rotweinessig', 'zucker', 'kristallzucker'
+  'essig', 'balsamico', 'weißweinessig', 'rotweinessig', 'zucker', 'kristallzucker',
+  'gewürz', 'gewürze', 'pizzagewürz', 'kräuter', 'italienische kräuter'
 ];
 
 export function isStapleOrSpice(name) {
   if (!name) return false;
   const clean = name.toLowerCase().trim();
+  if (clean.endsWith('gewürz') || clean.endsWith('gewürze') || clean.endsWith('kräuter')) {
+    return true;
+  }
   for (const staple of STAPLES_KEYWORDS) {
     if (clean === staple || new RegExp(`\\b${staple}\\b`, 'i').test(clean)) {
       return true;
@@ -135,6 +139,23 @@ taxonomy.forEach(item => {
   }
 });
 
+const COMPOUND_SUFFIXES = [
+  'gewürz', 'gewürze', 'pulver', 'sauce', 'soße', 'dressing',
+  'paste', 'öl', 'essig', 'sirup', 'tee', 'aufstrich', 'salz', 'brot', 'brötchen'
+];
+
+function shouldRejectCompoundPrefix(clean, candidate) {
+  if (clean.startsWith(candidate) && clean.length > candidate.length) {
+    const remainder = clean.slice(candidate.length).replace(/^-/, '');
+    for (const s of COMPOUND_SUFFIXES) {
+      if (remainder === s || remainder.startsWith(s)) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 export function matchIngredientToTaxonomy(name) {
   if (!name) return null;
   let clean = name.toLowerCase().trim();
@@ -167,6 +188,9 @@ export function matchIngredientToTaxonomy(name) {
 
   for (const [candidate, item] of itemsByName.entries()) {
     if (candidate.length >= 4) {
+      if (shouldRejectCompoundPrefix(clean, candidate)) {
+        continue;
+      }
       if (clean.includes(candidate) || candidate.includes(clean)) {
         if (candidate.length > longestLen) {
           longestLen = candidate.length;
@@ -178,6 +202,9 @@ export function matchIngredientToTaxonomy(name) {
 
   for (const [candidate, item] of aliasToItem.entries()) {
     if (candidate.length >= 4) {
+      if (shouldRejectCompoundPrefix(clean, candidate)) {
+        continue;
+      }
       if (clean.includes(candidate) || candidate.includes(clean)) {
         if (candidate.length > longestLen) {
           longestLen = candidate.length;
@@ -276,11 +303,15 @@ export async function parseRecipeClientSide(url) {
 
   let servings = 4.0;
   if (recipeObj.recipeYield) {
-    const sStr = String(recipeObj.recipeYield);
+    let rawYield = recipeObj.recipeYield;
+    if (Array.isArray(rawYield) && rawYield.length > 0) {
+      rawYield = rawYield[0];
+    }
+    const sStr = String(rawYield);
     const numMatch = sStr.match(/(\d+([.,]\d+)?)/);
     if (numMatch) {
       const parsed = parseFloat(numMatch[1].replace(',', '.'));
-      if (!isNaN(parsed) && parsed > 0) servings = parsed;
+      if (!isNaN(parsed) && parsed > 0) servings = Math.round(parsed);
     }
   }
 
@@ -305,17 +336,68 @@ export async function parseRecipeClientSide(url) {
       category = matched.category || 'Sonstiges';
       icon = matched.icon || null;
       isMatched = true;
+    } else {
+      // Check if it's a spice/gewürz without exact taxonomy match
+      const lower = parsed.name.toLowerCase();
+      if (lower.includes('gewürz') || lower.includes('kräuter')) {
+        category = 'Vorratskammer';
+      }
     }
 
     const isStaple = isStapleOrSpice(parsed.name) || isStapleOrSpice(itemName);
+
+    // Structure pack count vs Ausprägung (tag)
+    const uClean = (parsed.unit || '').toLowerCase().replace(/\.$/, '');
+    const isWeightOrVol = ['g', 'gramm', 'kg', 'kilogramm', 'ml', 'milliliter', 'cl', 'dl', 'l', 'liter'].includes(uClean);
+    const isSpoonOrPinch = ['el', 'esslöffel', 'tl', 'teelöffel', 'prise', 'prisen', 'msp', 'msp.', 'n.b.', 'n. b.'].includes(uClean);
+    const isContainer = ['dose', 'dosen', 'becher', 'glas', 'gläser', 'packung', 'pck', 'pck.', 'bund', 'bündel', 'flasche', 'fl.'].includes(uClean);
+
+    let finalQty = 1.0;
+    let finalUnit = 'Stk';
+    const itemTags = [];
+
+    if (isWeightOrVol) {
+      const qNum = parsed.quantity;
+      const qStr = Number.isInteger(qNum) ? qNum.toString() : qNum.toString();
+      itemTags.push(`${qStr}${parsed.unit}`);
+      finalQty = 1.0;
+      finalUnit = 'Stk';
+    } else if (isSpoonOrPinch) {
+      const qNum = parsed.quantity;
+      const qStr = Number.isInteger(qNum) ? qNum.toString() : qNum.toString();
+      itemTags.push(`${qStr} ${parsed.unit}`.trim());
+      finalQty = 1.0;
+      finalUnit = 'Stk';
+    } else if (isContainer) {
+      finalQty = parsed.quantity;
+      finalUnit = 'Stk';
+      if (['dose', 'dosen'].includes(uClean)) {
+        itemTags.push(finalQty > 1 ? `${Math.round(finalQty)} Dosen` : 'Dose');
+      } else if (['becher'].includes(uClean)) {
+        itemTags.push('Becher');
+      } else if (['glas', 'gläser'].includes(uClean)) {
+        itemTags.push('Glas');
+      } else if (['bund', 'bündel'].includes(uClean)) {
+        itemTags.push('Bund');
+      } else {
+        itemTags.push(parsed.unit);
+      }
+    } else {
+      finalQty = parsed.quantity;
+      finalUnit = 'Stk';
+    }
 
     ingredients.push({
       raw: parsed.raw,
       name: itemName,
       original_name: parsed.name,
-      quantity: parsed.quantity,
-      base_quantity: parsed.quantity,
-      unit: parsed.unit,
+      quantity: finalQty,
+      base_quantity: finalQty,
+      unit: finalUnit,
+      display_amount: `${parsed.quantity} ${parsed.unit}`.trim(),
+      recipe_quantity: parsed.quantity,
+      recipe_unit: parsed.unit,
+      tags: itemTags,
       category,
       icon,
       matched: isMatched,

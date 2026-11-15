@@ -41,11 +41,25 @@ const checkPendingRecipeImport = () => {
   }
 };
 
+const openRecipeListPickerModal = () => {
+  if (shoppingLists.value.length === 0) {
+    errorMessage.value = 'Bitte erstelle zuerst eine Einkaufsliste.';
+    setTimeout(() => errorMessage.value = '', 3000);
+    return;
+  }
+  pendingRecipeUrl.value = '';
+  showRecipeListPicker.value = true;
+};
+
 const selectListForRecipe = (targetListId) => {
   showRecipeListPicker.value = false;
   const targetUrl = pendingRecipeUrl.value;
   localStorage.removeItem('pending_recipe_import');
-  router.push(`/list/${targetListId}?importRecipe=1&url=${encodeURIComponent(targetUrl)}`);
+  if (targetUrl) {
+    router.push(`/list/${targetListId}?importRecipe=1&url=${encodeURIComponent(targetUrl)}`);
+  } else {
+    router.push(`/list/${targetListId}?openRecipeImport=1`);
+  }
 };
 
 const handleScanCode = (scannedValue) => {
@@ -347,6 +361,13 @@ const getBannerUrl = (name) => {
   return `/banners/${formatted}_Banner.jpeg`;
 };
 
+const getStoreIcon = (name) => {
+  if (!name) return null;
+  const nameLower = name.toLowerCase();
+  const matched = predefinedStores.find(s => nameLower.includes(s.name.toLowerCase()));
+  return matched ? matched.icon : null;
+};
+
 const getActiveCount = (list) => {
   if (!list || !list.items) return 0;
   return list.items.filter(i => i.status === 'active').length;
@@ -475,10 +496,18 @@ onUnmounted(() => {
     </div>
 
     <div class="ks-fab-bar">
-      <button class="ks-fab" @click="openModal('create')">
-        <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
-        Neue Liste erstellen
-      </button>
+      <div class="fab-cluster">
+        <button class="ks-fab" @click="openModal('create')">
+          <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
+          <span>Neue Liste</span>
+        </button>
+        <button class="ks-fab ks-fab-recipe" @click="openRecipeListPickerModal" title="Artikel aus Rezept importieren">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
+          </svg>
+          <span>Rezept importieren</span>
+        </button>
+      </div>
     </div>
 
     <transition name="scrim-fade">
@@ -535,42 +564,52 @@ onUnmounted(() => {
       </div>
     </transition>
 
-    <!-- MODAL FÜR REZEPT-ZIEL-LISTE (WENN AUS SHARE TARGET GETEILT) -->
-    <transition name="scrim-fade">
-      <div v-if="showRecipeListPicker" class="ks-modal-overlay" @click="showRecipeListPicker = false">
-        <div class="ks-modal-content" @click.stop style="max-width: 440px; border-radius: 24px; padding: 24px;">
-          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
-            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+    <!-- MODAL FÜR REZEPT-ZIEL-LISTE (SUPERMARKT AUSWAHL) -->
+    <transition name="dialog-fade">
+      <div v-if="showRecipeListPicker" class="ks-dialog-scrim" @click.self="showRecipeListPicker = false">
+        <div class="ks-dialog" style="max-width: 440px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+            <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                 <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
               </svg>
             </div>
             <div>
               <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #f8fafc;">Rezept importieren</h3>
-              <p style="margin: 0; font-size: 12px; color: #94a3b8;">Wähle die gewünschte Einkaufsliste</p>
+              <p style="margin: 0; font-size: 12px; color: #94a3b8;">Wähle die Einkaufsliste für den Import</p>
             </div>
           </div>
 
-          <div style="display: flex; flex-direction: column; gap: 8px; margin: 18px 0;">
+          <div style="display: flex; flex-direction: column; gap: 10px; margin: 16px 0; max-height: 55vh; overflow-y: auto;">
             <button
-              v-for="list in shoppingLists"
+              v-for="list in sortedShoppingLists"
               :key="list.id"
-              class="ks-btn-filled"
-              style="text-align: left; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 14px; background: #212631; border: 1px solid rgba(255,255,255,0.06);"
+              class="recipe-list-pick-btn"
               @click="selectListForRecipe(list.id)"
             >
-              <span style="font-weight: 600; color: #f8fafc;">{{ list.name }}</span>
-              <span style="font-size: 12px; color: #38bdf8;">Auswählen →</span>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="store-svg-container" style="width: 34px; height: 34px; flex-shrink: 0; background: rgba(255,255,255,0.06); border-radius: 8px; display: flex; align-items: center; justify-content: center; padding: 4px;">
+                  <img v-if="getStoreIcon(list.name)" :src="getStoreIcon(list.name)" :alt="list.name" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                  <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor" style="color: #94a3b8;"><path d="M17 18c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2zM7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm0-3l1.1-2h7.45c.75 0 1.41-.41 1.75-1.03L21.7 4H5.21l-.94-2H1v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.13 0-.25-.11-.25-.25z"/></svg>
+                </div>
+                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                  <span style="font-weight: 600; color: #f8fafc; font-size: 15px;">{{ list.name }}</span>
+                  <span style="font-size: 12px; color: #94a3b8;">{{ getActiveCount(list) }} Artikel</span>
+                </div>
+              </div>
+              <span style="font-size: 13px; color: #38bdf8; font-weight: 600;">Auswählen →</span>
             </button>
           </div>
 
-          <button
-            class="ks-btn-text"
-            style="width: 100%; color: #94a3b8;"
-            @click="showRecipeListPicker = false; localStorage.removeItem('pending_recipe_import');"
-          >
-            Abbrechen
-          </button>
+          <div class="ks-btn-row" style="margin-top: 16px;">
+            <button
+              class="ks-btn-text"
+              style="width: 100%; color: #94a3b8;"
+              @click="showRecipeListPicker = false; localStorage.removeItem('pending_recipe_import');"
+            >
+              Abbrechen
+            </button>
+          </div>
         </div>
       </div>
     </transition>
@@ -817,4 +856,58 @@ onUnmounted(() => {
 .action-btn.accept { background: var(--ks-primary-container); color: var(--ks-primary); }
 .action-btn.decline { background: var(--ks-error-bg); color: var(--ks-error); }
 .action-btn:hover { filter: brightness(0.9); }
+
+/* --- FAB CLUSTER & REZEPT IMPORT BUTTON --- */
+.fab-cluster {
+  display: flex;
+  gap: 10px;
+  width: min(100%, calc(var(--ks-page-width) - 32px));
+  margin: 0 auto;
+}
+
+.fab-cluster .ks-fab {
+  flex: 1;
+  width: auto;
+  margin: 0;
+  padding: 0 14px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.fab-cluster .ks-fab-recipe {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6), 0 0 14px rgba(245, 158, 11, 0.15);
+  color: #f8fafc;
+}
+
+.fab-cluster .ks-fab-recipe svg {
+  color: #f59e0b;
+}
+
+.fab-cluster .ks-fab-recipe:hover {
+  border-color: #f59e0b;
+  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
+}
+
+.recipe-list-pick-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--ks-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: left;
+}
+
+.recipe-list-pick-btn:hover,
+.recipe-list-pick-btn:active {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: rgba(56, 189, 248, 0.4);
+  transform: translateY(-1px);
+}
 </style>

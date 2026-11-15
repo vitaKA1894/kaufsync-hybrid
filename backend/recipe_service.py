@@ -56,6 +56,19 @@ def build_taxonomy_lookups(taxonomy_data: List[Dict[str, Any]]) -> Tuple[Dict[st
 
     return items_by_name, alias_to_item, constellation_to_item
 
+COMPOUND_SUFFIXES = [
+    'gewürz', 'gewürze', 'pulver', 'sauce', 'soße', 'dressing',
+    'paste', 'öl', 'essig', 'sirup', 'tee', 'aufstrich', 'salz', 'brot', 'brötchen'
+]
+
+def should_reject_compound_prefix(clean: str, candidate: str) -> bool:
+    if clean.startswith(candidate) and len(clean) > len(candidate):
+        remainder = clean[len(candidate):].lstrip('-')
+        for s in COMPOUND_SUFFIXES:
+            if remainder == s or remainder.startswith(s):
+                return True
+    return False
+
 def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
     Matches a parsed ingredient name dynamically against the taxonomy (names, aliases, constellations).
@@ -103,6 +116,8 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
 
     for candidate_name, item in items_by_name.items():
         if len(candidate_name) >= 4:
+            if should_reject_compound_prefix(clean, candidate_name):
+                continue
             if candidate_name in clean or clean in candidate_name:
                 if len(candidate_name) > longest_len:
                     longest_len = len(candidate_name)
@@ -110,6 +125,8 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
 
     for candidate_alias, item in alias_to_item.items():
         if len(candidate_alias) >= 4:
+            if should_reject_compound_prefix(clean, candidate_alias):
+                continue
             if candidate_alias in clean or clean in candidate_alias:
                 if len(candidate_alias) > longest_len:
                     longest_len = len(candidate_alias)
@@ -144,11 +161,14 @@ STAPLES_KEYWORDS = [
     'pfeffer', 'schwarzer pfeffer', 'weißer pfeffer', 'bunter pfeffer', 'cayennepfeffer',
     'muskat', 'muskatnuss', 'olivenöl', 'speiseöl', 'sonnenblumenöl', 'rapsöl',
     'pflanzenöl', 'bratöl', 'brühe', 'gemüsebrühe', 'fleischbrühe', 'hühnerbrühe',
-    'essig', 'balsamico', 'weißweinessig', 'rotweinessig', 'zucker', 'kristallzucker'
+    'essig', 'balsamico', 'weißweinessig', 'rotweinessig', 'zucker', 'kristallzucker',
+    'gewürz', 'gewürze', 'pizzagewürz', 'kräuter', 'italienische kräuter'
 ]
 
 def is_staple_or_spice(name: str) -> bool:
     clean = name.lower().strip()
+    if clean.endswith('gewürz') or clean.endswith('gewürze'):
+        return True
     for staple in STAPLES_KEYWORDS:
         if staple == clean or re.search(r'\b' + re.escape(staple) + r'\b', clean):
             return True
@@ -249,7 +269,9 @@ def parse_servings(servings_val: Any) -> float:
     match = re.search(r'(\d+([\.,]\d+)?)', s_str)
     if match:
         try:
-            return float(match.group(1).replace(',', '.'))
+            val = float(match.group(1).replace(',', '.'))
+            if val > 0:
+                return float(round(val))
         except Exception:
             pass
     return 4.0
@@ -432,7 +454,11 @@ def parse_recipe_url(url: str) -> Dict[str, Any]:
             is_matched = True
         else:
             item_name = parsed_item["name"]
-            category = "Sonstiges"
+            lower_name = item_name.lower()
+            if "gewürz" in lower_name or "kräuter" in lower_name:
+                category = "Vorratskammer"
+            else:
+                category = "Sonstiges"
             icon = None
             is_matched = False
 
@@ -440,13 +466,53 @@ def parse_recipe_url(url: str) -> Dict[str, Any]:
         is_staple = is_staple_or_spice(parsed_item["name"]) or is_staple_or_spice(item_name)
         selected_by_default = not is_staple
 
+        # Structure pack count vs Ausprägung (tag)
+        u_clean = (parsed_item["unit"] or "").lower().rstrip('.')
+        is_weight_or_vol = u_clean in ['g', 'gramm', 'kg', 'kilogramm', 'ml', 'milliliter', 'cl', 'dl', 'l', 'liter']
+        is_spoon_or_pinch = u_clean in ['el', 'esslöffel', 'tl', 'teelöffel', 'prise', 'prisen', 'msp', 'msp.', 'n.b.', 'n. b.']
+        is_container = u_clean in ['dose', 'dosen', 'becher', 'glas', 'gläser', 'packung', 'pck', 'pck.', 'bund', 'bündel', 'flasche', 'fl.']
+
+        item_tags = []
+        if is_weight_or_vol:
+            q_num = parsed_item["quantity"]
+            q_str = str(int(q_num)) if isinstance(q_num, (int, float)) and q_num.is_integer() else str(q_num)
+            item_tags.append(f"{q_str}{parsed_item['unit']}")
+            final_qty = 1.0
+            final_unit = "Stk"
+        elif is_spoon_or_pinch:
+            q_num = parsed_item["quantity"]
+            q_str = str(int(q_num)) if isinstance(q_num, (int, float)) and q_num.is_integer() else str(q_num)
+            item_tags.append(f"{q_str} {parsed_item['unit']}".strip())
+            final_qty = 1.0
+            final_unit = "Stk"
+        elif is_container:
+            final_qty = parsed_item["quantity"]
+            final_unit = "Stk"
+            if u_clean in ['dose', 'dosen']:
+                item_tags.append(f"{int(final_qty)} Dosen" if final_qty > 1 else "Dose")
+            elif u_clean in ['becher']:
+                item_tags.append("Becher")
+            elif u_clean in ['glas', 'gläser']:
+                item_tags.append("Glas")
+            elif u_clean in ['bund', 'bündel']:
+                item_tags.append("Bund")
+            else:
+                item_tags.append(parsed_item["unit"])
+        else:
+            final_qty = parsed_item["quantity"]
+            final_unit = "Stk"
+
         parsed_ingredients.append({
             "raw": parsed_item["raw"],
             "name": item_name,
             "original_name": parsed_item["name"],
-            "quantity": parsed_item["quantity"],
-            "base_quantity": parsed_item["quantity"], # To scale with portions
-            "unit": parsed_item["unit"],
+            "quantity": final_qty,
+            "base_quantity": final_qty,
+            "unit": final_unit,
+            "display_amount": f"{parsed_item['quantity']} {parsed_item['unit']}".strip(),
+            "recipe_quantity": parsed_item["quantity"],
+            "recipe_unit": parsed_item["unit"],
+            "tags": item_tags,
             "category": category,
             "icon": icon,
             "matched": is_matched,

@@ -816,6 +816,8 @@ onMounted(() => {
     localStorage.removeItem('pending_recipe_import');
   } else if (route.query.importRecipe && route.query.url) {
     openRecipeModal(route.query.url);
+  } else if (route.query.openRecipeImport || route.query.importRecipe) {
+    openRecipeModal();
   }
 });
 

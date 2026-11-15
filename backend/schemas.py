@@ -159,6 +159,10 @@ class RecipeIngredientParsed(BaseModel):
     quantity: float
     base_quantity: float
     unit: str
+    display_amount: Optional[str] = None
+    recipe_quantity: Optional[float] = None
+    recipe_unit: Optional[str] = None
+    tags: Optional[List[str]] = None
     category: str
     icon: Optional[str] = None
     matched: bool
