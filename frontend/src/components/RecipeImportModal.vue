@@ -34,14 +34,10 @@ const recipeData = ref(null);
 const currentServings = ref(4);
 const inputRef = ref(null);
 
-// Target list selection & inline creation
+// Target list selection & quick creation
 const selectedListId = ref(props.listId || '');
 const availableLists = ref([]);
-const isCreatingNewList = ref(false);
-const newListNameInput = ref('');
 const isCreatingListLoading = ref(false);
-const newListError = ref('');
-const newListNameInputRef = ref(null);
 
 const loadAvailableLists = async () => {
   if (props.shoppingLists && props.shoppingLists.length > 0) {
@@ -78,9 +74,7 @@ const resetState = () => {
   recipeData.value = null;
   currentServings.value = 4;
   selectedListId.value = props.listId || '';
-  isCreatingNewList.value = false;
-  newListNameInput.value = '';
-  newListError.value = '';
+  isCreatingListLoading.value = false;
 };
 
 watch(() => props.isOpen, async (newVal) => {
@@ -271,62 +265,22 @@ const getStoreIcon = (name) => {
   return matched ? matched.icon : null;
 };
 
-const chooseStorePreset = (store) => {
-  selectedStorePreset.value = store.name;
-  if (recipeData.value?.title) {
-    newListNameInput.value = `${store.name}: ${recipeData.value.title}`.slice(0, 35);
-  } else {
-    newListNameInput.value = store.name;
-  }
-};
-
 const getSelectedListName = computed(() => {
   if (!selectedListId.value) return '';
   const found = availableLists.value.find(l => l.id === selectedListId.value);
   return found ? found.name : '';
 });
 
-// Inline list creation toggling
-const toggleCreateNewList = () => {
-  if (isCreatingNewList.value) {
-    cancelCreatingNewList();
-  } else {
-    startCreatingNewList();
-  }
-};
-
-const startCreatingNewList = () => {
-  isCreatingNewList.value = true;
-  newListError.value = '';
-  selectedStorePreset.value = '';
-  if (!newListNameInput.value && recipeData.value?.title) {
-    newListNameInput.value = `${recipeData.value.title} Liste`;
-  }
-  nextTick(() => {
-    newListNameInputRef.value?.focus();
-    newListNameInputRef.value?.select();
-  });
-};
-
-const cancelCreatingNewList = () => {
-  isCreatingNewList.value = false;
-  selectedStorePreset.value = '';
-  newListError.value = '';
-};
-
-const createNewListInline = async () => {
-  const name = newListNameInput.value.trim();
-  if (!name) return;
+// Quick 1-click list creation from recipe title
+const createQuickListFromRecipe = async () => {
+  if (!recipeData.value) return;
+  const listName = `${recipeData.value.title || 'Rezept'} Liste`.trim();
 
   isCreatingListLoading.value = true;
-  newListError.value = '';
+  errorMessage.value = '';
 
   try {
     const token = localStorage.getItem('token');
-    const matchedStore = predefinedStores.find(s => s.name.toLowerCase() === name.toLowerCase()) ||
-                         predefinedStores.find(s => selectedStorePreset.value && s.name.toLowerCase() === selectedStorePreset.value.toLowerCase());
-    const finalIcon = matchedStore ? matchedStore.icon : 'mdi-cart';
-
     const response = await fetch(apiUrl('/api/lists'), {
       method: 'POST',
       headers: {
@@ -334,9 +288,9 @@ const createNewListInline = async () => {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        name: name,
-        icon: finalIcon,
-        icon_name: finalIcon
+        name: listName,
+        icon: 'mdi-cart',
+        icon_name: 'mdi-cart'
       })
     });
 
@@ -348,10 +302,9 @@ const createNewListInline = async () => {
     const created = await response.json();
     availableLists.value.push(created);
     selectedListId.value = created.id;
-    isCreatingNewList.value = false;
     emit('list-created', created);
   } catch (err) {
-    newListError.value = err.message || 'Konnte Liste nicht erstellen.';
+    errorMessage.value = err.message || 'Konnte Liste nicht erstellen.';
   } finally {
     isCreatingListLoading.value = false;
   }
@@ -505,181 +458,142 @@ const getHostname = (link) => {
 
       <!-- PHASE 2: RECIPE PREVIEW & INGREDIENT LIST -->
       <div v-else class="recipe-review-section">
-        <!-- RECIPE HEADER CARD -->
-        <div class="recipe-card">
-          <img v-if="recipeData.image" :src="recipeData.image" :alt="recipeData.title" class="recipe-thumb" />
-          <div v-else class="recipe-thumb-placeholder">
-            <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.48l1.3-11.23a1.503 1.503 0 0 0-1.49-1.67h-3.1v-2c0-3.31-2.69-6-6-6s-6 2.69-6 6v2H3c-.88 0-1.58.74-1.49 1.67l1.3 11.23c.1.84.79 1.48 1.63 1.48h13.62zM8 6.61c0-2.21 1.79-4 4-4s4 1.79 4 4v2H8v-2z"/></svg>
-          </div>
-          <div class="recipe-meta">
-            <span class="source-badge">{{ getHostname(recipeData.url) }}</span>
-            <h3 class="recipe-name" :title="recipeData.title">{{ recipeData.title }}</h3>
-            
-            <!-- PORTIONEN SKALIERER -->
-            <div class="servings-stepper">
-              <span class="servings-label">Portionen:</span>
-              <div class="stepper-controls">
-                <button type="button" class="step-btn" @click="updateServings(-1)" :disabled="currentServings <= 1">−</button>
-                <span class="step-value">{{ currentServings }}</span>
-                <button type="button" class="step-btn" @click="updateServings(1)">+</button>
-              </div>
+        <!-- SINGLE SCROLLABLE BODY: Natural top-to-bottom flow, no overlapping windows -->
+        <div class="recipe-modal-scroll-body">
+          <!-- RECIPE HEADER CARD -->
+          <div class="recipe-card">
+            <img v-if="recipeData.image" :src="recipeData.image" :alt="recipeData.title" class="recipe-thumb" />
+            <div v-else class="recipe-thumb-placeholder">
+              <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.48l1.3-11.23a1.503 1.503 0 0 0-1.49-1.67h-3.1v-2c0-3.31-2.69-6-6-6s-6 2.69-6 6v2H3c-.88 0-1.58.74-1.49 1.67l1.3 11.23c.1.84.79 1.48 1.63 1.48h13.62zM8 6.61c0-2.21 1.79-4 4-4s4 1.79 4 4v2H8v-2z"/></svg>
             </div>
-          </div>
-        </div>
-
-        <!-- SELECTION BAR -->
-        <div class="selection-bar">
-          <div class="staples-hint">
-            <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
-            Wasser & Gewürze vorab abgewählt
-          </div>
-          <div class="selection-actions">
-            <button type="button" class="text-link" @click="selectAll">Alle</button>
-            <span class="divider">|</span>
-            <button type="button" class="text-link" @click="deselectAll">Keine</button>
-          </div>
-        </div>
-
-        <!-- INGREDIENTS SCROLL LIST -->
-        <div class="ingredients-list">
-          <div
-            v-for="(item, idx) in recipeData.ingredients"
-            :key="idx"
-            class="ingredient-row"
-            :class="{ 'is-selected': item.selected }"
-            @click="item.selected = !item.selected"
-          >
-            <!-- CHECKBOX -->
-            <div class="checkbox-container" @click.stop>
-              <input type="checkbox" v-model="item.selected" :id="'ing-' + idx" class="custom-checkbox" />
-            </div>
-
-            <!-- ICON -->
-            <div class="ing-icon">
-              <CategoryIcon :name="item.name" :category="item.category" :size="34" />
-            </div>
-
-            <!-- DETAILS -->
-            <div class="ing-details">
-              <div class="ing-main-line">
-                <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
-                <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
-                <span class="ing-name">{{ item.name }}</span>
-              </div>
-              <div class="ing-sub-line">
-                <span class="cat-pill">{{ item.category }}</span>
-                <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
-              </div>
-              <div v-if="item.raw" class="ing-basis" :title="item.raw">
-                <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- TARGET LIST SECTION -->
-        <div class="target-list-section">
-          <div class="target-list-top-row">
-            <span class="target-list-heading">In welche Liste importieren?</span>
-            <button
-              type="button"
-              class="quick-new-list-link"
-              @click="toggleCreateNewList"
-            >
-              <span v-if="!isCreatingNewList">+ Neue Liste erstellen</span>
-              <span v-else>✕ Schließen</span>
-            </button>
-          </div>
-
-          <!-- EMBEDDED INLINE NEUE LISTE ERSTELLEN -->
-          <transition name="expand-fade">
-            <div v-if="isCreatingNewList" class="inline-create-box">
-              <div class="inline-create-header">
-                <span class="inline-create-title">Neue Einkaufsliste anlegen</span>
-                <span class="inline-create-hint">Tippe auf ein Markt-Logo oder gib einen eigenen Namen ein</span>
-              </div>
-
-              <!-- Quick store preset chips -->
-              <div class="store-chips-row">
-                <button
-                  v-for="store in predefinedStores"
-                  :key="store.name"
-                  type="button"
-                  class="store-chip"
-                  :class="{ 'active': selectedStorePreset === store.name }"
-                  @click="chooseStorePreset(store)"
-                >
-                  <img :src="store.icon" :alt="store.name" class="chip-logo" />
-                  <span>{{ store.name }}</span>
-                </button>
-              </div>
-
-              <div class="inline-input-row">
-                <input
-                  ref="newListNameInputRef"
-                  v-model="newListNameInput"
-                  type="text"
-                  class="inline-name-input"
-                  placeholder="Name der Einkaufsliste"
-                  @keyup.enter="createNewListInline"
-                  :disabled="isCreatingListLoading"
-                />
-                <button
-                  type="button"
-                  class="inline-submit-btn"
-                  :disabled="!newListNameInput.trim() || isCreatingListLoading"
-                  @click="createNewListInline"
-                >
-                  <span v-if="isCreatingListLoading" class="spinner-small"></span>
-                  <span v-else>Erstellen & Auswählen</span>
-                </button>
-              </div>
-              <div v-if="newListError" class="new-list-err-msg">{{ newListError }}</div>
-            </div>
-          </transition>
-
-          <!-- LIST SELECTION CARDS -->
-          <div class="available-lists-grid">
-            <div
-              v-for="l in availableLists"
-              :key="l.id"
-              class="store-list-card"
-              :class="{ 'is-selected': selectedListId === l.id }"
-              @click="selectedListId = l.id"
-            >
-              <div class="store-card-logo-box">
-                <img v-if="getStoreIcon(l.name)" :src="getStoreIcon(l.name)" :alt="l.name" class="store-card-logo" />
-                <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-                </svg>
-              </div>
-
-              <div class="store-card-info">
-                <span class="store-card-name">{{ l.name }}</span>
-                <span class="store-card-count" v-if="l.items && l.items.length">{{ l.items.filter(i => i.status === 'active').length }} Artikel</span>
-                <span class="store-card-count" v-else>Einkaufsliste</span>
-              </div>
-
-              <div class="store-card-radio">
-                <div class="radio-indicator" :class="{ 'checked': selectedListId === l.id }">
-                  <svg v-if="selectedListId === l.id" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
-                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-                  </svg>
+            <div class="recipe-meta">
+              <span class="source-badge">{{ getHostname(recipeData.url) }}</span>
+              <h3 class="recipe-name" :title="recipeData.title">{{ recipeData.title }}</h3>
+              
+              <!-- PORTIONEN SKALIERER -->
+              <div class="servings-stepper">
+                <span class="servings-label">Portionen:</span>
+                <div class="stepper-controls">
+                  <button type="button" class="step-btn" @click="updateServings(-1)" :disabled="currentServings <= 1">−</button>
+                  <span class="step-value">{{ currentServings }}</span>
+                  <button type="button" class="step-btn" @click="updateServings(1)">+</button>
                 </div>
               </div>
             </div>
+          </div>
 
+          <!-- SELECTION BAR -->
+          <div class="selection-bar">
+            <div class="staples-hint">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+              Wasser & Gewürze vorab abgewählt
+            </div>
+            <div class="selection-actions">
+              <button type="button" class="text-link" @click="selectAll">Alle</button>
+              <span class="divider">|</span>
+              <button type="button" class="text-link" @click="deselectAll">Keine</button>
+            </div>
+          </div>
+
+          <!-- INGREDIENTS LIST -->
+          <div class="ingredients-list">
             <div
-              v-if="availableLists.length === 0 && !isCreatingNewList"
-              class="empty-lists-card"
-              @click="startCreatingNewList"
+              v-for="(item, idx) in recipeData.ingredients"
+              :key="idx"
+              class="ingredient-row"
+              :class="{ 'is-selected': item.selected }"
+              @click="item.selected = !item.selected"
             >
-              <span>Noch keine Liste vorhanden. Hier tippen, um eine neue zu erstellen!</span>
+              <!-- CHECKBOX -->
+              <div class="checkbox-container" @click.stop>
+                <input type="checkbox" v-model="item.selected" :id="'ing-' + idx" class="custom-checkbox" />
+              </div>
+
+              <!-- ICON -->
+              <div class="ing-icon">
+                <CategoryIcon :name="item.name" :category="item.category" :size="34" />
+              </div>
+
+              <!-- DETAILS -->
+              <div class="ing-details">
+                <div class="ing-main-line">
+                  <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
+                  <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
+                  <span class="ing-name">{{ item.name }}</span>
+                </div>
+                <div class="ing-sub-line">
+                  <span class="cat-pill">{{ item.category }}</span>
+                  <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
+                </div>
+                <div v-if="item.raw" class="ing-basis" :title="item.raw">
+                  <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- TARGET LIST SECTION: Directly following ingredients, slightly color-separated -->
+          <div class="target-list-section">
+            <div class="target-list-top-row">
+              <div class="target-heading-wrap">
+                <span class="target-list-heading">In welche Liste importieren?</span>
+                <span class="target-list-sub">Liste auswählen oder über + neue anlegen</span>
+              </div>
+              <button
+                type="button"
+                class="add-list-quick-btn"
+                :disabled="isCreatingListLoading"
+                @click="createQuickListFromRecipe"
+                :title="'Neue Liste „' + (recipeData?.title || 'Rezept') + ' Liste“ erstellen'"
+              >
+                <span v-if="isCreatingListLoading" class="spinner-small"></span>
+                <span v-else class="plus-icon-label">+</span>
+              </button>
+            </div>
+
+            <!-- LIST SELECTION CARDS -->
+            <div class="available-lists-grid">
+              <div
+                v-for="l in availableLists"
+                :key="l.id"
+                class="store-list-card"
+                :class="{ 'is-selected': selectedListId === l.id }"
+                @click="selectedListId = l.id"
+              >
+                <div class="store-card-logo-box">
+                  <img v-if="getStoreIcon(l.name)" :src="getStoreIcon(l.name)" :alt="l.name" class="store-card-logo" />
+                  <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                  </svg>
+                </div>
+
+                <div class="store-card-info">
+                  <span class="store-card-name">{{ l.name }}</span>
+                  <span class="store-card-count" v-if="l.items && l.items.length">{{ l.items.filter(i => i.status === 'active').length }} Artikel</span>
+                  <span class="store-card-count" v-else>Einkaufsliste</span>
+                </div>
+
+                <div class="store-card-radio">
+                  <div class="radio-indicator" :class="{ 'checked': selectedListId === l.id }">
+                    <svg v-if="selectedListId === l.id" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                      <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <div
+                v-if="availableLists.length === 0"
+                class="empty-lists-card"
+                @click="createQuickListFromRecipe"
+              >
+                <span>Noch keine Liste vorhanden. Auf <strong>+</strong> tippen, um „{{ recipeData?.title || 'Rezept' }} Liste“ anzulegen!</span>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- FOOTER ACTIONS -->
+        <!-- FIXED FOOTER ACTIONS -->
         <div class="modal-footer">
           <button type="button" class="secondary-btn" @click="recipeData = null">
             Anderes Rezept
@@ -687,11 +601,11 @@ const getHostname = (link) => {
           <button
             type="button"
             class="primary-action-btn flex-1"
-            :disabled="isImporting || selectedCount === 0 || !selectedListId || isCreatingNewList"
+            :disabled="isImporting || selectedCount === 0 || !selectedListId"
             @click="importSelectedItems"
           >
             <span v-if="isImporting" class="spinner"></span>
-            <span v-else-if="!selectedListId">Liste oben auswählen</span>
+            <span v-else-if="!selectedListId">Liste unten auswählen</span>
             <span v-else>{{ selectedCount }} Zutaten zu {{ getSelectedListName }} hinzufügen</span>
           </button>
         </div>
@@ -718,14 +632,15 @@ const getHostname = (link) => {
   border-bottom: none;
   width: 100%;
   max-width: var(--ks-page-width, 600px);
+  height: 88vh;
   max-height: 88vh;
   display: flex;
   flex-direction: column;
   border-radius: 28px 28px 0 0;
-  padding: 16px 20px;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
+  padding: 16px 20px 14px;
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
   animation: slideUp 0.25s cubic-bezier(0.2, 0, 0, 1);
+  overflow: hidden;
 }
 
 @keyframes slideUp {
@@ -924,6 +839,18 @@ const getHostname = (link) => {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+}
+
+.recipe-modal-scroll-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
 }
 
 .recipe-card {
@@ -1067,15 +994,9 @@ const getHostname = (link) => {
 
 /* INGREDIENTS LIST */
 .ingredients-list {
-  flex: 1;
-  min-height: 140px;
-  max-height: 36vh;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-right: 4px;
-  margin-bottom: 8px;
 }
 
 .ingredient-row {
@@ -1192,163 +1113,70 @@ const getHostname = (link) => {
 
 /* TARGET LIST SECTION */
 .target-list-section {
-  background: #1a202c;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 16px;
-  padding: 10px 14px;
-  margin-bottom: 12px;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.22);
+  border-radius: 18px;
+  padding: 14px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .target-list-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  gap: 12px;
 }
 
-.target-list-heading {
-  font-size: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
-}
-
-.quick-new-list-link {
-  background: none;
-  border: none;
-  color: #38bdf8;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  padding: 2px 4px;
-  border-radius: 6px;
-}
-
-.quick-new-list-link:hover {
-  background: rgba(56, 189, 248, 0.1);
-}
-
-/* INLINE NEW LIST CREATION & STORE PRESET CHIPS */
-.inline-create-box {
-  background: rgba(15, 23, 42, 0.7);
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  border-radius: 14px;
-  padding: 12px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.inline-create-header {
+.target-heading-wrap {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.inline-create-title {
+.target-list-heading {
   font-size: 13px;
-  font-weight: 600;
-  color: #38bdf8;
+  font-weight: 700;
+  color: #f1f5f9;
 }
 
-.inline-create-hint {
+.target-list-sub {
   font-size: 11px;
   color: #94a3b8;
 }
 
-.store-chips-row {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding: 2px 0 4px;
-  scrollbar-width: none;
-}
-.store-chips-row::-webkit-scrollbar {
-  display: none;
-}
-
-.store-chip {
+.add-list-quick-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-size: 22px;
+  font-weight: 600;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #e2e8f0;
-  font-size: 11px;
-  font-weight: 500;
+  justify-content: center;
   cursor: pointer;
-  white-space: nowrap;
+  transition: all 0.2s ease;
   flex-shrink: 0;
-  transition: all 0.15s ease;
 }
 
-.store-chip:hover {
-  background: rgba(255, 255, 255, 0.1);
+.add-list-quick-btn:hover {
+  background: rgba(56, 189, 248, 0.25);
+  transform: scale(1.05);
 }
 
-.store-chip.active {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: #38bdf8;
-  color: #38bdf8;
+.add-list-quick-btn:active {
+  transform: scale(0.95);
 }
 
-.chip-logo {
-  width: 14px;
-  height: 14px;
-  object-fit: contain;
-  border-radius: 2px;
-}
-
-.inline-input-row {
-  display: flex;
-  gap: 8px;
-}
-
-.inline-name-input {
-  flex: 1;
-  min-width: 0;
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f8fafc;
-  padding: 8px 12px;
-  border-radius: 10px;
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.inline-name-input:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.inline-submit-btn {
-  background: #2563eb;
-  color: white;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 12px;
-  cursor: pointer;
-  flex-shrink: 0;
-  transition: all 0.15s ease;
-}
-
-.inline-submit-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.inline-submit-btn:not(:disabled):hover {
-  background: #1d4ed8;
-}
-
-.new-list-err-msg {
-  font-size: 11px;
-  color: #ef4444;
+.plus-icon-label {
+  line-height: 1;
+  margin-top: -2px;
 }
 
 /* LIST SELECTION CARDS */
@@ -1356,20 +1184,16 @@ const getHostname = (link) => {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: 180px;
-  overflow-y: auto;
-  padding-right: 2px;
-  scrollbar-width: thin;
 }
 
 .store-list-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 9px 12px;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.04);
   border: 1.5px solid rgba(255, 255, 255, 0.08);
-  border-radius: 13px;
+  border-radius: 14px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
@@ -1387,14 +1211,14 @@ const getHostname = (link) => {
 }
 
 .store-card-logo-box {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
+  padding: 6px;
   flex-shrink: 0;
   color: #38bdf8;
 }
@@ -1462,11 +1286,16 @@ const getHostname = (link) => {
   cursor: pointer;
 }
 
+.empty-lists-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #f1f5f9;
+}
+
 .spinner-small {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #ffffff;
+  border-top-color: #38bdf8;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
   display: inline-block;
@@ -1476,6 +1305,9 @@ const getHostname = (link) => {
   display: flex;
   gap: 10px;
   margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
 }
 
 .flex-1 {

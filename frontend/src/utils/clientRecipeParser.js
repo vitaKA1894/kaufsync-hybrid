@@ -124,19 +124,11 @@ export function parseIngredientLine(text) {
   return { raw: text, quantity, unit, name };
 }
 
-// Build dynamic taxonomy lookup structures
+// Build dynamic taxonomy lookup structures (ONLY matching on real item names)
 const itemsByName = new Map();
-const aliasToItem = new Map();
-const constellationToItem = new Map();
 
 taxonomy.forEach(item => {
   if (item.name) itemsByName.set(item.name.toLowerCase().trim(), item);
-  if (Array.isArray(item.aliases)) {
-    item.aliases.forEach(a => aliasToItem.set(a.toLowerCase().trim(), item));
-  }
-  if (item.tags && Array.isArray(item.tags.constellations)) {
-    item.tags.constellations.forEach(c => constellationToItem.set(c.toLowerCase().trim(), item));
-  }
 });
 
 const COMPOUND_SUFFIXES = [
@@ -161,28 +153,27 @@ export function matchIngredientToTaxonomy(name) {
   let clean = name.toLowerCase().trim();
   clean = clean.replace(/^(frische[srn]?|feine[srn]?|gehackte[srn]?|getrocknete[srn]?|gemahlene[srn]?|gekochte[srn]?|große[srn]?|kleine[srn]?|mittelgroße[srn]?)\s+/i, '').trim();
 
-  // 1. Exact match on item name
+  // 1. Exact match on real item name
   if (itemsByName.has(clean)) return itemsByName.get(clean);
 
-  // 2. Exact match on alias
-  if (aliasToItem.has(clean)) return aliasToItem.get(clean);
-
-  // 3. Match on constellation
-  if (constellationToItem.has(clean)) return constellationToItem.get(clean);
-
-  // 4. Plural / Singular variations
+  // 2. Plural / Singular variations of the real item name
   const variations = [clean];
   if (clean.endsWith('n') && clean.length > 3) variations.push(clean.slice(0, -1));
   if (clean.endsWith('en') && clean.length > 4) variations.push(clean.slice(0, -2));
   if (clean.endsWith('e') && clean.length > 3) variations.push(clean.slice(0, -1));
   if (clean.endsWith('s') && clean.length > 3) variations.push(clean.slice(0, -1));
 
+  // Also check if taxonomy has pluralized form (e.g. clean: "Zwiebel" -> taxonomy: "Zwiebeln")
+  variations.push(clean + 'n');
+  variations.push(clean + 'en');
+  variations.push(clean + 's');
+
   for (const v of variations) {
     if (itemsByName.has(v)) return itemsByName.get(v);
-    if (aliasToItem.has(v)) return aliasToItem.get(v);
   }
 
-  // 5. Substring / compound word matching
+  // 3. Substring matching: candidate must be part of clean (e.g. "Weizenmehl" -> "Mehl", "frische Vollmilch" -> "Vollmilch" / "Milch")
+  // IMPORTANT: clean must NOT be a substring of candidate (e.g. "Sesam" must NEVER match "Sesamknäckebrot" or "Sesamstangen"!)
   let bestMatch = null;
   let longestLen = 0;
 
@@ -191,21 +182,8 @@ export function matchIngredientToTaxonomy(name) {
       if (shouldRejectCompoundPrefix(clean, candidate)) {
         continue;
       }
-      if (clean.includes(candidate) || candidate.includes(clean)) {
-        if (candidate.length > longestLen) {
-          longestLen = candidate.length;
-          bestMatch = item;
-        }
-      }
-    }
-  }
-
-  for (const [candidate, item] of aliasToItem.entries()) {
-    if (candidate.length >= 4) {
-      if (shouldRejectCompoundPrefix(clean, candidate)) {
-        continue;
-      }
-      if (clean.includes(candidate) || candidate.includes(clean)) {
+      // Candidate must be contained in the parsed name (with whole word or suffix match)
+      if (clean.includes(candidate)) {
         if (candidate.length > longestLen) {
           longestLen = candidate.length;
           bestMatch = item;
@@ -337,10 +315,18 @@ export async function parseRecipeClientSide(url) {
       icon = matched.icon || null;
       isMatched = true;
     } else {
-      // Check if it's a spice/gewürz without exact taxonomy match
+      // Intelligente Kategorie-Zuordnung für neue / nicht in Taxonomie gefundene Artikel
       const lower = parsed.name.toLowerCase();
-      if (lower.includes('gewürz') || lower.includes('kräuter')) {
+      if (lower.includes('gewürz') || lower.includes('kräuter') || lower.includes('samen') || lower.includes('kerne') || lower.includes('öl') || lower.includes('essig') || lower.includes('soße') || lower.includes('sauce') || lower.includes('senf') || lower.includes('sesam') || lower.includes('hefe') || lower.includes('backpulver') || lower.includes('zucker') || lower.includes('salz') || lower.includes('mehl') || lower.includes('stärke')) {
         category = 'Vorratskammer';
+      } else if (lower.includes('fleisch') || lower.includes('hack') || lower.includes('wurst') || lower.includes('hähnchen') || lower.includes('pute') || lower.includes('rind') || lower.includes('fisch') || lower.includes('lachs') || lower.includes('garnele')) {
+        category = 'Fleisch & Fisch';
+      } else if (lower.includes('brot') || lower.includes('brötchen') || lower.includes('toast') || lower.includes('baguette') || lower.includes('croissant') || lower.includes('bun')) {
+        category = 'Brot & Backwaren';
+      } else if (lower.includes('milch') || lower.includes('käse') || lower.includes('joghurt') || lower.includes('sahne') || lower.includes('quark') || lower.includes('butter') || lower.includes('schmand') || lower.includes('creme')) {
+        category = 'Milchprodukte & Tiefkühlkost';
+      } else if (lower.includes('salat') || lower.includes('kohl') || lower.includes('pilz') || lower.includes('beere') || lower.includes('frucht') || lower.includes('apfel') || lower.includes('tomate') || lower.includes('gurke')) {
+        category = 'Obst & Gemüse';
       }
     }
 

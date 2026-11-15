@@ -71,29 +71,21 @@ def should_reject_compound_prefix(clean: str, candidate: str) -> bool:
 
 def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
     """
-    Matches a parsed ingredient name dynamically against the taxonomy (names, aliases, constellations).
+    Matches a parsed ingredient name dynamically against the taxonomy (only real item names).
     """
     if not taxonomy_data or not name:
         return None
 
-    items_by_name, alias_to_item, constellation_to_item = build_taxonomy_lookups(taxonomy_data)
+    items_by_name, _, _ = build_taxonomy_lookups(taxonomy_data)
     clean = name.lower().strip()
     # Strip common cooking adjectives
     clean = re.sub(r'^(frische[srn]?|feine[srn]?|gehackte[srn]?|getrocknete[srn]?|gemahlene[srn]?|gekochte[srn]?|große[srn]?|kleine[srn]?|mittelgroße[srn]?)\s+', '', clean).strip()
 
-    # 1. Exact match on item name
+    # 1. Exact match on real item name
     if clean in items_by_name:
         return items_by_name[clean]
 
-    # 2. Exact match on alias
-    if clean in alias_to_item:
-        return alias_to_item[clean]
-
-    # 3. Match on constellation
-    if clean in constellation_to_item:
-        return constellation_to_item[clean]
-
-    # 4. Plural / Singular variations (German)
+    # 2. Plural / Singular variations (German)
     variations = [clean]
     if clean.endswith('n') and len(clean) > 3:
         variations.append(clean[:-1])
@@ -104,13 +96,16 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
     if clean.endswith('s') and len(clean) > 3:
         variations.append(clean[:-1])
 
+    variations.append(clean + 'n')
+    variations.append(clean + 'en')
+    variations.append(clean + 's')
+
     for var in variations:
         if var in items_by_name:
             return items_by_name[var]
-        if var in alias_to_item:
-            return alias_to_item[var]
 
-    # 5. Substring / compound word matching (prefer longest match)
+    # 3. Substring matching: candidate must be in clean (e.g. Weizenmehl -> Mehl)
+    # clean must NOT be a substring of candidate (e.g. Sesam must not match Sesamstangen/Sesamknäckebrot)
     best_match = None
     longest_len = 0
 
@@ -118,18 +113,9 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
         if len(candidate_name) >= 4:
             if should_reject_compound_prefix(clean, candidate_name):
                 continue
-            if candidate_name in clean or clean in candidate_name:
+            if candidate_name in clean:
                 if len(candidate_name) > longest_len:
                     longest_len = len(candidate_name)
-                    best_match = item
-
-    for candidate_alias, item in alias_to_item.items():
-        if len(candidate_alias) >= 4:
-            if should_reject_compound_prefix(clean, candidate_alias):
-                continue
-            if candidate_alias in clean or clean in candidate_alias:
-                if len(candidate_alias) > longest_len:
-                    longest_len = len(candidate_alias)
                     best_match = item
 
     return best_match
@@ -455,8 +441,16 @@ def parse_recipe_url(url: str) -> Dict[str, Any]:
         else:
             item_name = parsed_item["name"]
             lower_name = item_name.lower()
-            if "gewürz" in lower_name or "kräuter" in lower_name:
+            if any(k in lower_name for k in ['gewürz', 'kräuter', 'samen', 'kerne', 'öl', 'essig', 'soße', 'sauce', 'senf', 'sesam', 'hefe', 'backpulver', 'zucker', 'salz', 'mehl', 'stärke']):
                 category = "Vorratskammer"
+            elif any(k in lower_name for k in ['fleisch', 'hack', 'wurst', 'hähnchen', 'pute', 'rind', 'fisch', 'lachs', 'garnele']):
+                category = "Fleisch & Fisch"
+            elif any(k in lower_name for k in ['brot', 'brötchen', 'toast', 'baguette', 'croissant', 'bun']):
+                category = "Brot & Backwaren"
+            elif any(k in lower_name for k in ['milch', 'käse', 'joghurt', 'sahne', 'quark', 'butter', 'schmand', 'creme']):
+                category = "Milchprodukte & Tiefkühlkost"
+            elif any(k in lower_name for k in ['salat', 'kohl', 'pilz', 'beere', 'frucht', 'apfel', 'tomate', 'gurke']):
+                category = "Obst & Gemüse"
             else:
                 category = "Sonstiges"
             icon = None
