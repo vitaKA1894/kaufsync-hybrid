@@ -248,9 +248,49 @@ const selectedCount = computed(() => {
   return recipeData.value.ingredients.filter(i => i.selected).length;
 });
 
-// Dropdown change
-const onDropdownChange = () => {
-  if (selectedListId.value === '__NEW__') {
+// --- PREDEFINED STORES (LOGOS & PRESETS) ---
+const predefinedStores = [
+  { name: 'Aldi', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/ALDI_SUD.svg' },
+  { name: 'dm', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dm_Logo.svg' },
+  { name: 'Edeka', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_Edeka.svg' },
+  { name: 'Kaufland', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Kaufland_Logo.svg' },
+  { name: 'Lidl', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lidl-Logo.svg' },
+  { name: 'Metro', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Metro_Deutschland_Logo_2024.svg' },
+  { name: 'Netto', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Netto_Logo.svg' },
+  { name: 'Penny', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Penny-Markt.svg' },
+  { name: 'REWE', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_REWE.svg' },
+  { name: 'Rossmann', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_rossmann_2024.svg' },
+];
+
+const selectedStorePreset = ref('');
+
+const getStoreIcon = (name) => {
+  if (!name) return null;
+  const nameLower = name.toLowerCase();
+  const matched = predefinedStores.find(s => nameLower.includes(s.name.toLowerCase()));
+  return matched ? matched.icon : null;
+};
+
+const chooseStorePreset = (store) => {
+  selectedStorePreset.value = store.name;
+  if (recipeData.value?.title) {
+    newListNameInput.value = `${store.name}: ${recipeData.value.title}`.slice(0, 35);
+  } else {
+    newListNameInput.value = store.name;
+  }
+};
+
+const getSelectedListName = computed(() => {
+  if (!selectedListId.value) return '';
+  const found = availableLists.value.find(l => l.id === selectedListId.value);
+  return found ? found.name : '';
+});
+
+// Inline list creation toggling
+const toggleCreateNewList = () => {
+  if (isCreatingNewList.value) {
+    cancelCreatingNewList();
+  } else {
     startCreatingNewList();
   }
 };
@@ -258,6 +298,7 @@ const onDropdownChange = () => {
 const startCreatingNewList = () => {
   isCreatingNewList.value = true;
   newListError.value = '';
+  selectedStorePreset.value = '';
   if (!newListNameInput.value && recipeData.value?.title) {
     newListNameInput.value = `${recipeData.value.title} Liste`;
   }
@@ -269,7 +310,7 @@ const startCreatingNewList = () => {
 
 const cancelCreatingNewList = () => {
   isCreatingNewList.value = false;
-  selectedListId.value = availableLists.value.length > 0 ? (props.listId || '') : '';
+  selectedStorePreset.value = '';
   newListError.value = '';
 };
 
@@ -282,6 +323,10 @@ const createNewListInline = async () => {
 
   try {
     const token = localStorage.getItem('token');
+    const matchedStore = predefinedStores.find(s => s.name.toLowerCase() === name.toLowerCase()) ||
+                         predefinedStores.find(s => selectedStorePreset.value && s.name.toLowerCase() === selectedStorePreset.value.toLowerCase());
+    const finalIcon = matchedStore ? matchedStore.icon : 'mdi-cart';
+
     const response = await fetch(apiUrl('/api/lists'), {
       method: 'POST',
       headers: {
@@ -290,7 +335,8 @@ const createNewListInline = async () => {
       },
       body: JSON.stringify({
         name: name,
-        icon: 'mdi-cart'
+        icon: finalIcon,
+        icon_name: finalIcon
       })
     });
 
@@ -536,68 +582,100 @@ const getHostname = (link) => {
           <div class="target-list-top-row">
             <span class="target-list-heading">In welche Liste importieren?</span>
             <button
-              v-if="!isCreatingNewList"
               type="button"
               class="quick-new-list-link"
-              @click="startCreatingNewList"
+              @click="toggleCreateNewList"
             >
-              + Neue Liste
+              <span v-if="!isCreatingNewList">+ Neue Liste erstellen</span>
+              <span v-else>✕ Schließen</span>
             </button>
           </div>
 
-          <!-- STANDARD DROPDOWN -->
-          <div v-if="!isCreatingNewList" class="dropdown-wrapper">
-            <select
-              v-model="selectedListId"
-              class="custom-select"
-              :class="{ 'has-selection': !!selectedListId }"
-              @change="onDropdownChange"
-            >
-              <option value="" disabled>-- Bitte Liste auswählen --</option>
-              <option v-for="l in availableLists" :key="l.id" :value="l.id">
-                {{ l.name }}
-              </option>
-              <option value="__NEW__">➕ Neue Liste erstellen...</option>
-            </select>
-            <div class="dropdown-chevron">
-              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
-                <path d="M7 10l5 5 5-5z"/>
-              </svg>
-            </div>
-          </div>
+          <!-- EMBEDDED INLINE NEUE LISTE ERSTELLEN -->
+          <transition name="expand-fade">
+            <div v-if="isCreatingNewList" class="inline-create-box">
+              <div class="inline-create-header">
+                <span class="inline-create-title">Neue Einkaufsliste anlegen</span>
+                <span class="inline-create-hint">Tippe auf ein Markt-Logo oder gib einen eigenen Namen ein</span>
+              </div>
 
-          <!-- INLINE NEUE LISTE ERSTELLEN -->
-          <div v-else class="new-list-box">
-            <div class="new-list-inputs">
-              <input
-                ref="newListNameInputRef"
-                v-model="newListNameInput"
-                type="text"
-                class="new-list-field"
-                placeholder="Name der Liste"
-                @keyup.enter="createNewListInline"
-                :disabled="isCreatingListLoading"
-              />
-              <button
-                type="button"
-                class="create-list-submit-btn"
-                :disabled="!newListNameInput.trim() || isCreatingListLoading"
-                @click="createNewListInline"
-              >
-                <span v-if="isCreatingListLoading" class="spinner-small"></span>
-                <span v-else>Erstellen</span>
-              </button>
-              <button
-                type="button"
-                class="create-list-abort-btn"
-                @click="cancelCreatingNewList"
-                :disabled="isCreatingListLoading"
-                title="Abbrechen"
-              >
-                ✕
-              </button>
+              <!-- Quick store preset chips -->
+              <div class="store-chips-row">
+                <button
+                  v-for="store in predefinedStores"
+                  :key="store.name"
+                  type="button"
+                  class="store-chip"
+                  :class="{ 'active': selectedStorePreset === store.name }"
+                  @click="chooseStorePreset(store)"
+                >
+                  <img :src="store.icon" :alt="store.name" class="chip-logo" />
+                  <span>{{ store.name }}</span>
+                </button>
+              </div>
+
+              <div class="inline-input-row">
+                <input
+                  ref="newListNameInputRef"
+                  v-model="newListNameInput"
+                  type="text"
+                  class="inline-name-input"
+                  placeholder="Name der Einkaufsliste"
+                  @keyup.enter="createNewListInline"
+                  :disabled="isCreatingListLoading"
+                />
+                <button
+                  type="button"
+                  class="inline-submit-btn"
+                  :disabled="!newListNameInput.trim() || isCreatingListLoading"
+                  @click="createNewListInline"
+                >
+                  <span v-if="isCreatingListLoading" class="spinner-small"></span>
+                  <span v-else>Erstellen & Auswählen</span>
+                </button>
+              </div>
+              <div v-if="newListError" class="new-list-err-msg">{{ newListError }}</div>
             </div>
-            <div v-if="newListError" class="new-list-err-msg">{{ newListError }}</div>
+          </transition>
+
+          <!-- LIST SELECTION CARDS -->
+          <div class="available-lists-grid">
+            <div
+              v-for="l in availableLists"
+              :key="l.id"
+              class="store-list-card"
+              :class="{ 'is-selected': selectedListId === l.id }"
+              @click="selectedListId = l.id"
+            >
+              <div class="store-card-logo-box">
+                <img v-if="getStoreIcon(l.name)" :src="getStoreIcon(l.name)" :alt="l.name" class="store-card-logo" />
+                <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
+                </svg>
+              </div>
+
+              <div class="store-card-info">
+                <span class="store-card-name">{{ l.name }}</span>
+                <span class="store-card-count" v-if="l.items && l.items.length">{{ l.items.filter(i => i.status === 'active').length }} Artikel</span>
+                <span class="store-card-count" v-else>Einkaufsliste</span>
+              </div>
+
+              <div class="store-card-radio">
+                <div class="radio-indicator" :class="{ 'checked': selectedListId === l.id }">
+                  <svg v-if="selectedListId === l.id" viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
+                    <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div
+              v-if="availableLists.length === 0 && !isCreatingNewList"
+              class="empty-lists-card"
+              @click="startCreatingNewList"
+            >
+              <span>Noch keine Liste vorhanden. Hier tippen, um eine neue zu erstellen!</span>
+            </div>
           </div>
         </div>
 
@@ -609,12 +687,12 @@ const getHostname = (link) => {
           <button
             type="button"
             class="primary-action-btn flex-1"
-            :disabled="isImporting || selectedCount === 0 || !selectedListId || selectedListId === '__NEW__' || isCreatingNewList"
+            :disabled="isImporting || selectedCount === 0 || !selectedListId || isCreatingNewList"
             @click="importSelectedItems"
           >
             <span v-if="isImporting" class="spinner"></span>
-            <span v-else-if="!selectedListId">Liste auswählen</span>
-            <span v-else>{{ selectedCount }} Zutaten hinzufügen</span>
+            <span v-else-if="!selectedListId">Liste oben auswählen</span>
+            <span v-else>{{ selectedCount }} Zutaten zu {{ getSelectedListName }} hinzufügen</span>
           </button>
         </div>
       </div>
@@ -1149,113 +1227,239 @@ const getHostname = (link) => {
   background: rgba(56, 189, 248, 0.1);
 }
 
-.dropdown-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.custom-select {
-  width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  background: #242c3b;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #94a3b8;
-  padding: 10px 36px 10px 12px;
-  border-radius: 10px;
-  font-size: 14px;
-  font-weight: 500;
-  outline: none;
-  transition: all 0.15s ease;
-  cursor: pointer;
-}
-
-.custom-select.has-selection {
-  color: #f8fafc;
-  border-color: rgba(56, 189, 248, 0.4);
-}
-
-.custom-select:focus {
-  border-color: #38bdf8;
-  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-}
-
-.custom-select option {
-  background: #0f172a;
-  color: #f8fafc;
-  padding: 8px;
-}
-
-.dropdown-chevron {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: #94a3b8;
-  display: flex;
-  align-items: center;
-}
-
-/* Inline new list creation */
-.new-list-box {
+/* INLINE NEW LIST CREATION & STORE PRESET CHIPS */
+.inline-create-box {
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  margin-bottom: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 10px;
 }
 
-.new-list-inputs {
+.inline-create-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.inline-create-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #38bdf8;
+}
+
+.inline-create-hint {
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.store-chips-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 2px 0 4px;
+  scrollbar-width: none;
+}
+.store-chips-row::-webkit-scrollbar {
+  display: none;
+}
+
+.store-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.store-chip:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.store-chip.active {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+.chip-logo {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  border-radius: 2px;
+}
+
+.inline-input-row {
   display: flex;
   gap: 8px;
-  align-items: center;
 }
 
-.new-list-field {
+.inline-name-input {
   flex: 1;
+  min-width: 0;
   background: #0f172a;
-  border: 1px solid #38bdf8;
+  border: 1px solid rgba(255, 255, 255, 0.15);
   color: #f8fafc;
   padding: 8px 12px;
   border-radius: 10px;
   font-size: 13px;
   outline: none;
+  transition: border-color 0.15s ease;
 }
 
-.create-list-submit-btn {
+.inline-name-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.inline-submit-btn {
   background: #2563eb;
   color: white;
   border: none;
   padding: 8px 14px;
   border-radius: 10px;
   font-weight: 600;
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
-.create-list-submit-btn:disabled {
+.inline-submit-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.create-list-abort-btn {
-  background: transparent;
-  border: none;
-  color: #94a3b8;
-  font-size: 15px;
-  cursor: pointer;
-  padding: 6px 8px;
-  border-radius: 8px;
-}
-
-.create-list-abort-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
+.inline-submit-btn:not(:disabled):hover {
+  background: #1d4ed8;
 }
 
 .new-list-err-msg {
   font-size: 11px;
   color: #ef4444;
+}
+
+/* LIST SELECTION CARDS */
+.available-lists-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+}
+
+.store-list-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.store-list-card:hover {
+  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.store-list-card.is-selected {
+  background: rgba(56, 189, 248, 0.12);
+  border-color: #38bdf8;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.2);
+}
+
+.store-card-logo-box {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  flex-shrink: 0;
+  color: #38bdf8;
+}
+
+.store-card-logo {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.store-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.store-card-name {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #f1f5f9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.store-card-count {
+  display: block;
+  font-size: 11px;
+  color: #94a3b8;
+  margin-top: 1px;
+}
+
+.store-card-radio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.radio-indicator {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.radio-indicator.checked {
+  border-color: #38bdf8;
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.empty-lists-card {
+  padding: 14px;
+  text-align: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+  color: #94a3b8;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .spinner-small {

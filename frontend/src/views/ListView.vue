@@ -29,6 +29,7 @@ const successMessage = ref('');
 const showShareSheet = ref(false);
 const showSortSheet = ref(false);
 const showChangelogSheet = ref(false);
+const showSettingsSheet = ref(false);
 const sortListRef = ref(null);
 let sortableInstance = null;
 
@@ -837,7 +838,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page-shell list-view-layout" :class="{ 'modal-open': isAddModalOpen }" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false;">
+  <div class="page-shell list-view-layout" :class="{ 'modal-open': isAddModalOpen }" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false; showSettingsSheet = false;">
 
     <header class="page-topbar" style="justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
@@ -848,27 +849,97 @@ onUnmounted(() => {
         <h1 class="list-title">{{ currentList ? currentList.name : 'Laden...' }}</h1>
       </div>
       <div style="display: flex; gap: 8px;">
-
-        <button class="ks-icon-btn" @click.stop="openChangelog" aria-label="Aktivitätenprotokoll">
-           <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-        </button>
-        <button class="ks-icon-btn" @click.stop="toggleCompactView" aria-label="Ansicht anpassen">
-           <svg v-if="isCompactView" viewBox="0 0 24 24"><path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/></svg>
-           <svg v-else viewBox="0 0 24 24"><path d="M4 18h17v-6H4v6zM4 5v6h17V5H4z"/></svg>
-        </button>
-        <button class="ks-icon-btn" @click.stop="showSortSheet = !showSortSheet" aria-label="Kategorien sortieren">
-           <svg viewBox="0 0 24 24"><path d="M3 18v-2h6v2H3Zm0-5v-2h12v2H3Zm0-5V6h18v2H3Z"/></svg>
-        </button>
-        <button v-if="currentList" class="ks-icon-btn" @click.stop="showShareSheet = !showShareSheet" aria-label="Teilen">
-          <svg viewBox="0 0 24 24"><path d="M18 22q-1.25 0-2.125-.875T15 19q0-.15.025-.325.025-.175.075-.325L7.05 13.7q-.425.4-.95.65-.525.25-1.1.25-1.25 0-2.125-.875T2 11.4q0-1.25.875-2.125T5 8.4q.575 0 1.1.25.525.25.95.65l8.05-4.65q-.05-.15-.075-.325Q15 4.15 15 4q0-1.25.875-2.125T18 1q1.25 0 2.125.875T21 4q0 1.25-.875 2.125T18 7q-.575 0-1.1-.25-.525-.25-.95-.65L7.9 10.75q.05.15.075.325.025.175.025.325 0 .15-.025.325-.025.175-.075.325l8.05 4.65q.425-.4.95-.65.525-.25 1.1-.25 1.25 0 2.125.875T21 19q0 1.25-.875 2.125T18 22Z"/></svg>
+        <button class="ks-icon-btn" @click.stop="showSettingsSheet = !showSettingsSheet" aria-label="Listen-Optionen">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+            <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
         </button>
       </div>
     </header>
 
-    <!-- SHARE SHEET -->
+    <!-- SHEET SCRIM -->
     <transition name="scrim-fade">
-      <div v-if="showShareSheet || showSortSheet || showChangelogSheet" class="ks-sheet-scrim" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false;"></div>
+      <div v-if="showShareSheet || showSortSheet || showChangelogSheet || showSettingsSheet" class="ks-sheet-scrim" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false; showSettingsSheet = false;"></div>
     </transition>
+
+    <!-- SETTINGS MENU SHEET -->
+    <transition name="sheet-slide">
+      <div v-if="showSettingsSheet" class="ks-sheet" @click.stop>
+        <div class="ks-sheet__handle"></div>
+        <div class="modal-header" style="justify-content: space-between; margin-bottom: 16px;">
+          <div>
+            <h3 class="sheet-heading" style="margin: 0;">Listen-Optionen</h3>
+            <p class="sheet-support" style="margin: 2px 0 0; font-size: 13px; color: #94a3b8;">{{ currentList?.name }}</p>
+          </div>
+          <button class="close-btn ks-icon-btn" @click="showSettingsSheet = false" aria-label="Schließen">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
+        </div>
+
+        <div class="settings-menu-list">
+          <!-- 1. TEILEN -->
+          <button class="settings-menu-item" @click="showSettingsSheet = false; showShareSheet = true;">
+            <div class="settings-menu-icon share-icon-bg">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M18 22q-1.25 0-2.125-.875T15 19q0-.15.025-.325.025-.175.075-.325L7.05 13.7q-.425.4-.95.65-.525.25-1.1.25-1.25 0-2.125-.875T2 11.4q0-1.25.875-2.125T5 8.4q.575 0 1.1.25.525.25.95.65l8.05-4.65q-.05-.15-.075-.325Q15 4.15 15 4q0-1.25.875-2.125T18 1q1.25 0 2.125.875T21 4q0 1.25-.875 2.125T18 7q-.575 0-1.1-.25-.525-.25-.95-.65L7.9 10.75q.05.15.075.325.025.175.025.325 0 .15-.025.325-.025.175-.075.325l8.05 4.65q.425-.4.95-.65.525-.25 1.1-.25 1.25 0 2.125.875T21 19q0 1.25-.875 2.125T18 22Z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Liste teilen</div>
+              <div class="settings-menu-desc">Freunde & Familie einladen, Mitglieder verwalten</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
+
+          <!-- 2. HISTORIE -->
+          <button class="settings-menu-item" @click="showSettingsSheet = false; openChangelog();">
+            <div class="settings-menu-icon history-icon-bg">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Historie & Aktivitäten</div>
+              <div class="settings-menu-desc">Protokoll über hinzugefügte & erledigte Artikel</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
+
+          <!-- 3. ANSICHT ÄNDERN -->
+          <button class="settings-menu-item" @click="toggleCompactView">
+            <div class="settings-menu-icon view-icon-bg">
+              <svg v-if="isCompactView" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M4 18h17v-6H4v6zM4 5v6h17V5H4z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Ansicht ändern</div>
+              <div class="settings-menu-desc">Aktuell: <strong style="color: #38bdf8;">{{ isCompactView ? 'Kompakte Liste' : 'Kachelansicht' }}</strong></div>
+            </div>
+            <span class="settings-menu-badge">{{ isCompactView ? 'Kompakt' : 'Kacheln' }}</span>
+          </button>
+
+          <!-- 4. MARKTSORTIERUNG -->
+          <button class="settings-menu-item" @click="showSettingsSheet = false; showSortSheet = true;">
+            <div class="settings-menu-icon sort-icon-bg">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M3 18v-2h6v2H3Zm0-5v-2h12v2H3Zm0-5V6h18v2H3Z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Marktsortierung ändern</div>
+              <div class="settings-menu-desc">Reihenfolge der Gänge & Kategorien anpassen</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
+        </div>
+      </div>
+    </transition>
+
+    <!-- SHARE SHEET -->
 
     <transition name="sheet-slide">
       <div v-if="showShareSheet" class="ks-sheet" @click.stop>
@@ -1678,5 +1749,78 @@ onUnmounted(() => {
 .list-leave-active {
   position: absolute;
   pointer-events: none;
+}
+
+/* SETTINGS MENU SHEET */
+.settings-menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+}
+.settings-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+.settings-menu-item:hover, .settings-menu-item:active {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(56, 189, 248, 0.35);
+  transform: translateX(3px);
+}
+.settings-menu-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.share-icon-bg { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
+.history-icon-bg { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+.view-icon-bg { background: rgba(34, 197, 94, 0.15); color: #4ade80; }
+.sort-icon-bg { background: rgba(251, 146, 60, 0.15); color: #fb923c; }
+
+.settings-menu-content {
+  flex: 1;
+  min-width: 0;
+}
+.settings-menu-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f1f5f9;
+  margin-bottom: 2px;
+}
+.settings-menu-desc {
+  font-size: 12px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.settings-menu-arrow {
+  font-size: 22px;
+  color: #64748b;
+  font-weight: 300;
+  margin-left: 6px;
+}
+.settings-menu-badge {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  font-weight: 600;
+  border: 1px solid rgba(56, 189, 248, 0.3);
 }
 </style>

@@ -530,7 +530,22 @@ onUnmounted(() => {
         <div class="ks-dialog">
           
           <template v-if="activeModal === 'create'">
-            <h2 style="margin: 0 0 16px; font-size: 20px;">Wähle Supermarkt</h2>
+            <div class="modal-top-header">
+              <div class="modal-badge-icon">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                </svg>
+              </div>
+              <div class="modal-top-title-wrap">
+                <h2 class="modern-modal-title">Neue Einkaufsliste</h2>
+                <p class="modern-modal-subtitle">Wähle deinen Markt oder gib einen Namen ein</p>
+              </div>
+              <button class="modal-close-icon-btn" @click="closeModal" aria-label="Schließen">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                </svg>
+              </button>
+            </div>
             
             <div class="preset-grid">
               <button 
@@ -549,11 +564,11 @@ onUnmounted(() => {
 
             <div class="ks-field" style="margin-bottom: 24px;">
               <input v-model="newListName" type="text" placeholder=" " @keyup.enter="createNewList" />
-              <label>Oder eigenen Namen eingeben</label>
+              <label>Name der Einkaufsliste</label>
             </div>
             <div class="ks-btn-row">
               <button class="ks-btn-text" @click="closeModal">Abbrechen</button>
-              <button class="ks-btn-filled" @click="createNewList">Erstellen</button>
+              <button class="ks-btn-filled" :disabled="!newListName.trim()" @click="createNewList">Liste erstellen</button>
             </div>
           </template>
         </div>
@@ -714,6 +729,56 @@ onUnmounted(() => {
   padding: 8px; margin: -8px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
 }
 .options-trigger:hover { background: rgba(255,255,255,0.05); }
+
+/* --- MODAL TOP HEADER --- */
+.modal-top-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.modal-badge-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.modal-top-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+.modern-modal-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+.modern-modal-subtitle {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.modal-close-icon-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.modal-close-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+}
 
 /* --- SUPERMARKT AUSWAHL MODAL (MODERN 4-SPALTEN GRID) --- */
 .preset-grid {
