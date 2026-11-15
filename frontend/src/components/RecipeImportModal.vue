@@ -65,6 +65,10 @@ const editForm = ref({
 });
 
 const startEditItem = (idx) => {
+  if (editingIndex.value === idx) {
+    editingIndex.value = null;
+    return;
+  }
   const it = recipeData.value?.ingredients?.[idx];
   if (!it) return;
   editingIndex.value = idx;
@@ -73,6 +77,12 @@ const startEditItem = (idx) => {
     display_amount: it.display_amount || (it.quantity ? `${it.quantity} ${it.unit || 'Stk'}` : ''),
     category: it.category || 'Sonstiges'
   };
+  nextTick(() => {
+    const editEl = document.querySelector('.ingredient-edit-card');
+    if (editEl) {
+      editEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  });
 };
 
 const cancelEditItem = () => {
@@ -528,14 +538,6 @@ const getHostname = (link) => {
         <span>{{ errorMessage }}</span>
       </div>
 
-      <!-- RECIPE DISCLAIMER BANNER (TOP) -->
-      <div v-if="recipeData" class="recipe-disclaimer-box top-disclaimer">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-        </svg>
-        <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch aus dem Rezept übernommen. Bitte prüfe die Angaben kurz vor dem Import.</span>
-      </div>
-
       <!-- PHASE 1: URL INPUT (IF NO RECIPE LOADED YET) -->
       <div v-if="!recipeData" class="url-input-section">
         <div class="input-wrapper">
@@ -574,6 +576,14 @@ const getHostname = (link) => {
       <div v-else class="recipe-review-section">
         <!-- SINGLE SCROLLABLE BODY: Natural top-to-bottom flow, no overlapping windows -->
         <div class="recipe-modal-scroll-body">
+          <!-- RECIPE DISCLAIMER BANNER (SCROLLS WITH CONTENT) -->
+          <div class="recipe-disclaimer-box top-disclaimer">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch aus dem Rezept übernommen. Bitte prüfe die Angaben kurz vor dem Import.</span>
+          </div>
+
           <!-- RECIPE HEADER CARD -->
           <div class="recipe-card">
             <img v-if="recipeData.image" :src="recipeData.image" :alt="recipeData.title" class="recipe-thumb" />
@@ -1158,7 +1168,7 @@ const getHostname = (link) => {
 }
 
 .recipe-disclaimer-box.top-disclaimer {
-  margin-bottom: 12px;
+  margin-bottom: 2px;
   flex-shrink: 0;
 }
 
@@ -1376,14 +1386,25 @@ const getHostname = (link) => {
 /* INLINE INGREDIENT EDIT CARD */
 .ingredient-edit-card {
   background: #1e2430;
-  border: 1px solid #38bdf8;
+  border: 1.5px solid #38bdf8;
   border-radius: 16px;
   padding: 14px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-direction: column;
   gap: 12px;
-  animation: fadeIn 0.2s ease;
+  animation: expandCard 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes expandCard {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .edit-card-header {
@@ -1453,8 +1474,6 @@ const getHostname = (link) => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-height: 85px;
-  overflow-y: auto;
 }
 
 .edit-cat-chip {
