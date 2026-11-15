@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
+import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 const router = useRouter();
 const shoppingLists = ref([]);
@@ -16,6 +17,9 @@ const activeModal = ref(null);
 
 const showOptionsSheet = ref(false);
 const selectedListForOptions = ref(null);
+
+const optionsDrag = useBottomSheetDrag(() => closeActionSheet());
+const createModalDrag = useBottomSheetDrag(() => closeModal());
 
 const newListName = ref('');
 const selectedIcon = ref(''); 
@@ -507,70 +511,71 @@ onUnmounted(() => {
     </div>
 
     <transition name="scrim-fade">
-      <div v-if="showOptionsSheet" class="ks-sheet-scrim" @click="closeActionSheet"></div>
+      <div v-if="showOptionsSheet || activeModal === 'create'" class="ks-sheet-scrim" @click="closeActionSheet(); closeModal();"></div>
     </transition>
 
+    <!-- LIST OPTIONS SHEET -->
     <transition name="sheet-slide">
-      <div v-if="showOptionsSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
-        <div style="padding: 0 12px 16px;">
-          <h3 style="margin: 0; font-size: 16px; color: var(--ks-text-muted);">{{ selectedListForOptions?.name }}</h3>
+      <div v-if="showOptionsSheet" class="ks-sheet" :style="optionsDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet__handle" @touchstart="optionsDrag.onTouchStart" @touchmove="optionsDrag.onTouchMove" @touchend="optionsDrag.onTouchEnd"></div>
+        <div style="padding: 0 4px 16px; text-align: center;">
+          <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--ks-text);">{{ selectedListForOptions?.name }}</h3>
+          <p style="margin: 4px 0 0; font-size: 13px; color: #94a3b8;">Wähle eine Aktion für diese Liste</p>
         </div>
-        <button class="sheet-item" @click="deleteList" style="color: var(--ks-error);">
-          <span class="sheet-icon" style="background: var(--ks-error-bg);"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg></span>
-          <div class="sheet-text">
-            <span class="sheet-title">Liste löschen / verlassen</span>
-          </div>
-        </button>
+        <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
+          <button class="ks-btn-pill-danger full-width" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="deleteList">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+            Liste löschen / verlassen
+          </button>
+          <button class="ks-btn-pill-secondary full-width" style="width: 100%;" @click="closeActionSheet">Abbrechen</button>
+        </div>
       </div>
     </transition>
 
-    <transition name="dialog-fade">
-      <div v-if="activeModal" class="ks-dialog-scrim" @click.self="closeModal">
-        <div class="ks-dialog">
-          
-          <template v-if="activeModal === 'create'">
-            <div class="modal-top-header">
-              <div class="modal-badge-icon">
-                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                  <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                </svg>
-              </div>
-              <div class="modal-top-title-wrap">
-                <h2 class="modern-modal-title">Neue Einkaufsliste</h2>
-                <p class="modern-modal-subtitle">Wähle deinen Markt oder gib einen Namen ein</p>
-              </div>
-              <button class="modal-close-icon-btn" @click="closeModal" aria-label="Schließen">
-                <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                  <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                </svg>
-              </button>
+    <!-- CREATE LIST BOTTOM SHEET -->
+    <transition name="sheet-slide">
+      <div v-if="activeModal === 'create'" class="ks-sheet" :style="createModalDrag.sheetStyle" @click.stop style="max-height: 88vh; display: flex; flex-direction: column;">
+        <div class="ks-sheet__handle" @touchstart="createModalDrag.onTouchStart" @touchmove="createModalDrag.onTouchMove" @touchend="createModalDrag.onTouchEnd"></div>
+        
+        <div class="modal-top-header" style="padding: 0 4px 16px;">
+          <div class="modal-badge-icon">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </div>
+          <div class="modal-top-title-wrap">
+            <h2 class="modern-modal-title">Neue Einkaufsliste</h2>
+            <p class="modern-modal-subtitle">Wähle deinen Markt oder gib einen Namen ein</p>
+          </div>
+          <button class="modal-close-icon-btn" @click="closeModal" aria-label="Schließen">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="preset-grid" style="margin-bottom: 20px;">
+          <button 
+            v-for="store in predefinedStores" 
+            :key="store.name"
+            class="preset-btn"
+            :class="{ 'active': newListName.toLowerCase() === store.name.toLowerCase() }"
+            @click="selectPreset(store)"
+          >
+            <div class="store-svg-container">
+              <img :src="store.icon" :alt="store.name" />
             </div>
-            
-            <div class="preset-grid">
-              <button 
-                v-for="store in predefinedStores" 
-                :key="store.name"
-                class="preset-btn"
-                :class="{ 'active': newListName.toLowerCase() === store.name.toLowerCase() }"
-                @click="selectPreset(store)"
-              >
-                <div class="store-svg-container">
-                  <img :src="store.icon" :alt="store.name" />
-                </div>
-                <span>{{ store.name }}</span>
-              </button>
-            </div>
+            <span>{{ store.name }}</span>
+          </button>
+        </div>
 
-            <div class="ks-field" style="margin-bottom: 24px;">
-              <input v-model="newListName" type="text" placeholder=" " @keyup.enter="createNewList" />
-              <label>Name der Einkaufsliste</label>
-            </div>
-            <div class="ks-btn-row">
-              <button class="ks-btn-text" @click="closeModal">Abbrechen</button>
-              <button class="ks-btn-filled" :disabled="!newListName.trim()" @click="createNewList">Liste erstellen</button>
-            </div>
-          </template>
+        <div class="ks-field" style="margin-bottom: 24px;">
+          <input v-model="newListName" type="text" placeholder=" " @keyup.enter="createNewList" />
+          <label>Name der Einkaufsliste</label>
+        </div>
+        <div style="display: flex; gap: 12px; margin-top: auto; padding-top: 8px;">
+          <button class="ks-btn-pill-secondary" style="flex: 1;" @click="closeModal">Abbrechen</button>
+          <button class="ks-btn-pill-primary" style="flex: 1;" :disabled="!newListName.trim()" @click="createNewList">Liste erstellen</button>
         </div>
       </div>
     </transition>

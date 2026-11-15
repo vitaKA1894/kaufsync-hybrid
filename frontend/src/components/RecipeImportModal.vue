@@ -3,6 +3,7 @@ import { ref, computed, watch, nextTick } from 'vue';
 import { apiUrl } from '../config/api';
 import CategoryIcon from './CategoryIcon.vue';
 import { parseRecipeClientSide } from '../utils/clientRecipeParser';
+import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 const props = defineProps({
   isOpen: {
@@ -33,6 +34,67 @@ const errorMessage = ref('');
 const recipeData = ref(null);
 const currentServings = ref(4);
 const inputRef = ref(null);
+
+// Sheet Dragging Logic
+const {
+  sheetRef,
+  sheetStyle,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd
+} = useBottomSheetDrag(() => emit('close'), 100);
+
+// Predefined Categories for manual adjustments
+const predefinedCategories = [
+  'Obst & Gemüse',
+  'Brot & Backwaren',
+  'Fleisch & Fisch',
+  'Milchprodukte & Tiefkühlkost',
+  'Vorratskammer',
+  'Getränke & Genussmittel',
+  'Drogerie, Haushalt & Tierbedarf',
+  'Sonstiges'
+];
+
+// Inline Ingredient Editing State
+const editingIndex = ref(null);
+const editForm = ref({
+  name: '',
+  display_amount: '',
+  category: 'Sonstiges'
+});
+
+const startEditItem = (idx) => {
+  const it = recipeData.value?.ingredients?.[idx];
+  if (!it) return;
+  editingIndex.value = idx;
+  editForm.value = {
+    name: it.name,
+    display_amount: it.display_amount || (it.quantity ? `${it.quantity} ${it.unit || 'Stk'}` : ''),
+    category: it.category || 'Sonstiges'
+  };
+};
+
+const cancelEditItem = () => {
+  editingIndex.value = null;
+};
+
+const saveEditItem = (idx) => {
+  const it = recipeData.value?.ingredients?.[idx];
+  if (!it) return;
+  const newName = editForm.value.name.trim();
+  if (newName) {
+    it.name = newName;
+  }
+  it.category = editForm.value.category || 'Sonstiges';
+  const newAmount = editForm.value.display_amount.trim();
+  it.display_amount = newAmount;
+  if (newAmount) {
+    it.tags = [newAmount];
+  }
+  it.selected = true; // Ensure edited item is selected
+  editingIndex.value = null;
+};
 
 // Target list selection & quick creation
 const selectedListId = ref(props.listId || '');
@@ -330,52 +392,73 @@ const importSelectedItems = async () => {
         quantity: parseFloat(i.quantity) || 1.0,
         unit: i.unit || 'Stk',
         tags: tagsVal,
-        note: i.original_name !== i.name ? `Rezept: ${i.original_name}` : null
+        note: i.original_name && i.original_name !== i.name ? `Rezept: ${i.original_name}` : null
       };
     });
 
   isImporting.value = true;
   errorMessage.value = '';
 
+  let successCount = 0;
+
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/lists/${targetId}/items/bulk`), {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        recipe_title: recipeData.value.title,
-        items: itemsToCreate
-      })
-    });
+    
+    // 1. Erst versuchen, gebündelt über den Bulk-Endpoint zu speichern
+    let bulkSuccess = false;
+    try {
+      const response = await fetch(apiUrl(`/api/lists/${targetId}/items/bulk`), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          recipe_title: recipeData.value.title,
+          items: itemsToCreate
+        })
+      });
 
-    if (!response.ok) {
-      if (response.status === 405 || response.status === 404) {
-        // Fallback: Einzeln anlegen falls Server-Bulk-Endpoint noch nicht geupdatet
-        for (const item of itemsToCreate) {
-          await fetch(apiUrl(`/api/lists/${targetId}/items`), {
+      if (response.ok) {
+        bulkSuccess = true;
+        successCount = itemsToCreate.length;
+      }
+    } catch (e) {
+      // Bulk endpoint noch nicht verfügbar oder Netzwerkfehler
+      bulkSuccess = false;
+    }
+
+    // 2. Falls Bulk nicht erfolgreich, resilient einzeln mit Promise.allSettled anlegen
+    if (!bulkSuccess) {
+      const results = await Promise.allSettled(
+        itemsToCreate.map(item =>
+          fetch(apiUrl(`/api/lists/${targetId}/items`), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(item)
-          });
-        }
-      } else {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.detail || 'Fehler beim Hinzufügen der Artikel.');
-      }
+          }).then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res;
+          })
+        )
+      );
+
+      successCount = results.filter(r => r.status === 'fulfilled').length;
     }
 
-    emit('imported', {
-      count: itemsToCreate.length,
-      title: recipeData.value.title,
-      listId: targetId
-    });
-    emit('close');
+    if (successCount > 0) {
+      emit('imported', {
+        count: successCount,
+        title: recipeData.value.title,
+        listId: targetId
+      });
+      emit('close');
+    } else {
+      throw new Error('Artikel konnten nicht gespeichert werden. Bitte Verbindung prüfen.');
+    }
   } catch (err) {
     errorMessage.value = err.message || 'Konnte Artikel nicht speichern.';
   } finally {
@@ -395,8 +478,8 @@ const getHostname = (link) => {
 
 <template>
   <div v-if="isOpen" class="recipe-modal-backdrop" @click="emit('close')">
-    <div class="recipe-modal-sheet" @click.stop>
-      <div class="sheet-handle"></div>
+    <div class="recipe-modal-sheet" :style="sheetStyle" ref="sheetRef" @click.stop>
+      <div class="sheet-handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
 
       <!-- HEADER -->
       <div class="modal-header">
@@ -443,7 +526,7 @@ const getHostname = (link) => {
           </button>
         </div>
 
-        <button class="primary-action-btn" :disabled="isLoading || !url.trim()" @click="fetchRecipe">
+        <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim()" @click="fetchRecipe" style="width: 100%; margin-top: 14px;">
           <span v-if="isLoading" class="spinner"></span>
           <span v-else>Rezept laden</span>
         </button>
@@ -482,6 +565,14 @@ const getHostname = (link) => {
             </div>
           </div>
 
+          <!-- DISCLAIMER HINT BOX -->
+          <div class="recipe-disclaimer-box">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch analysiert. Tippe auf ✏️, um einen Artikel vor dem Import anzupassen.</span>
+          </div>
+
           <!-- SELECTION BAR -->
           <div class="selection-bar">
             <div class="staples-hint">
@@ -497,39 +588,98 @@ const getHostname = (link) => {
 
           <!-- INGREDIENTS LIST -->
           <div class="ingredients-list">
-            <div
-              v-for="(item, idx) in recipeData.ingredients"
-              :key="idx"
-              class="ingredient-row"
-              :class="{ 'is-selected': item.selected }"
-              @click="item.selected = !item.selected"
-            >
-              <!-- CHECKBOX -->
-              <div class="checkbox-container" @click.stop>
-                <input type="checkbox" v-model="item.selected" :id="'ing-' + idx" class="custom-checkbox" />
+            <template v-for="(item, idx) in recipeData.ingredients" :key="idx">
+              <!-- INLINE EDIT MODE FOR THIS ITEM -->
+              <div v-if="editingIndex === idx" class="ingredient-edit-card" @click.stop>
+                <div class="edit-card-header">
+                  <span class="edit-card-title">Zutat anpassen</span>
+                  <button type="button" class="edit-close-x" @click="cancelEditItem">✕</button>
+                </div>
+                
+                <div class="edit-fields-row">
+                  <div class="edit-field flex-2">
+                    <label>Artikelname</label>
+                    <input type="text" v-model="editForm.name" placeholder="z. B. Hähnchenbrust" class="edit-input" />
+                  </div>
+                  <div class="edit-field flex-1">
+                    <label>Menge / Ausprägung</label>
+                    <input type="text" v-model="editForm.display_amount" placeholder="z. B. 250g" class="edit-input" />
+                  </div>
+                </div>
+
+                <div class="edit-category-section">
+                  <label>Kategorie</label>
+                  <div class="edit-cat-chips">
+                    <button
+                      v-for="cat in predefinedCategories"
+                      :key="cat"
+                      type="button"
+                      class="edit-cat-chip"
+                      :class="{ 'active': editForm.category === cat }"
+                      @click="editForm.category = cat"
+                    >
+                      {{ cat }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="edit-actions-row">
+                  <button type="button" class="ks-btn-pill-secondary edit-action-btn" @click="cancelEditItem">
+                    Abbrechen
+                  </button>
+                  <button type="button" class="ks-btn-pill-primary edit-action-btn" @click="saveEditItem(idx)">
+                    Übernehmen
+                  </button>
+                </div>
               </div>
 
-              <!-- ICON -->
-              <div class="ing-icon">
-                <CategoryIcon :name="item.name" :category="item.category" :size="34" />
-              </div>
+              <!-- NORMAL ROW DISPLAY -->
+              <div
+                v-else
+                class="ingredient-row"
+                :class="{ 'is-selected': item.selected }"
+                @click="item.selected = !item.selected"
+              >
+                <!-- CHECKBOX -->
+                <div class="checkbox-container" @click.stop>
+                  <input type="checkbox" v-model="item.selected" :id="'ing-' + idx" class="custom-checkbox" />
+                </div>
 
-              <!-- DETAILS -->
-              <div class="ing-details">
-                <div class="ing-main-line">
-                  <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
-                  <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
-                  <span class="ing-name">{{ item.name }}</span>
+                <!-- ICON -->
+                <div class="ing-icon">
+                  <CategoryIcon :name="item.name" :category="item.category" :size="34" />
                 </div>
-                <div class="ing-sub-line">
-                  <span class="cat-pill">{{ item.category }}</span>
-                  <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
+
+                <!-- DETAILS -->
+                <div class="ing-details">
+                  <div class="ing-main-line">
+                    <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
+                    <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
+                    <span class="ing-name">{{ item.name }}</span>
+                  </div>
+                  <div class="ing-sub-line">
+                    <span class="cat-pill">{{ item.category }}</span>
+                    <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
+                  </div>
+                  <div v-if="item.raw" class="ing-basis" :title="item.raw">
+                    <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
+                  </div>
                 </div>
-                <div v-if="item.raw" class="ing-basis" :title="item.raw">
-                  <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
-                </div>
+
+                <!-- EDIT ACTION BUTTON -->
+                <button
+                  type="button"
+                  class="edit-ing-btn"
+                  @click.stop="startEditItem(idx)"
+                  title="Artikel oder Menge korrigieren"
+                  aria-label="Artikel bearbeiten"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                  </svg>
+                </button>
               </div>
-            </div>
+            </template>
           </div>
 
           <!-- TARGET LIST SECTION: Directly following ingredients, slightly color-separated -->
@@ -595,12 +745,12 @@ const getHostname = (link) => {
 
         <!-- FIXED FOOTER ACTIONS -->
         <div class="modal-footer">
-          <button type="button" class="secondary-btn" @click="recipeData = null">
+          <button type="button" class="ks-btn-pill-secondary" @click="recipeData = null">
             Anderes Rezept
           </button>
           <button
             type="button"
-            class="primary-action-btn flex-1"
+            class="ks-btn-pill-primary flex-1"
             :disabled="isImporting || selectedCount === 0 || !selectedListId"
             @click="importSelectedItems"
           >
@@ -649,12 +799,20 @@ const getHostname = (link) => {
 }
 
 .sheet-handle {
-  width: 44px;
-  height: 5px;
+  width: 48px;
+  height: 6px;
   background: #334155;
-  border-radius: 3px;
-  margin: 0 auto 14px auto;
+  border-radius: 9999px;
+  margin: 0 auto 16px auto;
   flex-shrink: 0;
+  cursor: grab;
+  touch-action: none;
+  transition: background-color 0.2s;
+}
+
+.sheet-handle:active {
+  cursor: grabbing;
+  background: #475569;
 }
 
 .modal-header {
@@ -954,6 +1112,26 @@ const getHostname = (link) => {
   text-align: center;
 }
 
+/* DISCLAIMER HINT BOX */
+.recipe-disclaimer-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 14px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: #fde68a;
+}
+
+.recipe-disclaimer-box svg {
+  flex-shrink: 0;
+  fill: #f59e0b;
+}
+
 /* SELECTION BAR */
 .selection-bar {
   display: flex;
@@ -1109,6 +1287,148 @@ const getHostname = (link) => {
   font-weight: 500;
   color: #64748b;
   margin-right: 2px;
+}
+
+/* EDIT BUTTON IN ROW */
+.edit-ing-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #94a3b8;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.edit-ing-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #38bdf8;
+}
+
+/* INLINE INGREDIENT EDIT CARD */
+.ingredient-edit-card {
+  background: #1e2430;
+  border: 1px solid #38bdf8;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: fadeIn 0.2s ease;
+}
+
+.edit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.edit-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.edit-close-x {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.edit-fields-row {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.edit-field.flex-2 { flex: 2; }
+.edit-field.flex-1 { flex: 1; }
+
+.edit-field label,
+.edit-category-section label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.edit-input {
+  width: 100%;
+  background: #161a22;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #f8fafc;
+  outline: none;
+}
+
+.edit-input:focus {
+  border-color: #38bdf8;
+}
+
+.edit-category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.edit-cat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 85px;
+  overflow-y: auto;
+}
+
+.edit-cat-chip {
+  background: #161a22;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.edit-cat-chip.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  font-weight: 600;
+}
+
+.edit-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.edit-action-btn {
+  min-height: 38px !important;
+  padding: 0 16px !important;
+  font-size: 13px !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* TARGET LIST SECTION */

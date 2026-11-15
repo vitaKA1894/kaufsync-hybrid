@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 import { searchTaxonomy, debounce } from '../utils/search';
 import CategoryIcon from './CategoryIcon.vue';
@@ -54,39 +55,21 @@ const showScanner = ref(false);
 const isContinuousAdd = ref(false);
 
 // Sheet Dragging Logic
-const sheetRef = ref(null);
-const sheetStyle = ref({});
-let startY = 0;
-let currentY = 0;
-let isDragging = false;
+const {
+  sheetRef,
+  sheetStyle,
+  onTouchStart,
+  onTouchMove,
+  onTouchEnd,
+  resetDrag
+} = useBottomSheetDrag(() => closeModal(), 100);
 
-const onTouchStart = (e) => {
-  startY = e.touches[0].clientY;
-  currentY = startY;
-  isDragging = true;
-  sheetStyle.value = { transition: 'none' };
-};
-
-const onTouchMove = (e) => {
-  if (!isDragging) return;
-  const y = e.touches[0].clientY;
-  currentY = y;
-  const delta = Math.max(0, y - startY); // Only allow dragging down
-  if (delta > 0) {
-    sheetStyle.value = { transform: `translateY(${delta}px)`, transition: 'none' };
-  }
-};
-
-const onTouchEnd = () => {
-  if (!isDragging) return;
-  isDragging = false;
-  const delta = currentY - startY;
-  if (delta > 100) {
-    closeModal();
-  } else {
-    sheetStyle.value = { transform: 'translateY(0)', transition: 'transform 0.3s ease-out' };
-  }
-};
+const {
+  sheetStyle: catSheetStyle,
+  onTouchStart: onCatTouchStart,
+  onTouchMove: onCatTouchMove,
+  onTouchEnd: onCatTouchEnd
+} = useBottomSheetDrag(() => { showCategorySelector.value = false; }, 90);
 
 
 
@@ -801,9 +784,9 @@ watch(() => props.isOpen, (newVal) => {
                </div>
 
                <div style="display: flex; gap: 12px; margin-top: auto; padding-top: 16px;">
-                  <button v-if="editItem" class="ks-btn-filled" style="flex: 1; background: #ef4444; color: white;" @click="deleteItem">Löschen</button>
-                  <button v-else class="ks-btn-filled" style="flex: 1; background: #334155; color: white;" @click="closeModal">Abbrechen</button>
-                  <button class="ks-btn-filled" style="flex: 1; background: #f8fafc; color: #0f172a;" @click="confirmSelection(false)">Speichern</button>
+                  <button v-if="editItem" class="ks-btn-pill-danger" style="flex: 1;" @click="deleteItem">Löschen</button>
+                  <button v-else class="ks-btn-pill-secondary" style="flex: 1;" @click="closeModal">Abbrechen</button>
+                  <button class="ks-btn-pill-primary" style="flex: 1;" @click="confirmSelection(false)">Speichern</button>
                </div>
            </div>
 
@@ -813,8 +796,8 @@ watch(() => props.isOpen, (newVal) => {
 
         <!-- Category Selector Sheet -->
         <transition name="sheet-slide">
-          <div v-if="showCategorySelector" class="ks-sheet" @click.stop style="z-index: 101;">
-            <div class="ks-sheet__handle"></div>
+          <div v-if="showCategorySelector" class="ks-sheet" :style="catSheetStyle" @click.stop style="z-index: 101;">
+            <div class="ks-sheet__handle" @touchstart="onCatTouchStart" @touchmove="onCatTouchMove" @touchend="onCatTouchEnd"></div>
             <h3 class="sheet-heading">Kategorie auswählen</h3>
             <div class="category-list">
               <button
@@ -828,7 +811,7 @@ watch(() => props.isOpen, (newVal) => {
                 <svg v-if="selectedItem.category === cat.name" class="check-icon" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
               </button>
             </div>
-            <button class="ks-btn-text full-width mt-3" @click="showCategorySelector = false">Abbrechen</button>
+            <button class="ks-btn-pill-secondary full-width mt-3" @click="showCategorySelector = false">Abbrechen</button>
           </div>
         </transition>
 

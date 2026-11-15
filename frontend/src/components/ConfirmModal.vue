@@ -8,8 +8,14 @@
             <p class="modal-message">{{ message }}</p>
           </div>
           <div class="modal-actions">
-            <button class="ks-btn-outlined cancel-btn" @click="cancel">Abbrechen</button>
-            <button class="ks-btn-filled confirm-btn" @click="confirm">{{ confirmText }}</button>
+            <button class="ks-btn-pill-secondary cancel-btn" @click="cancel">Abbrechen</button>
+            <button
+              :class="confirmText.toLowerCase().includes('lösch') ? 'ks-btn-pill-danger' : 'ks-btn-pill-primary'"
+              class="confirm-btn"
+              @click="confirm"
+            >
+              {{ confirmText }}
+            </button>
           </div>
         </div>
       </transition>
@@ -54,55 +60,46 @@ const cancel = () => emit('cancel');
 }
 
 .confirm-modal {
-  background: var(--ks-surface);
-  border-radius: 16px;
+  background: rgba(15, 23, 42, 0.96);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 28px;
   width: 90%;
   max-width: 400px;
   overflow: hidden;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
 }
 
 .modal-content {
-  padding: 24px;
+  padding: 24px 20px 16px;
   text-align: center;
 }
 
 .modal-title {
-  margin: 0 0 12px 0;
+  margin: 0 0 10px 0;
   font-size: 20px;
+  font-weight: 700;
   color: var(--ks-text);
 }
 
 .modal-message {
   margin: 0;
-  font-size: 16px;
-  color: var(--ks-text-muted);
+  font-size: 15px;
+  color: #94a3b8;
   line-height: 1.5;
 }
 
 .modal-actions {
   display: flex;
-  padding: 16px;
+  padding: 16px 20px 20px;
   gap: 12px;
-  background: var(--ks-surface-2);
-  border-top: 1px solid var(--ks-border);
+  background: transparent;
 }
 
-.cancel-btn {
-  flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  min-height: 48px; /* Touch target */
-}
-
+.cancel-btn,
 .confirm-btn {
   flex: 1;
-  padding: 12px;
-  font-size: 16px;
-  background: var(--ks-error);
-  color: white;
-  min-height: 48px; /* Touch target */
-  border: none;
 }
 
 .fade-enter-active,

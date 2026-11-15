@@ -950,60 +950,69 @@ async def create_items_bulk(
     for it in created_items:
         db.refresh(it)
 
-    recipe_info = f" aus '{bulk_data.recipe_title}'" if bulk_data.recipe_title else ""
-    log_entry = models.ActivityLog(
-        list_id=list_id,
-        user_id=current_user.id,
-        action_type="added",
-        item_name=f"{len(created_items)} Artikel{recipe_info}"
-    )
-    db.add(log_entry)
-    db.commit()
+    try:
+        recipe_info = f" aus '{bulk_data.recipe_title}'" if bulk_data.recipe_title else ""
+        log_entry = models.ActivityLog(
+            list_id=list_id,
+            user_id=current_user.id,
+            action_type="added",
+            item_name=f"{len(created_items)} Artikel{recipe_info}"
+        )
+        db.add(log_entry)
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error logging activity for bulk items: {e}")
 
     # Push Notification gebündelt senden
-    members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
-    members = {member.id: member for member in members_list}.values()
-    for member in members:
-        if member.id != current_user.id:
-            notif = models.Notification(
-                user_id=member.id,
-                title="Neue Artikel hinzugefügt",
-                body=f"{current_user.display_name} hat {len(created_items)} Artikel{recipe_info} zu '{db_list.name}' hinzugefügt.",
-                action_url=f"/list/{db_list.id}"
-            )
-            db.add(notif)
-            if member.settings_push_new_items:
-                subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
-                for sub in subs:
-                    background_tasks.add_task(
-                        send_push_notification,
-                        {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
-                        {"title": notif.title, "body": notif.body, "url": notif.action_url}
-                    )
-    db.commit()
+    try:
+        members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
+        members = {member.id: member for member in members_list if member}.values()
+        for member in members:
+            if member and member.id != current_user.id:
+                notif = models.Notification(
+                    user_id=member.id,
+                    title="Neue Artikel hinzugefügt",
+                    body=f"{current_user.display_name} hat {len(created_items)} Artikel{recipe_info} zu '{db_list.name}' hinzugefügt.",
+                    action_url=f"/list/{db_list.id}"
+                )
+                db.add(notif)
+                if getattr(member, 'settings_push_new_items', False):
+                    subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+                    for sub in subs:
+                        background_tasks.add_task(
+                            send_push_notification,
+                            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                            {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                        )
+        db.commit()
+    except Exception as e:
+        logger.error(f"Error sending push notifications for bulk items: {e}")
 
-    # Einzelne WebSocket-Events für Live-Reaktivität
-    for it in created_items:
-        await manager.broadcast(list_id, {
-            "event": "ITEM_UPDATED",
-            "payload": {
-                "list_id": list_id,
-                "item": {
-                    "id": it.id,
-                    "name": it.name,
-                    "status": it.status,
-                    "quantity": it.quantity,
-                    "unit": it.unit,
-                    "category": it.category,
-                    "tags": it.tags
+    try:
+        # Einzelne WebSocket-Events für Live-Reaktivität
+        for it in created_items:
+            await manager.broadcast(list_id, {
+                "event": "ITEM_UPDATED",
+                "payload": {
+                    "list_id": list_id,
+                    "item": {
+                        "id": it.id,
+                        "name": it.name,
+                        "status": it.status,
+                        "quantity": it.quantity,
+                        "unit": it.unit,
+                        "category": it.category,
+                        "tags": it.tags
+                    }
                 }
-            }
-        })
+            })
 
-    await manager.broadcast(list_id, {
-        "event": "CHANGELOG_UPDATED",
-        "payload": {}
-    })
+        await manager.broadcast(list_id, {
+            "event": "CHANGELOG_UPDATED",
+            "payload": {}
+        })
+    except Exception as e:
+        logger.error(f"Error broadcasting WebSocket events for bulk items: {e}")
 
     return created_items
 

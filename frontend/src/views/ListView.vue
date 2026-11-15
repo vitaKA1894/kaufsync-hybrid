@@ -8,6 +8,7 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
 import Sortable from 'sortablejs';
 import QrcodeVue from 'qrcode.vue';
+import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 const route = useRoute();
 const router = useRouter();
@@ -30,6 +31,12 @@ const showShareSheet = ref(false);
 const showSortSheet = ref(false);
 const showChangelogSheet = ref(false);
 const showSettingsSheet = ref(false);
+
+// Bottom Sheet Drag Handlers
+const settingsDrag = useBottomSheetDrag(() => { showSettingsSheet.value = false; });
+const shareDrag = useBottomSheetDrag(() => { showShareSheet.value = false; });
+const changelogDrag = useBottomSheetDrag(() => { showChangelogSheet.value = false; });
+const sortDrag = useBottomSheetDrag(() => { showSortSheet.value = false; });
 const sortListRef = ref(null);
 let sortableInstance = null;
 
@@ -864,8 +871,8 @@ onUnmounted(() => {
 
     <!-- SETTINGS MENU SHEET -->
     <transition name="sheet-slide">
-      <div v-if="showSettingsSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
+      <div v-if="showSettingsSheet" class="ks-sheet" :style="settingsDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet__handle" @touchstart="settingsDrag.onTouchStart" @touchmove="settingsDrag.onTouchMove" @touchend="settingsDrag.onTouchEnd"></div>
         <div class="modal-header" style="justify-content: space-between; margin-bottom: 16px;">
           <div>
             <h3 class="sheet-heading" style="margin: 0;">Listen-Optionen</h3>
@@ -940,10 +947,9 @@ onUnmounted(() => {
     </transition>
 
     <!-- SHARE SHEET -->
-
     <transition name="sheet-slide">
-      <div v-if="showShareSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
+      <div v-if="showShareSheet" class="ks-sheet" :style="shareDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet__handle" @touchstart="shareDrag.onTouchStart" @touchmove="shareDrag.onTouchMove" @touchend="shareDrag.onTouchEnd"></div>
         <h3 class="sheet-heading">Liste teilen</h3>
 
         <div class="share-section" style="display: flex; flex-direction: column; gap: 14px;">
@@ -951,7 +957,7 @@ onUnmounted(() => {
             Über diesen Link kann jeder eine Beitrittsanfrage stellen. Du als Besitzer musst neue Mitglieder erst freigeben.
           </p>
 
-          <button class="ks-btn-filled full-width" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px;" @click="shareOrCopyLink">
+          <button class="ks-btn-pill-primary full-width" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="shareOrCopyLink">
              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
              Einladungs-Link teilen / kopieren
           </button>
@@ -980,13 +986,13 @@ onUnmounted(() => {
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
                 <button
-                  class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition-all"
+                  class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition-all"
                   @click="approveJoinRequest(req.id)"
                 >
                   Zulassen
                 </button>
                 <button
-                  class="px-2.5 py-1.5 rounded-lg bg-slate-700 hover:bg-rose-500/30 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-all"
+                  class="px-2.5 py-1.5 rounded-full bg-slate-700 hover:bg-rose-500/30 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-all"
                   @click="rejectJoinRequest(req.id)"
                 >
                   Ablehnen
@@ -1017,8 +1023,8 @@ onUnmounted(() => {
 
     <!-- CHANGELOG SHEET -->
     <transition name="sheet-slide">
-      <div v-if="showChangelogSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
+      <div v-if="showChangelogSheet" class="ks-sheet" :style="changelogDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet__handle" @touchstart="changelogDrag.onTouchStart" @touchmove="changelogDrag.onTouchMove" @touchend="changelogDrag.onTouchEnd"></div>
         <div class="modal-header" style="justify-content: space-between; margin-bottom: 16px;">
             <h3 class="sheet-heading" style="margin: 0;">Aktivitäten</h3>
             <button class="close-btn ks-icon-btn" @click="showChangelogSheet = false">
@@ -1059,8 +1065,8 @@ onUnmounted(() => {
 
     <!-- SORTIER SHEET -->
     <transition name="sheet-slide">
-      <div v-if="showSortSheet" class="ks-sheet" @click.stop>
-        <div class="ks-sheet__handle"></div>
+      <div v-if="showSortSheet" class="ks-sheet" :style="sortDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet__handle" @touchstart="sortDrag.onTouchStart" @touchmove="sortDrag.onTouchMove" @touchend="sortDrag.onTouchEnd"></div>
         <h3 class="sheet-heading">Laufweg im Supermarkt</h3>
         <p class="sheet-support">Sortiere die Kategorien, damit sie deinem Weg durch den Markt entsprechen.</p>
         
@@ -1089,8 +1095,8 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <button class="ks-btn-filled full-width" style="margin-top: 16px;" @click="showSortSheet = false">Fertig</button>
-        <button v-if="isCustomOrder" class="ks-btn-text full-width" style="margin-top: 8px; color: var(--ks-error)" @click="resetCategoryOrder">
+        <button class="ks-btn-pill-primary full-width" style="width: 100%; margin-top: 16px;" @click="showSortSheet = false">Fertig</button>
+        <button v-if="isCustomOrder" class="ks-btn-pill-secondary full-width" style="width: 100%; margin-top: 10px; color: #fca5a5;" @click="resetCategoryOrder">
           Auf Markt-Standard zurücksetzen
         </button>
       </div>

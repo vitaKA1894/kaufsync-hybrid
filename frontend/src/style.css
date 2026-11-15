@@ -274,20 +274,32 @@ img {
   z-index: 60;
   width: min(100%, 880px);
   margin: 0 auto;
-  background: linear-gradient(180deg, rgba(34, 37, 44, 0.99), rgba(24, 26, 32, 1));
-  border: 1px solid var(--ks-border);
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-bottom: none;
   border-radius: 28px 28px 0 0;
-  padding: 12px 14px max(28px, calc(28px + env(safe-area-inset-bottom)));
-  box-shadow: var(--ks-shadow-2);
+  padding: 14px 18px max(24px, calc(20px + env(safe-area-inset-bottom)));
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
+  transition: transform 0.3s cubic-bezier(0.2, 0, 0, 1);
 }
 
 .ks-sheet__handle {
-  width: 34px;
-  height: 4px;
-  margin: 4px auto 18px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.24);
+  width: 48px;
+  height: 6px;
+  margin: 2px auto 16px;
+  border-radius: 9999px;
+  background: #334155;
+  cursor: grab;
+  touch-action: none;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+}
+
+.ks-sheet__handle:active {
+  cursor: grabbing;
+  background: #475569;
 }
 
 .ks-dialog {
@@ -344,7 +356,130 @@ img {
 .ks-btn-row {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
+  gap: 12px;
+}
+
+/* --- UNIFIED MODERN PILL BUTTON SYSTEM (AddItemModal Reference) --- */
+.ks-btn-pill-primary {
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  border: none;
+  background: #f8fafc;
+  color: #0f172a;
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.ks-btn-pill-primary:hover:not(:disabled) {
+  filter: brightness(0.96);
+  transform: translateY(-1px);
+}
+
+.ks-btn-pill-primary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ks-btn-pill-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ks-btn-pill-secondary {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #334155;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.ks-btn-pill-secondary:hover:not(:disabled) {
+  background: #3b4c63;
+  transform: translateY(-1px);
+}
+
+.ks-btn-pill-secondary:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ks-btn-pill-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ks-btn-pill-danger {
+  min-height: 48px;
+  padding: 0 20px;
+  border-radius: 9999px;
+  border: none;
+  background: #ef4444;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease, background 0.15s ease;
+}
+
+.ks-btn-pill-danger:hover:not(:disabled) {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+.ks-btn-pill-danger:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ks-btn-pill-accent {
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 9999px;
+  border: none;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(56, 189, 248, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.ks-btn-pill-accent:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.ks-btn-pill-accent:active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.ks-btn-pill-accent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .ks-btn-text,
