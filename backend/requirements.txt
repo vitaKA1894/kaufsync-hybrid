@@ -6,3 +6,5 @@ PyJWT
 bcrypt==4.0.1
 pywebpush
 python-dotenv
+requests
+beautifulsoup4

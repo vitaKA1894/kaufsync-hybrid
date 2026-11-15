@@ -7,7 +7,7 @@ from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-import models, schemas, auth
+import models, schemas, auth, recipe_service
 from database import engine, get_db, SessionLocal
 import json
 from pywebpush import webpush, WebPushException
@@ -915,6 +915,111 @@ async def create_item(
     })
 
     return new_item
+
+@app.post("/api/lists/{list_id}/items/bulk", response_model=List[schemas.ItemResponse])
+async def create_items_bulk(
+    list_id: str,
+    bulk_data: schemas.BulkItemCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
+
+    created_items = []
+    for item_data in bulk_data.items:
+        new_item = models.Item(
+            list_id=list_id,
+            name=item_data.name,
+            category=item_data.category or "Sonstiges",
+            quantity=item_data.quantity,
+            unit=item_data.unit or "Stk",
+            note=item_data.note,
+            tags=item_data.tags,
+            last_modified_by=current_user.id
+        )
+        db.add(new_item)
+        created_items.append(new_item)
+
+    db.commit()
+    for it in created_items:
+        db.refresh(it)
+
+    recipe_info = f" aus '{bulk_data.recipe_title}'" if bulk_data.recipe_title else ""
+    log_entry = models.ActivityLog(
+        list_id=list_id,
+        user_id=current_user.id,
+        action_type="added",
+        item_name=f"{len(created_items)} Artikel{recipe_info}"
+    )
+    db.add(log_entry)
+    db.commit()
+
+    # Push Notification gebündelt senden
+    members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
+    members = {member.id: member for member in members_list}.values()
+    for member in members:
+        if member.id != current_user.id:
+            notif = models.Notification(
+                user_id=member.id,
+                title="Neue Artikel hinzugefügt",
+                body=f"{current_user.display_name} hat {len(created_items)} Artikel{recipe_info} zu '{db_list.name}' hinzugefügt.",
+                action_url=f"/list/{db_list.id}"
+            )
+            db.add(notif)
+            if member.settings_push_new_items:
+                subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+                for sub in subs:
+                    background_tasks.add_task(
+                        send_push_notification,
+                        {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                        {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                    )
+    db.commit()
+
+    # Einzelne WebSocket-Events für Live-Reaktivität
+    for it in created_items:
+        await manager.broadcast(list_id, {
+            "event": "ITEM_UPDATED",
+            "payload": {
+                "list_id": list_id,
+                "item": {
+                    "id": it.id,
+                    "name": it.name,
+                    "status": it.status,
+                    "quantity": it.quantity,
+                    "unit": it.unit,
+                    "category": it.category,
+                    "tags": it.tags
+                }
+            }
+        })
+
+    await manager.broadcast(list_id, {
+        "event": "CHANGELOG_UPDATED",
+        "payload": {}
+    })
+
+    return created_items
+
+@app.post("/api/recipes/parse", response_model=schemas.RecipeParseResponse)
+async def parse_recipe(
+    request: schemas.RecipeParseRequest,
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    try:
+        result = recipe_service.parse_recipe_url(request.url)
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Fehler beim Verarbeiten des Rezepts: {str(e)}")
+
 
 @app.post("/api/lists/{list_id}/start-shopping")
 async def start_shopping(

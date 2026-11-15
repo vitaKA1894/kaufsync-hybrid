@@ -57,6 +57,11 @@ const routes = [
     path: '/join',
     name: 'JoinList',
     component: Dashboard, // Doesn't matter, will be redirected by guard
+  },
+  {
+    path: '/share-target',
+    name: 'ShareTarget',
+    component: Dashboard, // Handled in navigation guard
   }
 ]
 
@@ -70,6 +75,32 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token');
   const isLoggedIn = token !== null && token !== 'undefined';
   const status = localStorage.getItem('status');
+
+  if (to.name === 'ShareTarget') {
+    const rawUrl = to.query.url || '';
+    const rawText = to.query.text || '';
+    const title = to.query.title || '';
+
+    let extractedUrl = rawUrl;
+    if (!extractedUrl && rawText) {
+      const match = rawText.match(/https?:\/\/[^\s]+/i);
+      if (match) extractedUrl = match[0];
+    }
+
+    if (extractedUrl) {
+      localStorage.setItem('pending_recipe_import', JSON.stringify({
+        url: extractedUrl,
+        title: title
+      }));
+    }
+
+    if (isLoggedIn) {
+      next('/');
+    } else {
+      next('/login');
+    }
+    return;
+  }
 
   if (to.name === 'JoinList') {
     const code = to.query.code;

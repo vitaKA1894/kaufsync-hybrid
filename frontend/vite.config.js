@@ -23,6 +23,15 @@ export default defineConfig({
         background_color: '#0f1115',
         display: 'standalone',
         orientation: 'portrait',
+        share_target: {
+          action: '/share-target',
+          method: 'GET',
+          params: {
+            title: 'title',
+            text: 'text',
+            url: 'url'
+          }
+        },
         icons: [
           {
             src: '/android-chrome-192x192.png',

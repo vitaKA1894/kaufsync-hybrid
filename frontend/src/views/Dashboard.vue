@@ -20,6 +20,34 @@ const newListName = ref('');
 const selectedIcon = ref(''); 
 const showScanner = ref(false);
 
+const showRecipeListPicker = ref(false);
+const pendingRecipeUrl = ref('');
+
+const checkPendingRecipeImport = () => {
+  const pending = localStorage.getItem('pending_recipe_import');
+  if (!pending) return;
+  try {
+    const parsed = JSON.parse(pending);
+    if (!parsed.url) return;
+    pendingRecipeUrl.value = parsed.url;
+    if (shoppingLists.value.length === 1) {
+      localStorage.removeItem('pending_recipe_import');
+      router.push(`/list/${shoppingLists.value[0].id}?importRecipe=1&url=${encodeURIComponent(parsed.url)}`);
+    } else if (shoppingLists.value.length > 1) {
+      showRecipeListPicker.value = true;
+    }
+  } catch (err) {
+    localStorage.removeItem('pending_recipe_import');
+  }
+};
+
+const selectListForRecipe = (targetListId) => {
+  showRecipeListPicker.value = false;
+  const targetUrl = pendingRecipeUrl.value;
+  localStorage.removeItem('pending_recipe_import');
+  router.push(`/list/${targetListId}?importRecipe=1&url=${encodeURIComponent(targetUrl)}`);
+};
+
 const handleScanCode = (scannedValue) => {
   showScanner.value = false;
   const urlMatch = scannedValue.match(/code=([^&]+)/);
@@ -183,6 +211,7 @@ const loadLists = async () => {
     const data = await response.json();
     shoppingLists.value = data;
     setupWebSockets();
+    checkPendingRecipeImport();
   } catch (error) {
     if (error?.message?.includes('eingeloggt')) router.push('/login');
   }
@@ -502,6 +531,46 @@ onUnmounted(() => {
               <button class="ks-btn-filled" @click="createNewList">Erstellen</button>
             </div>
           </template>
+        </div>
+      </div>
+    </transition>
+
+    <!-- MODAL FÜR REZEPT-ZIEL-LISTE (WENN AUS SHARE TARGET GETEILT) -->
+    <transition name="scrim-fade">
+      <div v-if="showRecipeListPicker" class="ks-modal-overlay" @click="showRecipeListPicker = false">
+        <div class="ks-modal-content" @click.stop style="max-width: 440px; border-radius: 24px; padding: 24px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(245, 158, 11, 0.2); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: #f8fafc;">Rezept importieren</h3>
+              <p style="margin: 0; font-size: 12px; color: #94a3b8;">Wähle die gewünschte Einkaufsliste</p>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px; margin: 18px 0;">
+            <button
+              v-for="list in shoppingLists"
+              :key="list.id"
+              class="ks-btn-filled"
+              style="text-align: left; padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; border-radius: 14px; background: #212631; border: 1px solid rgba(255,255,255,0.06);"
+              @click="selectListForRecipe(list.id)"
+            >
+              <span style="font-weight: 600; color: #f8fafc;">{{ list.name }}</span>
+              <span style="font-size: 12px; color: #38bdf8;">Auswählen →</span>
+            </button>
+          </div>
+
+          <button
+            class="ks-btn-text"
+            style="width: 100%; color: #94a3b8;"
+            @click="showRecipeListPicker = false; localStorage.removeItem('pending_recipe_import');"
+          >
+            Abbrechen
+          </button>
         </div>
       </div>
     </transition>

@@ -147,3 +147,32 @@ class ListInvitationResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- RECIPE & BULK SCHEMAS ---
+class RecipeParseRequest(BaseModel):
+    url: str
+
+class RecipeIngredientParsed(BaseModel):
+    raw: str
+    name: str
+    original_name: str
+    quantity: float
+    base_quantity: float
+    unit: str
+    category: str
+    icon: Optional[str] = None
+    matched: bool
+    is_staple: bool
+    selected: bool
+
+class RecipeParseResponse(BaseModel):
+    title: str
+    image: Optional[str] = None
+    servings: float
+    source: str
+    url: str
+    ingredients: List[RecipeIngredientParsed]
+
+class BulkItemCreate(BaseModel):
+    items: List[ItemCreate]
+    recipe_title: Optional[str] = None
