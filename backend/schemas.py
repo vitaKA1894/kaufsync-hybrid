@@ -90,7 +90,7 @@ class ItemBase(BaseModel):
     tags: Optional[str] = None
 
 class ItemCreate(ItemBase):
-    pass
+    id: Optional[str] = None
 
 class ItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -105,10 +105,29 @@ class ItemResponse(ItemBase):
     id: str
     list_id: str
     status: str
-    # Hinweis: updated_at wurde entfernt, da es in models.Item nicht definiert war!
+    updated_at: Optional[datetime] = None
+    is_deleted: Optional[bool] = False
     
     class Config:
         from_attributes = True
+
+# --- SYNC SCHEMAS ---
+class ClientMutation(BaseModel):
+    id: Optional[str] = None
+    action: str  # 'ADD_ITEM', 'UPDATE_ITEM', 'DELETE_ITEM', 'TOGGLE_STATUS', 'CLEAR_COMPLETED'
+    item_id: Optional[str] = None
+    payload: Optional[dict] = None
+    client_timestamp: Optional[str] = None
+
+class ListSyncRequest(BaseModel):
+    last_synced_at: Optional[str] = None
+    mutations: List[ClientMutation] = []
+
+class ListSyncResponse(BaseModel):
+    server_time: str
+    processed_count: int
+    items: List[ItemResponse]
+    deleted_item_ids: List[str] = []
 
 # --- LIST SCHEMAS ---
 class ListBase(BaseModel):

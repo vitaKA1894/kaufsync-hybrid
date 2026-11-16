@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, Boolean
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, Boolean, and_
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import uuid
@@ -85,7 +85,7 @@ class List(Base):
     share_code = Column(String, unique=True, index=True, default=generate_share_code)
     
     # Beziehungen
-    items = relationship("Item", back_populates="shopping_list", cascade="all, delete-orphan")
+    items = relationship("Item", back_populates="shopping_list", primaryjoin="and_(List.id==Item.list_id, Item.is_deleted==False)", cascade="all, delete-orphan")
     members = relationship("User", secondary=list_members, backref="shared_lists")
     creator = relationship("User", foreign_keys=[created_by])
 
@@ -114,6 +114,8 @@ class Item(Base):
     status = Column(String, default="active")
     tags = Column(String, nullable=True)
     created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+    is_deleted = Column(Boolean, default=False)
     last_modified_by = Column(String, ForeignKey("users.id"), nullable=True)
     
     shopping_list = relationship("List", back_populates="items")

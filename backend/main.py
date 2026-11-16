@@ -38,6 +38,17 @@ def ensure_columns():
             for col_name, col_type in cols_to_add:
                 if col_name not in existing_cols:
                     conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}")
+            
+            # Item columns for offline sync
+            existing_item_cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(items)").fetchall()]
+            item_cols_to_add = [
+                ("updated_at", "DATETIME"),
+                ("is_deleted", "BOOLEAN DEFAULT 0"),
+            ]
+            for col_name, col_type in item_cols_to_add:
+                if col_name not in existing_item_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE items ADD COLUMN {col_name} {col_type}")
+            
             conn.commit()
     except Exception as e:
         print(f"ensure_columns error (ignored): {e}")
@@ -973,15 +984,37 @@ async def create_item(
     if db_list.created_by != current_user.id and current_user not in db_list.members:
         raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
         
-    new_item = models.Item(
-        list_id=list_id, name=item_data.name, category=item_data.category,
-        quantity=item_data.quantity, unit=item_data.unit, note=item_data.note,
-        tags=item_data.tags,
-        last_modified_by=current_user.id # Item an User binden
-    )
-    db.add(new_item)
-    db.commit()
-    db.refresh(new_item)
+    item_kwargs = {
+        "list_id": list_id,
+        "name": item_data.name,
+        "category": item_data.category or "Sonstiges",
+        "quantity": item_data.quantity,
+        "unit": item_data.unit or "Stk",
+        "note": item_data.note,
+        "tags": item_data.tags,
+        "last_modified_by": current_user.id,
+        "updated_at": datetime.now(timezone.utc),
+        "is_deleted": False
+    }
+    if item_data.id:
+        existing = db.query(models.Item).filter(models.Item.id == item_data.id).first()
+        if existing:
+            for k, v in item_kwargs.items():
+                setattr(existing, k, v)
+            db.commit()
+            db.refresh(existing)
+            new_item = existing
+        else:
+            item_kwargs["id"] = item_data.id
+            new_item = models.Item(**item_kwargs)
+            db.add(new_item)
+            db.commit()
+            db.refresh(new_item)
+    else:
+        new_item = models.Item(**item_kwargs)
+        db.add(new_item)
+        db.commit()
+        db.refresh(new_item)
 
     # LOG ACTIVITY
     log_entry = models.ActivityLog(
@@ -1304,6 +1337,10 @@ async def update_item(
         }
     })
     
+    db_item.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    db.refresh(db_item)
+    
     return db_item
     
 @app.delete("/api/items/{item_id}")
@@ -1322,7 +1359,8 @@ async def delete_item(
     
     list_id = db_item.list_id
     item_name = db_item.name
-    db.delete(db_item)
+    db_item.is_deleted = True
+    db_item.updated_at = datetime.now(timezone.utc)
     db.commit()
 
     # LOG ACTIVITY
@@ -1350,6 +1388,132 @@ async def delete_item(
     })
 
     return {"status": "ok", "message": "Item gelöscht"}
+
+@app.post("/api/lists/{list_id}/sync", response_model=schemas.ListSyncResponse)
+async def sync_list(
+    list_id: str,
+    sync_data: schemas.ListSyncRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
+
+    processed = 0
+    now = datetime.now(timezone.utc)
+
+    for mut in sync_data.mutations:
+        action = mut.action
+        item_id = mut.item_id
+        payload = mut.payload or {}
+
+        if action == "ADD_ITEM":
+            name = payload.get("name")
+            if name:
+                target_id = item_id or payload.get("id")
+                existing = db.query(models.Item).filter(models.Item.id == target_id).first() if target_id else None
+                if existing:
+                    existing.is_deleted = False
+                    existing.name = name
+                    existing.category = payload.get("category", existing.category or "Sonstiges")
+                    existing.quantity = payload.get("quantity", existing.quantity or 1)
+                    existing.unit = payload.get("unit", existing.unit or "Stk")
+                    existing.note = payload.get("note", existing.note)
+                    existing.status = payload.get("status", "active")
+                    existing.updated_at = now
+                else:
+                    new_item = models.Item(
+                        id=target_id or models.generate_uuid(),
+                        list_id=list_id,
+                        name=name,
+                        category=payload.get("category", "Sonstiges"),
+                        quantity=payload.get("quantity", 1),
+                        unit=payload.get("unit", "Stk"),
+                        note=payload.get("note"),
+                        tags=payload.get("tags"),
+                        status=payload.get("status", "active"),
+                        last_modified_by=current_user.id,
+                        updated_at=now,
+                        is_deleted=False
+                    )
+                    db.add(new_item)
+                processed += 1
+
+        elif action == "UPDATE_ITEM":
+            if item_id:
+                item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
+                if item:
+                    for field in ["name", "category", "quantity", "unit", "note", "status", "tags"]:
+                        if field in payload and payload[field] is not None:
+                            setattr(item, field, payload[field])
+                    item.updated_at = now
+                    item.last_modified_by = current_user.id
+                    processed += 1
+
+        elif action == "TOGGLE_STATUS":
+            if item_id:
+                item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
+                if item:
+                    item.status = payload.get("status", "completed" if item.status == "active" else "active")
+                    item.updated_at = now
+                    item.last_modified_by = current_user.id
+                    processed += 1
+
+        elif action == "DELETE_ITEM":
+            if item_id:
+                item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
+                if item:
+                    item.is_deleted = True
+                    item.updated_at = now
+                    processed += 1
+
+        elif action == "CLEAR_COMPLETED":
+            completed_items = db.query(models.Item).filter(
+                models.Item.list_id == list_id,
+                models.Item.status == "completed",
+                models.Item.is_deleted == False
+            ).all()
+            for it in completed_items:
+                it.is_deleted = True
+                it.updated_at = now
+                processed += 1
+
+    db.commit()
+
+    if processed > 0:
+        await manager.broadcast(list_id, {
+            "event": "LIST_SYNCED",
+            "payload": { "list_id": list_id }
+        })
+
+    active_items = db.query(models.Item).filter(
+        models.Item.list_id == list_id,
+        models.Item.is_deleted == False
+    ).all()
+
+    deleted_ids = []
+    if sync_data.last_synced_at:
+        try:
+            since = datetime.fromisoformat(sync_data.last_synced_at.replace("Z", "+00:00"))
+            del_items = db.query(models.Item.id).filter(
+                models.Item.list_id == list_id,
+                models.Item.is_deleted == True,
+                models.Item.updated_at >= since
+            ).all()
+            deleted_ids = [row[0] for row in del_items]
+        except Exception:
+            pass
+
+    return {
+        "server_time": now.isoformat(),
+        "processed_count": processed,
+        "items": active_items,
+        "deleted_item_ids": deleted_ids
+    }
 
 import pathlib
 

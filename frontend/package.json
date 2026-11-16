@@ -21,6 +21,7 @@
     "@capacitor/status-bar": "^8.0.4",
     "@lucide/vue": "^1.26.0",
     "@undecaf/zbar-wasm": "^0.11.0",
+    "dexie": "^4.4.7",
     "fuse.js": "^7.5.0",
     "qrcode.vue": "^3.10.0",
     "sortablejs": "^1.15.7",

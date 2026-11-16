@@ -9,6 +9,18 @@ import RecipeImportModal from '../components/RecipeImportModal.vue';
 import Sortable from 'sortablejs';
 import QrcodeVue from 'qrcode.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
+import SyncStatusBadge from '../components/SyncStatusBadge.vue';
+import {
+  isOnline,
+  syncStatus,
+  pendingCount,
+  getLocalListItems,
+  saveLocalLists,
+  queueMutation,
+  processSyncQueue,
+  triggerSync
+} from '../services/syncService';
+import { db } from '../db/index';
 
 const route = useRoute();
 const router = useRouter();
@@ -50,7 +62,6 @@ const changelogFilter = ref('all'); // 'all', 'added', 'completed'
 let ws = null;
 let wsReconnectTimer = null;
 let isViewUnmounted = false;
-const isOnline = ref(navigator.onLine);
 
 const isCompactView = ref(localStorage.getItem('ks_compact_view') === 'true');
 const toggleCompactView = () => {
@@ -244,6 +255,22 @@ const updateOnlineStatus = () => {
 };
 
 const loadItems = async () => {
+  // 1. Instant local-first render from Dexie (0 ms)
+  try {
+    const local = await getLocalListItems(listId);
+    if (local && local.length > 0) {
+      items.value = local;
+    }
+    const cachedData = localStorage.getItem('cachedLists');
+    if (cachedData) {
+      const lists = JSON.parse(cachedData);
+      currentList.value = lists.find(l => l.id === listId) || currentList.value;
+    }
+  } catch (e) {
+    console.warn('Local read error:', e);
+  }
+
+  // 2. Fetch fresh lists & items from API if online
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl('/api/lists'), {
@@ -259,16 +286,15 @@ const loadItems = async () => {
     const lists = await response.json();
 
     localStorage.setItem('cachedLists', JSON.stringify(lists));
+    await saveLocalLists(lists);
 
     currentList.value = lists.find(l => l.id === listId);
     if (currentList.value) items.value = currentList.value.items;
+    
+    // Also process any pending sync queue items
+    processSyncQueue();
   } catch (error) {
-    const cachedData = localStorage.getItem('cachedLists');
-    if (cachedData) {
-      const lists = JSON.parse(cachedData);
-      currentList.value = lists.find(l => l.id === listId);
-      if (currentList.value) items.value = currentList.value.items;
-    } else {
+    if (!items.value || items.value.length === 0) {
       errorMessage.value = "Offline: Konnte Liste nicht laden.";
     }
   } finally {
@@ -344,88 +370,39 @@ const setupWebSocket = () => {
 const handleUpdateItem = async (updatedPayload) => {
   const index = items.value.findIndex(i => i.id === updatedPayload.id);
   if (index !== -1) {
-    const originalItem = { ...items.value[index] };
     items.value[index] = { ...items.value[index], ...updatedPayload };
-    try {
-      const token = localStorage.getItem('token');
-      const response = await fetch(apiUrl(`/api/items/${updatedPayload.id}`), {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify(updatedPayload)
-      });
-      if (!response.ok) throw new Error('API Fehler');
-    } catch (error) {
-      items.value[index] = originalItem;
-      errorMessage.value = "Offline: Konnte Artikel nicht aktualisieren.";
-    }
   }
+  await queueMutation({
+    listId,
+    itemId: updatedPayload.id,
+    action: 'UPDATE_ITEM',
+    payload: updatedPayload
+  });
 };
 
 const handleAddItem = async (itemPayload) => {
-  // Optimistisches Update
-  const tempId = 'temp-' + Date.now();
+  errorMessage.value = '';
+  const newId = itemPayload.id || crypto.randomUUID();
   const newItem = {
-    id: tempId,
+    id: newId,
+    list_id: listId,
     name: itemPayload.name,
     quantity: itemPayload.quantity || 1,
     unit: itemPayload.unit || 'Stk',
-    category: itemPayload.category,
-    tags: itemPayload.tags,
+    category: itemPayload.category || 'Sonstiges',
+    tags: itemPayload.tags || '',
+    note: itemPayload.note || '',
     status: 'active'
   };
   
   items.value.push(newItem);
 
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/lists/${listId}/items`), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ 
-        name: itemPayload.name,
-        quantity: itemPayload.quantity || 1,
-        unit: itemPayload.unit || 'Stk',
-        category: itemPayload.category,
-        tags: itemPayload.tags
-      })
-    });
-    
-    if (response.ok) {
-      const savedItem = await response.json();
-      items.value = items.value.filter(i => i.id !== tempId);
-      const alreadyAddedViaWS = items.value.some(i => i.id === savedItem.id);
-      if (!alreadyAddedViaWS) {
-        items.value.push(savedItem);
-      }
-    } else {
-      throw new Error('API Fehler');
-    }
-  } catch (error) { 
-    items.value = items.value.filter(i => i.id !== tempId);
-    errorMessage.value = "Fehler beim Hinzufügen."; 
-  }
-};
-
-const processOfflineQueue = async () => {
-  const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-  if (queue.length === 0) return;
-
-  const token = localStorage.getItem('token');
-  const remainingQueue = [];
-  for (const action of queue) {
-    try {
-      if (action.type === 'TOGGLE_STATUS') {
-        await fetch(apiUrl(`/api/items/${action.itemId}`), {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-          body: JSON.stringify({ status: action.newStatus })
-        });
-      }
-    } catch (error) {
-      remainingQueue.push(action);
-    }
-  }
-  localStorage.setItem('offlineQueue', JSON.stringify(remainingQueue));
+  await queueMutation({
+    listId,
+    itemId: newId,
+    action: 'ADD_ITEM',
+    payload: newItem
+  });
 };
 
 const updateItemQuantity = (item, delta) => {
@@ -466,19 +443,13 @@ const toggleItemStatus = async (item) => {
     items.value[itemIdx] = { ...items.value[itemIdx], status: newStatus };
   }
 
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/items/${item.id}`), {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-      body: JSON.stringify({ status: newStatus })
-    });
-    if (!response.ok) throw new Error('API Fehler');
-  } catch (error) {
-    const queue = JSON.parse(localStorage.getItem('offlineQueue') || '[]');
-    queue.push({ type: 'TOGGLE_STATUS', itemId: item.id, newStatus: newStatus });
-    localStorage.setItem('offlineQueue', JSON.stringify(queue));
-  }
+  // Queue mutation & background sync
+  await queueMutation({
+    listId,
+    itemId: item.id,
+    action: 'TOGGLE_STATUS',
+    payload: { status: newStatus }
+  });
 };
 
 const executeConfirmAction = async () => {
@@ -495,9 +466,12 @@ const clearCompleted = async () => {
 
   confirmMessage.value = `Möchtest du wirklich alle ${completedIds.length} erledigten Artikel löschen?`;
   confirmAction.value = async () => {
-    for (const id of completedIds) {
-      await deleteItem(id);
-    }
+    items.value = items.value.filter(i => i.status !== 'completed');
+    await queueMutation({
+      listId,
+      action: 'CLEAR_COMPLETED',
+      payload: {}
+    });
   };
   showConfirmModal.value = true;
 };
@@ -512,20 +486,14 @@ const confirmDeleteItem = (item) => {
 
 const deleteItem = async (itemId) => {
   // Optimistic delete
-  const previousItems = [...items.value];
   items.value = items.value.filter(i => i.id !== itemId);
   
-  try {
-    const token = localStorage.getItem('token');
-    const response = await fetch(apiUrl(`/api/items/${itemId}`), {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
-    if (!response.ok) throw new Error();
-  } catch (error) {
-    items.value = previousItems;
-    errorMessage.value = "Fehler beim Löschen.";
-  }
+  await queueMutation({
+    listId,
+    itemId,
+    action: 'DELETE_ITEM',
+    payload: {}
+  });
 };
 
 const loadChangelog = async () => {
@@ -855,7 +823,8 @@ onUnmounted(() => {
         </button>
         <h1 class="list-title">{{ currentList ? currentList.name : 'Laden...' }}</h1>
       </div>
-      <div style="display: flex; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <SyncStatusBadge />
         <button class="ks-icon-btn" @click.stop="showSettingsSheet = !showSettingsSheet" aria-label="Listen-Optionen">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
             <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
@@ -1105,7 +1074,6 @@ onUnmounted(() => {
     </transition>
 
     <div class="ks-snackbar-stack">
-      <div v-if="!isOnline" class="ks-snackbar ks-snackbar--warning">Offline. Änderungen werden später synchronisiert.</div>
       <transition-group name="toast">
         <div v-if="errorMessage" key="err" class="ks-snackbar ks-snackbar--error">{{ errorMessage }}</div>
         <div v-if="successMessage" key="succ" class="ks-snackbar ks-snackbar--success">{{ successMessage }}</div>

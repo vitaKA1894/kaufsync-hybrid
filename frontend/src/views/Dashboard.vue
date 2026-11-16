@@ -3,7 +3,9 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
+import SyncStatusBadge from '../components/SyncStatusBadge.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
+import { getLocalLists, saveLocalLists, isOnline } from '../services/syncService';
 
 const router = useRouter();
 const shoppingLists = ref([]);
@@ -212,6 +214,17 @@ const updateOnlineStatus = () => {
 };
 
 const loadLists = async () => {
+  // 1. Instant local-first render (0 ms)
+  try {
+    const local = await getLocalLists();
+    if (local && local.length > 0) {
+      shoppingLists.value = local;
+    }
+  } catch (e) {
+    console.warn('Local lists read error:', e);
+  }
+
+  // 2. Fetch fresh lists from API if online
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl('/api/lists'), { headers: { 'Authorization': `Bearer ${token}` } });
@@ -224,6 +237,7 @@ const loadLists = async () => {
     if (!response.ok) throw new Error('Fehler beim Laden');
     const data = await response.json();
     shoppingLists.value = data;
+    await saveLocalLists(data);
     setupWebSockets();
     checkPendingRecipeImport();
   } catch (error) {
@@ -413,7 +427,8 @@ onUnmounted(() => {
         <img src="/android-chrome-512x512.png" alt="Logo" style="height: 48px; object-fit: contain;" />
         <h1 style="margin: 0; font-size: 22px;">Meine Listen</h1>
       </div>
-      <div style="display: flex; align-items: center; gap: 4px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <SyncStatusBadge />
         <button class="ks-icon-btn profile-btn" @click.stop="goToProfile" aria-label="Profil">
           <div v-if="currentUser" class="member-avatar creator" style="width: 32px; height: 32px; font-size: 14px;">
             {{ getInitial(currentUser.display_name) }}
