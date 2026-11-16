@@ -511,25 +511,27 @@ const getHostname = (link) => {
 
 <template>
   <div v-if="isOpen" class="recipe-modal-backdrop" @click="emit('close')">
-    <div class="recipe-modal-sheet" :style="sheetStyle" ref="sheetRef" @click.stop>
-      <div class="sheet-handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
+    <div class="recipe-modal-sheet" :class="{ 'is-compact': !recipeData }" :style="sheetStyle" ref="sheetRef" @click.stop>
+      <div class="ks-sheet-drag-header" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd" style="touch-action: none; cursor: grab; padding-bottom: 4px;">
+        <div class="sheet-handle"></div>
 
-      <!-- HEADER -->
-      <div class="modal-header">
-        <div class="header-left">
-          <div class="header-icon-box">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-              <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
-            </svg>
+        <!-- HEADER -->
+        <div class="modal-header">
+          <div class="header-left">
+            <div class="header-icon-box">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M12 3a5.5 5.5 0 0 0-4.7 2.65A4.5 4.5 0 0 0 3 10c0 2.16 1.5 3.96 3.5 4.38V18a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2v-3.62c2-.42 3.5-2.22 3.5-4.38a4.5 4.5 0 0 0-4.3-4.35A5.5 5.5 0 0 0 12 3zm0 2c1.9 0 3.5 1.28 4 3a1 1 0 0 0 .9.73 2.5 2.5 0 0 1 2.1 2.27c0 1.38-1.12 2.5-2.5 2.5a1 1 0 0 0-1 1v4.5a.5.5 0 0 1-.5.5h-6a.5.5 0 0 1-.5-.5V14.5a1 1 0 0 0-1-1C6.12 13.5 5 12.38 5 11a2.5 2.5 0 0 1 2.1-2.27 1 1 0 0 0 .9-.73 3.5 3.5 0 0 1 4-3zM8.5 20v1a1 1 0 0 0 1 1h5a1 1 0 0 0 1-1v-1h-7z"/>
+              </svg>
+            </div>
+            <div>
+              <h2 class="modal-title">Rezept importieren</h2>
+              <p class="modal-subtitle">Mealie, Chefkoch & alle Rezeptseiten</p>
+            </div>
           </div>
-          <div>
-            <h2 class="modal-title">Rezept importieren</h2>
-            <p class="modal-subtitle">Mealie, Chefkoch & alle Rezeptseiten</p>
-          </div>
+          <button class="close-btn" @click="emit('close')" aria-label="Schließen">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          </button>
         </div>
-        <button class="close-btn" @click="emit('close')" aria-label="Schließen">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-        </button>
       </div>
 
       <!-- ERROR MESSAGE -->
@@ -826,10 +828,16 @@ const getHostname = (link) => {
   display: flex;
   flex-direction: column;
   border-radius: 28px 28px 0 0;
-  padding: 16px 20px 14px;
+  padding: 16px 20px max(24px, calc(16px + env(safe-area-inset-bottom)));
   box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.7);
   animation: slideUp 0.25s cubic-bezier(0.2, 0, 0, 1);
   overflow: hidden;
+  transition: height 0.3s cubic-bezier(0.2, 0, 0, 1), max-height 0.3s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.recipe-modal-sheet.is-compact {
+  height: auto;
+  max-height: min(55vh, 460px);
 }
 
 @keyframes slideUp {

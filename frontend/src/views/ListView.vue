@@ -872,15 +872,14 @@ onUnmounted(() => {
     <!-- SETTINGS MENU SHEET -->
     <transition name="sheet-slide">
       <div v-if="showSettingsSheet" class="ks-sheet" :style="settingsDrag.sheetStyle" @click.stop>
-        <div class="ks-sheet__handle" @touchstart="settingsDrag.onTouchStart" @touchmove="settingsDrag.onTouchMove" @touchend="settingsDrag.onTouchEnd"></div>
-        <div class="modal-header" style="justify-content: space-between; margin-bottom: 16px;">
-          <div>
-            <h3 class="sheet-heading" style="margin: 0;">Listen-Optionen</h3>
-            <p class="sheet-support" style="margin: 2px 0 0; font-size: 13px; color: #94a3b8;">{{ currentList?.name }}</p>
+        <div class="ks-sheet-drag-header" @touchstart="settingsDrag.onTouchStart" @touchmove="settingsDrag.onTouchMove" @touchend="settingsDrag.onTouchEnd" style="touch-action: none; cursor: grab; padding-bottom: 4px;">
+          <div class="ks-sheet__handle"></div>
+          <div class="modal-header" style="margin-bottom: 12px;">
+            <div>
+              <h3 class="sheet-heading" style="margin: 0;">Listen-Optionen</h3>
+              <p class="sheet-support" style="margin: 2px 0 0; font-size: 13px; color: #94a3b8;">{{ currentList?.name }}</p>
+            </div>
           </div>
-          <button class="close-btn ks-icon-btn" @click="showSettingsSheet = false" aria-label="Schließen">
-            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-          </button>
         </div>
 
         <div class="settings-menu-list">
@@ -949,8 +948,10 @@ onUnmounted(() => {
     <!-- SHARE SHEET -->
     <transition name="sheet-slide">
       <div v-if="showShareSheet" class="ks-sheet" :style="shareDrag.sheetStyle" @click.stop>
-        <div class="ks-sheet__handle" @touchstart="shareDrag.onTouchStart" @touchmove="shareDrag.onTouchMove" @touchend="shareDrag.onTouchEnd"></div>
-        <h3 class="sheet-heading">Liste teilen</h3>
+        <div class="ks-sheet-drag-header" @touchstart="shareDrag.onTouchStart" @touchmove="shareDrag.onTouchMove" @touchend="shareDrag.onTouchEnd" style="touch-action: none; cursor: grab; padding-bottom: 4px;">
+          <div class="ks-sheet__handle"></div>
+          <h3 class="sheet-heading">Liste teilen</h3>
+        </div>
 
         <div class="share-section" style="display: flex; flex-direction: column; gap: 14px;">
           <p class="sheet-support" style="margin: 0; font-size: 13px; line-height: 1.4;">
@@ -1024,12 +1025,11 @@ onUnmounted(() => {
     <!-- CHANGELOG SHEET -->
     <transition name="sheet-slide">
       <div v-if="showChangelogSheet" class="ks-sheet" :style="changelogDrag.sheetStyle" @click.stop>
-        <div class="ks-sheet__handle" @touchstart="changelogDrag.onTouchStart" @touchmove="changelogDrag.onTouchMove" @touchend="changelogDrag.onTouchEnd"></div>
-        <div class="modal-header" style="justify-content: space-between; margin-bottom: 16px;">
-            <h3 class="sheet-heading" style="margin: 0;">Aktivitäten</h3>
-            <button class="close-btn ks-icon-btn" @click="showChangelogSheet = false">
-                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-            </button>
+        <div class="ks-sheet-drag-header" @touchstart="changelogDrag.onTouchStart" @touchmove="changelogDrag.onTouchMove" @touchend="changelogDrag.onTouchEnd" style="touch-action: none; cursor: grab; padding-bottom: 4px;">
+          <div class="ks-sheet__handle"></div>
+          <div class="modal-header" style="justify-content: space-between; margin-bottom: 12px;">
+              <h3 class="sheet-heading" style="margin: 0;">Aktivitäten</h3>
+          </div>
         </div>
 
         <div class="tag-group" style="margin-bottom: 16px;">
@@ -1066,9 +1066,11 @@ onUnmounted(() => {
     <!-- SORTIER SHEET -->
     <transition name="sheet-slide">
       <div v-if="showSortSheet" class="ks-sheet" :style="sortDrag.sheetStyle" @click.stop>
-        <div class="ks-sheet__handle" @touchstart="sortDrag.onTouchStart" @touchmove="sortDrag.onTouchMove" @touchend="sortDrag.onTouchEnd"></div>
-        <h3 class="sheet-heading">Laufweg im Supermarkt</h3>
-        <p class="sheet-support">Sortiere die Kategorien, damit sie deinem Weg durch den Markt entsprechen.</p>
+        <div class="ks-sheet-drag-header" @touchstart="sortDrag.onTouchStart" @touchmove="sortDrag.onTouchMove" @touchend="sortDrag.onTouchEnd" style="touch-action: none; cursor: grab; padding-bottom: 4px;">
+          <div class="ks-sheet__handle"></div>
+          <h3 class="sheet-heading">Laufweg im Supermarkt</h3>
+          <p class="sheet-support">Sortiere die Kategorien, damit sie deinem Weg durch den Markt entsprechen.</p>
+        </div>
         
         <div class="sort-list" ref="sortListRef">
           <div

@@ -2,6 +2,7 @@ package com.kaufsync.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.webkit.WebSettings;
 import com.getcapacitor.BridgeActivity;
 import java.net.URLEncoder;
@@ -62,6 +63,9 @@ public class MainActivity extends BridgeActivity {
     public void onStart() {
         super.onStart();
         if (this.bridge != null && this.bridge.getWebView() != null) {
+            this.bridge.getWebView().setVerticalScrollBarEnabled(false);
+            this.bridge.getWebView().setHorizontalScrollBarEnabled(false);
+            this.bridge.getWebView().setOverScrollMode(View.OVER_SCROLL_NEVER);
             this.bridge.getWebView().getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             dispatchPendingShare();
         }

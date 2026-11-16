@@ -26,6 +26,9 @@ export function useBottomSheetDrag(onDismiss, thresholdPx = 90) {
     currentY = y;
     const delta = Math.max(0, y - startY); // Only allow pulling down
     if (delta > 0) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
       sheetStyle.value = { transform: `translateY(${delta}px)`, transition: 'none' };
     }
   };
@@ -35,16 +38,22 @@ export function useBottomSheetDrag(onDismiss, thresholdPx = 90) {
     isDragging = false;
     const delta = currentY - startY;
     if (delta > thresholdPx) {
-      // Trigger dismiss
-      if (typeof onDismiss === 'function') {
-        onDismiss();
-      }
-      sheetStyle.value = {};
+      // Animate smoothly downwards off-screen from current dragged position
+      sheetStyle.value = {
+        transform: 'translateY(100%)',
+        transition: 'transform 0.22s cubic-bezier(0.2, 0, 0, 1)'
+      };
+      setTimeout(() => {
+        if (typeof onDismiss === 'function') {
+          onDismiss();
+        }
+        sheetStyle.value = {};
+      }, 200);
     } else {
       // Snap back smoothly
       sheetStyle.value = {
         transform: 'translateY(0)',
-        transition: 'transform 0.28s cubic-bezier(0.2, 0, 0, 1)'
+        transition: 'transform 0.25s cubic-bezier(0.2, 0, 0, 1)'
       };
     }
   };
