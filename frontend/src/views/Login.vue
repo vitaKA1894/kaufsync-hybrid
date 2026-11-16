@@ -168,7 +168,7 @@ const submitForm = async () => {
           <label for="password">Passwort</label>
         </div>
 
-        <button type="submit" class="ks-btn-filled" :disabled="isLoading">
+        <button type="submit" class="ks-btn-pill-primary" style="width: 100%;" :disabled="isLoading">
           {{ isLoading ? 'Lädt...' : (isLogin ? 'Einloggen' : 'Registrieren') }}
         </button>
       </form>
@@ -200,7 +200,7 @@ const submitForm = async () => {
               📶 WLAN (192.168.1.21:8000)
             </button>
           </div>
-          <button type="button" class="ks-btn-filled" @click="saveServerUrl" style="padding: 8px 14px; font-size: 13px; margin-top: 4px;">
+          <button type="button" class="ks-btn-pill-primary" @click="saveServerUrl" style="min-height: 40px; padding: 0 16px; font-size: 13px; margin-top: 4px;">
             Speichern
           </button>
         </div>

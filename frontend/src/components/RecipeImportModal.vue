@@ -2,6 +2,7 @@
 import { ref, computed, watch, nextTick } from 'vue';
 import { apiUrl } from '../config/api';
 import CategoryIcon from './CategoryIcon.vue';
+import StoreLogo from './StoreLogo.vue';
 import { parseRecipeClientSide } from '../utils/clientRecipeParser';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
@@ -337,29 +338,7 @@ const toggleStaples = () => {
   });
 };
 
-// --- PREDEFINED STORES (LOGOS & PRESETS) ---
-const predefinedStores = [
-  { name: 'Aldi', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/ALDI_SUD.svg' },
-  { name: 'dm', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dm_Logo.svg' },
-  { name: 'Edeka', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_Edeka.svg' },
-  { name: 'Kaufland', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Kaufland_Logo.svg' },
-  { name: 'Lidl', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lidl-Logo.svg' },
-  { name: 'Metro', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Metro_Deutschland_Logo_2024.svg' },
-  { name: 'Netto', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Netto_Logo.svg' },
-  { name: 'Penny', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Penny-Markt.svg' },
-  { name: 'REWE', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_REWE.svg' },
-  { name: 'Rossmann', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_rossmann_2024.svg' },
-];
-
-const selectedStorePreset = ref('');
-
-const getStoreIcon = (name) => {
-  if (!name) return null;
-  const nameLower = name.toLowerCase();
-  const matched = predefinedStores.find(s => nameLower.includes(s.name.toLowerCase()));
-  return matched ? matched.icon : null;
-};
-
+// --- STORE / LIST SELECTION ---
 const getSelectedListName = computed(() => {
   if (!selectedListId.value) return '';
   const found = availableLists.value.find(l => l.id === selectedListId.value);
@@ -752,10 +731,7 @@ const getHostname = (link) => {
                 @click="selectedListId = l.id"
               >
                 <div class="store-card-logo-box">
-                  <img v-if="getStoreIcon(l.name)" :src="getStoreIcon(l.name)" :alt="l.name" class="store-card-logo" />
-                  <svg v-else viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49A1.003 1.003 0 0 0 20 4H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/>
-                  </svg>
+                  <StoreLogo :name="l.name" :size="30" />
                 </div>
 
                 <div class="store-card-info">
@@ -1627,7 +1603,7 @@ const getHostname = (link) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 6px;
+  padding: 2px;
   flex-shrink: 0;
   color: #38bdf8;
 }

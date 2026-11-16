@@ -18,7 +18,7 @@ const logout = () => {
       <p style="color: var(--ks-text); font-size: 16px; margin-bottom: 32px;">
         Dein Account wurde von einem Administrator gesperrt. Bitte wende dich an den Support.
       </p>
-      <button @click="logout" class="ks-btn-filled" style="background: var(--ks-error);">Zurück zum Login</button>
+      <button @click="logout" class="ks-btn-pill-danger" style="width: 100%;">Zurück zum Login</button>
     </div>
   </div>
 </template>

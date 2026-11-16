@@ -88,7 +88,7 @@ const submitForm = async () => {
           <label for="confirmPassword">Passwort bestätigen</label>
         </div>
 
-        <button type="submit" class="ks-btn-filled" :disabled="isLoading">
+        <button type="submit" class="ks-btn-pill-primary" style="width: 100%;" :disabled="isLoading">
           {{ isLoading ? 'Lädt...' : 'Passwort speichern' }}
         </button>
       </form>

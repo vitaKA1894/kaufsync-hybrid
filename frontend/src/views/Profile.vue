@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl } from '../config/api';
 import {
@@ -9,6 +9,8 @@ import {
 } from '../utils/notificationService';
 
 const router = useRouter();
+
+const activeTab = ref('profile'); // 'profile' | 'notifications' | 'security' | 'admin'
 
 const user = ref({
   email: '',
@@ -25,6 +27,11 @@ const user = ref({
   settings_push_quiet_end: '07:00',
   settings_sound_enabled: true,
   settings_vibration_enabled: true
+});
+
+const userInitial = computed(() => {
+  const name = user.value.display_name || user.value.email || '?';
+  return name.charAt(0).toUpperCase();
 });
 
 const passwordData = ref({
@@ -231,7 +238,7 @@ onMounted(async () => {
         </button>
         <h1 style="margin: 0; font-size: 20px;">Mein Konto</h1>
       </div>
-      <button class="ks-icon-btn logout-btn" @click="logout" aria-label="Logout">
+      <button class="ks-icon-btn logout-header-btn" @click="logout" aria-label="Logout" title="Abmelden">
         <svg viewBox="0 0 24 24"><path d="M5 21q-.825 0-1.412-.587Q3 19.825 3 19V5q0-.825.588-1.412Q4.175 3 5 3h7v2H5v14h7v2Zm11-4-1.375-1.45 2.55-2.55H9v-2h8.175l-2.55-2.55L16 7l5 5Z"/></svg>
       </button>
     </header>
@@ -243,299 +250,567 @@ onMounted(async () => {
       </transition-group>
     </div>
 
-    <div class="settings-grid">
-      <!-- Admin Bereich -->
-      <section v-if="user.is_admin" class="page-panel settings-card">
-        <h3>Admin Dashboard</h3>
-        <p style="margin-top: 0; color: var(--ks-text-muted); font-size: 14px; margin-bottom: 20px;">
-          Du hast Administrator-Rechte.
-        </p>
-        <button @click="router.push('/admin')" class="ks-btn-filled full-width" style="background: var(--ks-primary); margin-bottom: 20px;">
-          Admin Dashboard öffnen
-        </button>
-      </section>
-
-      <!-- Profil Info -->
-      <section class="page-panel settings-card">
-        <h3>Profil & Einstellungen</h3>
-
-        <div class="ks-field" style="margin-bottom: 20px;">
-          <input type="email" v-model="user.email" disabled placeholder=" " />
-          <label>E-Mail-Adresse</label>
+    <div class="profile-container">
+      <!-- HERO CARD -->
+      <div class="profile-hero-card">
+        <div class="hero-avatar">
+          {{ userInitial }}
         </div>
-
-        <div class="ks-field" style="margin-bottom: 20px;">
-          <input type="text" v-model="user.display_name" placeholder=" " />
-          <label>Anzeigename</label>
+        <div class="hero-details">
+          <h2 class="hero-name">{{ user.display_name || 'Benutzer' }}</h2>
+          <span class="hero-email">{{ user.email }}</span>
         </div>
-
-        <button @click="() => updateProfile(false)" :disabled="isLoading" class="ks-btn-filled full-width">
-          Profil speichern
-        </button>
-      </section>
-
-      <!-- Push Benachrichtigungen -->
-      <section class="page-panel settings-card notif-card">
-        <div class="card-header-with-badge">
-          <div>
-            <h3>Push-Benachrichtigungen</h3>
-            <p class="settings-subtext">Fein granular einstellen, wann Mitteilungen erfolgen sollen.</p>
-          </div>
-          <span v-if="permissionStatus === 'granted'" class="status-badge status-badge--active">
-            <span class="status-dot"></span> Aktiv
-          </span>
-          <span v-else-if="permissionStatus === 'denied'" class="status-badge status-badge--denied">
-            ✕ Deaktiviert
-          </span>
-          <span v-else class="status-badge status-badge--pending">
-            ⚠️ Nicht aktiv
-          </span>
+        <div class="hero-badge" :class="{ 'hero-badge--admin': user.is_admin }">
+          <span v-if="user.is_admin">⚡ Admin</span>
+          <span v-else>👤 Mitglied</span>
         </div>
+      </div>
 
-        <!-- PERMISSION CALLOUT (Falls noch nicht erlaubt) -->
-        <div v-if="permissionStatus !== 'granted'" class="permission-callout" :class="{ 'is-denied': permissionStatus === 'denied' }">
-          <div class="callout-info">
-            <span class="callout-icon" v-if="permissionStatus === 'denied'">🚫</span>
-            <span class="callout-icon" v-else>🔔</span>
-            <div class="callout-text">
-              <strong v-if="permissionStatus === 'denied'">Im Android-System blockiert</strong>
-              <strong v-else>Benachrichtigungen aktivieren</strong>
-              <p v-if="permissionStatus === 'denied'">
-                Benachrichtigungen wurden in den Android-App-Einstellungen blockiert. Bitte schalte sie in deinen Handy-Einstellungen ein.
-              </p>
-              <p v-else>
-                Erlaube KaufSync, dir Mitteilungen zu senden (z. B. wenn jemand Artikel hinzufügt oder einkaufen geht).
-              </p>
-            </div>
-          </div>
+      <!-- SEGMENTED TABS -->
+      <div class="segmented-tabs-wrapper">
+        <div class="segmented-tabs">
           <button
-            type="button"
-            class="ks-btn-pill-accent callout-btn"
-            :disabled="isPermissionLoading"
-            @click="enableNotifications"
+            class="seg-tab-btn"
+            :class="{ 'is-active': activeTab === 'profile' }"
+            @click="activeTab = 'profile'"
           >
-            <span v-if="isPermissionLoading" class="spinner-small"></span>
-            <span v-else-if="permissionStatus === 'denied'">Status prüfen</span>
-            <span v-else>Jetzt aktivieren</span>
+            <span>👤 Profil</span>
+          </button>
+          <button
+            class="seg-tab-btn"
+            :class="{ 'is-active': activeTab === 'notifications' }"
+            @click="activeTab = 'notifications'"
+          >
+            <span>🔔 Mitteilungen</span>
+            <span v-if="permissionStatus === 'granted'" class="seg-dot"></span>
+          </button>
+          <button
+            class="seg-tab-btn"
+            :class="{ 'is-active': activeTab === 'security' }"
+            @click="activeTab = 'security'"
+          >
+            <span>🔒 Sicherheit</span>
+          </button>
+          <button
+            v-if="user.is_admin"
+            class="seg-tab-btn"
+            :class="{ 'is-active': activeTab === 'admin' }"
+            @click="activeTab = 'admin'"
+          >
+            <span>⚡ Admin</span>
           </button>
         </div>
+      </div>
 
-        <!-- TEST BUTTON BAR (Wenn erlaubt) -->
-        <div v-else class="test-notification-bar">
-          <span class="test-desc">Mitteilungen sind auf diesem Gerät aktiv.</span>
+      <!-- TAB 1: PROFIL -->
+      <div v-if="activeTab === 'profile'" class="tab-content">
+        <section class="page-panel settings-card">
+          <div class="card-head">
+            <h3>Persönliche Daten</h3>
+            <p class="settings-subtext">Verwalte deinen Anzeigenamen und deine Kontoinformationen.</p>
+          </div>
+
+          <div class="ks-field" style="margin-bottom: 20px;">
+            <input type="email" v-model="user.email" disabled placeholder=" " />
+            <label>E-Mail-Adresse (nicht änderbar)</label>
+          </div>
+
+          <div class="ks-field" style="margin-bottom: 24px;">
+            <input type="text" v-model="user.display_name" placeholder=" " />
+            <label>Anzeigename</label>
+          </div>
+
           <button
-            type="button"
-            class="ks-btn-pill-secondary test-btn"
-            :disabled="isTestingNotification"
-            @click="sendTest"
+            @click="() => updateProfile(false)"
+            :disabled="isLoading"
+            class="ks-btn-pill-primary full-width"
           >
-            <span v-if="isTestingNotification" class="spinner-small"></span>
-            <span v-else>🔔 Test senden</span>
+            Profil speichern
           </button>
-        </div>
+        </section>
+      </div>
 
-        <!-- EINSTELLUNGS-GRUPPEN (BRING-STYLE) -->
-        <div class="notif-groups">
-          <!-- GRUPPE 1: LISTEN-AKTIVITÄTEN -->
-          <div class="notif-group">
-            <div class="notif-group-title">
-              <span class="group-icon">🛒</span>
-              <span>Listen-Aktivitäten</span>
+      <!-- TAB 2: MITTEILUNGEN -->
+      <div v-if="activeTab === 'notifications'" class="tab-content">
+        <section class="page-panel settings-card notif-card">
+          <div class="card-header-with-badge">
+            <div>
+              <h3>Push-Benachrichtigungen</h3>
+              <p class="settings-subtext">Fein granular einstellen, wann Mitteilungen erfolgen sollen.</p>
             </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Neue Artikel hinzugefügt</span>
-                <span class="option-hint">Wenn jemand Artikel zur Einkaufsliste hinzufügt</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_new_items" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Artikel als erledigt markiert</span>
-                <span class="option-hint">Wenn jemand im Laden einen Artikel abhakt</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_completed_items" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Artikel gelöscht / Liste aufgeräumt</span>
-                <span class="option-hint">Wenn erledigte Artikel entfernt werden</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_cleared_items" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
+            <span v-if="permissionStatus === 'granted'" class="status-badge status-badge--active">
+              <span class="status-dot"></span> Aktiv
+            </span>
+            <span v-else-if="permissionStatus === 'denied'" class="status-badge status-badge--denied">
+              ✕ Deaktiviert
+            </span>
+            <span v-else class="status-badge status-badge--pending">
+              ⚠️ Nicht aktiv
+            </span>
           </div>
 
-          <!-- GRUPPE 2: EINKAUFS-AKTIONEN -->
-          <div class="notif-group">
-            <div class="notif-group-title">
-              <span class="group-icon">🛍️</span>
-              <span>Einkaufs-Aktionen (Bring-Modus)</span>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">„Ich gehe einkaufen!“</span>
-                <span class="option-hint">Kündigt den Einkauf an („Braucht noch wer was?“)</span>
+          <!-- PERMISSION CALLOUT -->
+          <div v-if="permissionStatus !== 'granted'" class="permission-callout" :class="{ 'is-denied': permissionStatus === 'denied' }">
+            <div class="callout-info">
+              <span class="callout-icon" v-if="permissionStatus === 'denied'">🚫</span>
+              <span class="callout-icon" v-else>🔔</span>
+              <div class="callout-text">
+                <strong v-if="permissionStatus === 'denied'">Im Android-System blockiert</strong>
+                <strong v-else>Benachrichtigungen aktivieren</strong>
+                <p v-if="permissionStatus === 'denied'">
+                  Benachrichtigungen wurden in den Android-App-Einstellungen blockiert. Bitte schalte sie in deinen Handy-Einstellungen ein.
+                </p>
+                <p v-else>
+                  Erlaube KaufSync, dir Mitteilungen zu senden (z. B. wenn jemand Artikel hinzufügt oder einkaufen geht).
+                </p>
               </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_shopping_started" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
             </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Einkauf abgeschlossen</span>
-                <span class="option-hint">Meldung, wenn der Einkauf beendet wurde</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_shopping_done" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
+            <button
+              type="button"
+              class="ks-btn-pill-accent callout-btn"
+              :disabled="isPermissionLoading"
+              @click="enableNotifications"
+            >
+              <span v-if="isPermissionLoading" class="spinner-small"></span>
+              <span v-else-if="permissionStatus === 'denied'">Status prüfen</span>
+              <span v-else>Jetzt aktivieren</span>
+            </button>
           </div>
 
-          <!-- GRUPPE 3: MITGLIEDER -->
-          <div class="notif-group">
-            <div class="notif-group-title">
-              <span class="group-icon">👥</span>
-              <span>Mitglieder & Teilen</span>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Beitrittsanfragen & neue Mitglieder</span>
-                <span class="option-hint">Wenn jemand deiner Liste beitritt</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_members" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
+          <!-- TEST BUTTON BAR (Wenn erlaubt) -->
+          <div v-else class="test-notification-bar">
+            <span class="test-desc">Mitteilungen sind auf diesem Gerät aktiv.</span>
+            <button
+              type="button"
+              class="ks-btn-pill-secondary test-btn"
+              :disabled="isTestingNotification"
+              @click="sendTest"
+            >
+              <span v-if="isTestingNotification" class="spinner-small"></span>
+              <span v-else>🔔 Test senden</span>
+            </button>
           </div>
 
-          <!-- GRUPPE 4: RUHEZEITEN -->
-          <div class="notif-group">
-            <div class="notif-group-title">
-              <span class="group-icon">🌙</span>
-              <span>Ruhezeit (Bitte nicht stören)</span>
+          <!-- EINSTELLUNGS-GRUPPEN (BRING-STYLE) -->
+          <div class="notif-groups">
+            <!-- GRUPPE 1: LISTEN-AKTIVITÄTEN -->
+            <div class="notif-group">
+              <div class="notif-group-title">
+                <span class="group-icon">🛒</span>
+                <span>Listen-Aktivitäten</span>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Neue Artikel hinzugefügt</span>
+                  <span class="option-hint">Wenn jemand Artikel zur Einkaufsliste hinzufügt</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_new_items" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Artikel als erledigt markiert</span>
+                  <span class="option-hint">Wenn jemand im Laden einen Artikel abhakt</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_completed_items" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Artikel gelöscht / Liste aufgeräumt</span>
+                  <span class="option-hint">Wenn erledigte Artikel entfernt werden</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_cleared_items" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
             </div>
 
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Ruhemodus aktivieren</span>
-                <span class="option-hint">Keine Benachrichtigungen während des gewählten Zeitraums</span>
+            <!-- GRUPPE 2: EINKAUFS-AKTIONEN -->
+            <div class="notif-group">
+              <div class="notif-group-title">
+                <span class="group-icon">🛍️</span>
+                <span>Einkaufs-Aktionen (Bring-Modus)</span>
               </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_push_quiet_hours" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">„Ich gehe einkaufen!“</span>
+                  <span class="option-hint">Kündigt den Einkauf an („Braucht noch wer was?“)</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_shopping_started" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Einkauf abgeschlossen</span>
+                  <span class="option-hint">Meldung, wenn der Einkauf beendet wurde</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_shopping_done" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
             </div>
 
-            <div v-if="user.settings_push_quiet_hours" class="quiet-hours-range">
-              <div class="time-input-group">
-                <label>Von</label>
-                <input
-                  type="time"
-                  v-model="user.settings_push_quiet_start"
-                  class="time-picker"
-                  @change="() => updateProfile(true)"
-                />
+            <!-- GRUPPE 3: MITGLIEDER -->
+            <div class="notif-group">
+              <div class="notif-group-title">
+                <span class="group-icon">👥</span>
+                <span>Mitglieder & Teilen</span>
               </div>
-              <span class="time-sep">bis</span>
-              <div class="time-input-group">
-                <label>Bis</label>
-                <input
-                  type="time"
-                  v-model="user.settings_push_quiet_end"
-                  class="time-picker"
-                  @change="() => updateProfile(true)"
-                />
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Beitrittsanfragen & neue Mitglieder</span>
+                  <span class="option-hint">Wenn jemand deiner Liste beitritt</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_members" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+            </div>
+
+            <!-- GRUPPE 4: RUHEZEITEN -->
+            <div class="notif-group">
+              <div class="notif-group-title">
+                <span class="group-icon">🌙</span>
+                <span>Ruhezeit (Bitte nicht stören)</span>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Ruhemodus aktivieren</span>
+                  <span class="option-hint">Keine Benachrichtigungen während des gewählten Zeitraums</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_push_quiet_hours" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+
+              <div v-if="user.settings_push_quiet_hours" class="quiet-hours-range">
+                <div class="time-input-group">
+                  <label>Von</label>
+                  <input
+                    type="time"
+                    v-model="user.settings_push_quiet_start"
+                    class="time-picker"
+                    @change="() => updateProfile(true)"
+                  />
+                </div>
+                <span class="time-sep">bis</span>
+                <div class="time-input-group">
+                  <label>Bis</label>
+                  <input
+                    type="time"
+                    v-model="user.settings_push_quiet_end"
+                    class="time-picker"
+                    @change="() => updateProfile(true)"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- GRUPPE 5: SIGNALE -->
+            <div class="notif-group">
+              <div class="notif-group-title">
+                <span class="group-icon">🔊</span>
+                <span>Signale</span>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Benachrichtigungston</span>
+                  <span class="option-hint">Akustisches Signal bei neuen Mitteilungen</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_sound_enabled" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
+              </div>
+
+              <div class="notif-option-row">
+                <div class="option-info">
+                  <span class="option-label">Vibration</span>
+                  <span class="option-hint">Vibration bei Benachrichtigungen</span>
+                </div>
+                <label class="ks-switch">
+                  <input type="checkbox" v-model="user.settings_vibration_enabled" @change="() => updateProfile(true)" />
+                  <span class="ks-switch-slider"></span>
+                </label>
               </div>
             </div>
           </div>
+        </section>
+      </div>
 
-          <!-- GRUPPE 5: SIGNALE -->
-          <div class="notif-group">
-            <div class="notif-group-title">
-              <span class="group-icon">🔊</span>
-              <span>Signale</span>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Benachrichtigungston</span>
-                <span class="option-hint">Akustisches Signal bei neuen Mitteilungen</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_sound_enabled" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
-
-            <div class="notif-option-row">
-              <div class="option-info">
-                <span class="option-label">Vibration</span>
-                <span class="option-hint">Vibration bei Benachrichtigungen</span>
-              </div>
-              <label class="ks-switch">
-                <input type="checkbox" v-model="user.settings_vibration_enabled" @change="() => updateProfile(true)" />
-                <span class="ks-switch-slider"></span>
-              </label>
-            </div>
+      <!-- TAB 3: SICHERHEIT -->
+      <div v-if="activeTab === 'security'" class="tab-content">
+        <section class="page-panel settings-card" style="margin-bottom: 20px;">
+          <div class="card-head">
+            <h3>Passwort ändern</h3>
+            <p class="settings-subtext">Wähle ein sicheres Passwort mit mindestens 6 Zeichen.</p>
           </div>
-        </div>
-      </section>
 
-      <!-- Sicherheit / Passwort -->
-      <section class="page-panel settings-card">
-        <h3>Sicherheit</h3>
+          <div class="ks-field" style="margin-bottom: 20px;">
+            <input type="password" v-model="passwordData.oldPassword" placeholder=" " />
+            <label>Aktuelles Passwort</label>
+          </div>
 
-        <div class="ks-field" style="margin-bottom: 20px;">
-          <input type="password" v-model="passwordData.oldPassword" placeholder=" " />
-          <label>Aktuelles Passwort</label>
-        </div>
+          <div class="ks-field" style="margin-bottom: 20px;">
+            <input type="password" v-model="passwordData.newPassword" placeholder=" " />
+            <label>Neues Passwort</label>
+          </div>
 
-        <div class="ks-field" style="margin-bottom: 20px;">
-          <input type="password" v-model="passwordData.newPassword" placeholder=" " />
-          <label>Neues Passwort</label>
-        </div>
+          <div class="ks-field" style="margin-bottom: 24px;">
+            <input type="password" v-model="passwordData.confirmPassword" placeholder=" " />
+            <label>Passwort bestätigen</label>
+          </div>
 
-        <div class="ks-field" style="margin-bottom: 20px;">
-          <input type="password" v-model="passwordData.confirmPassword" placeholder=" " />
-          <label>Passwort bestätigen</label>
-        </div>
+          <button
+            @click="changePassword"
+            :disabled="isLoading"
+            class="ks-btn-pill-primary full-width"
+          >
+            Passwort ändern
+          </button>
+        </section>
 
-        <button @click="changePassword" :disabled="isLoading" class="ks-btn-tonal full-width">
-          Passwort ändern
-        </button>
-      </section>
+        <section class="page-panel settings-card">
+          <div class="card-head">
+            <h3>Sitzung beenden</h3>
+            <p class="settings-subtext">Du wirst von deinem aktuellen Konto auf diesem Gerät abgemeldet.</p>
+          </div>
+
+          <button
+            @click="logout"
+            class="ks-btn-pill-danger full-width"
+          >
+            Abmelden
+          </button>
+        </section>
+      </div>
+
+      <!-- TAB 4: ADMIN (falls Admin) -->
+      <div v-if="activeTab === 'admin' && user.is_admin" class="tab-content">
+        <section class="page-panel settings-card">
+          <div class="card-head">
+            <h3>Administrator Dashboard</h3>
+            <p class="settings-subtext">
+              Du besitzt Administrator-Rechte. Im Admin-Bereich kannst du registrierte Benutzer verwalten, freischalten oder sperren.
+            </p>
+          </div>
+
+          <button
+            @click="router.push('/admin')"
+            class="ks-btn-pill-accent full-width"
+            style="margin-top: 12px;"
+          >
+            ⚡ Zum Admin Dashboard
+          </button>
+        </section>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.logout-btn { color: var(--ks-error); }
-.settings-grid { display: grid; gap: 24px; max-width: 600px; margin: 0 auto; width: 100%; }
+.logout-header-btn {
+  color: var(--ks-error);
+}
 
-.settings-card { padding: 24px; border-radius: 20px; }
-.settings-card h3 { margin: 0 0 6px; font-size: 18px; font-weight: 600; color: #f8fafc; }
-.settings-subtext { margin: 0; font-size: 13px; color: #94a3b8; line-height: 1.4; }
+.profile-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 600px;
+  margin: 0 auto;
+  width: 100%;
+}
 
-.full-width { width: 100%; margin-top: 8px; }
-.ks-field input:disabled { opacity: 0.5; background: rgba(255, 255, 255, 0.02); }
+/* HERO CARD */
+.profile-hero-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+  background: rgba(30, 41, 59, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.hero-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: #0f172a;
+  font-size: 22px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.35);
+  flex-shrink: 0;
+}
+
+.hero-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.hero-name {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hero-email {
+  display: block;
+  font-size: 13px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.hero-badge {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.hero-badge--admin {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+/* SEGMENTED PILL NAVIGATION */
+.segmented-tabs-wrapper {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -4px;
+  padding: 2px 4px;
+}
+.segmented-tabs-wrapper::-webkit-scrollbar {
+  display: none;
+}
+
+.segmented-tabs {
+  display: inline-flex;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 5px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  min-width: 100%;
+}
+
+.seg-tab-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 14px;
+  border-radius: 9999px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.seg-tab-btn:hover:not(.is-active) {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.seg-tab-btn.is-active {
+  background: #334155;
+  color: #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.seg-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #4ade80;
+}
+
+/* TAB CONTENT */
+.tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-card {
+  padding: 22px;
+  border-radius: 20px;
+}
+
+.card-head {
+  margin-bottom: 20px;
+}
+
+.card-head h3,
+.settings-card h3 {
+  margin: 0 0 6px;
+  font-size: 17px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.settings-subtext {
+  margin: 0;
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.45;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.ks-field input:disabled {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.02);
+  cursor: not-allowed;
+}
 
 /* NOTIFICATIONS CARD SPECIFICS */
 .card-header-with-badge {

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
 import SyncStatusBadge from '../components/SyncStatusBadge.vue';
+import StoreLogo from '../components/StoreLogo.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import { getLocalLists, saveLocalLists, isOnline } from '../services/syncService';
 
@@ -71,32 +72,33 @@ const handleScanCode = (scannedValue) => {
   if (code) handlePendingJoinCode(code);
 };
 
-// --- ECHTE WIKIPEDIA LOGOS (Alphabetisch sortiert) ---
+// --- SUPERMARKT PRESETS (Lokale Vektor-SVGs) ---
 const predefinedStores = [
-  { name: 'Aldi', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/ALDI_SUD.svg' },
-  { name: 'dm', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Dm_Logo.svg' },
-  { name: 'Edeka', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_Edeka.svg' },
-  { name: 'Kaufland', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Kaufland_Logo.svg' },
-  { name: 'Lidl', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Lidl-Logo.svg' },
-  { name: 'Metro', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Metro_Deutschland_Logo_2024.svg' },
-  { name: 'Netto', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Netto_Logo.svg' },
-  { name: 'Penny', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Penny-Markt.svg' },
-  { name: 'REWE', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_REWE.svg' },
-  { name: 'Rossmann', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_rossmann_2024.svg' },
-  { name: 'Selgros', icon: 'https://commons.wikimedia.org/wiki/Special:FilePath/Logo_selgros_2024.svg' }
+  { name: 'Aldi' },
+  { name: 'dm' },
+  { name: 'Edeka' },
+  { name: 'Kaufland' },
+  { name: 'Lidl' },
+  { name: 'Metro' },
+  { name: 'Müller' },
+  { name: 'Netto' },
+  { name: 'Penny' },
+  { name: 'REWE' },
+  { name: 'Rossmann' },
+  { name: 'Selgros' }
 ];
 
 const fallbackCartIcon = 'mdi-cart';
 
 watch(newListName, (newVal) => {
   const matchedStore = predefinedStores.find(s => s.name.toLowerCase() === newVal.trim().toLowerCase());
-  if (matchedStore) selectedIcon.value = matchedStore.icon;
+  if (matchedStore) selectedIcon.value = matchedStore.name;
   else selectedIcon.value = fallbackCartIcon;
 });
 
 const selectPreset = (store) => {
   newListName.value = store.name;
-  selectedIcon.value = store.icon;
+  selectedIcon.value = store.name;
 };
 
 // Modals
@@ -355,31 +357,31 @@ const sortedShoppingLists = computed(() => {
 });
 
 const getBannerUrl = (name) => {
-  if (!name) return '/banners/Generic_Banner.jpeg';
+  if (!name) return '/banners/Generic_Banner.webp';
   const nameLower = name.toLowerCase();
-  if (nameLower.includes('aldi')) return '/banners/ALDI_Banner.jpeg';
-  if (nameLower.includes('dm')) return '/banners/DM_Banner.jpeg';
-  if (nameLower.includes('edeka')) return '/banners/Edeka_Banner.jpeg';
-  if (nameLower.includes('kaufland')) return '/banners/Kaufland_Banner.jpeg';
-  if (nameLower.includes('lidl')) return '/banners/LIDL_Banner.jpeg';
-  if (nameLower.includes('metro')) return '/banners/Metro_Banner.jpeg';
-  if (nameLower.includes('mueller') || nameLower.includes('müller')) return '/banners/Mueller_Banner.jpeg';
-  if (nameLower.includes('netto')) return '/banners/Netto_Banner.jpeg';
-  if (nameLower.includes('penny')) return '/banners/Penny_Banner.jpeg';
-  if (nameLower.includes('rewe')) return '/banners/Rewe_Banner.jpeg';
-  if (nameLower.includes('rossmann')) return '/banners/Rossmann_Banner.jpeg';
-  if (nameLower.includes('selgros')) return '/banners/Selgros_Banner.jpeg';
+  if (nameLower.includes('aldi')) return '/banners/ALDI_Banner.webp';
+  if (nameLower.includes('dm')) return '/banners/DM_Banner.webp';
+  if (nameLower.includes('edeka')) return '/banners/Edeka_Banner.webp';
+  if (nameLower.includes('kaufland')) return '/banners/Kaufland_Banner.webp';
+  if (nameLower.includes('lidl')) return '/banners/LIDL_Banner.webp';
+  if (nameLower.includes('metro')) return '/banners/Metro_Banner.webp';
+  if (nameLower.includes('mueller') || nameLower.includes('müller')) return '/banners/Mueller_Banner.webp';
+  if (nameLower.includes('netto')) return '/banners/Netto_Banner.webp';
+  if (nameLower.includes('penny')) return '/banners/Penny_Banner.webp';
+  if (nameLower.includes('rewe')) return '/banners/Rewe_Banner.webp';
+  if (nameLower.includes('rossmann')) return '/banners/Rossmann_Banner.webp';
+  if (nameLower.includes('selgros')) return '/banners/Selgros_Banner.webp';
 
   // Format normally for generic matching attempts (capitalize first letter if needed, but let fallback handle the rest)
   const formatted = name.charAt(0).toUpperCase() + name.slice(1);
-  return `/banners/${formatted}_Banner.jpeg`;
+  return `/banners/${formatted}_Banner.webp`;
 };
 
 const getStoreIcon = (name) => {
   if (!name) return null;
   const nameLower = name.toLowerCase();
   const matched = predefinedStores.find(s => nameLower.includes(s.name.toLowerCase()));
-  return matched ? matched.icon : null;
+  return matched ? matched.name : null;
 };
 
 const getActiveCount = (list) => {
@@ -388,7 +390,14 @@ const getActiveCount = (list) => {
 };
 
 const handleImageError = (event) => {
-  event.target.src = '/banners/Generic_Banner.jpeg';
+  const currentSrc = event.target.src || '';
+  if (currentSrc.endsWith('.webp')) {
+    event.target.src = currentSrc.replace('.webp', '.jpeg');
+  } else if (!currentSrc.includes('Generic_Banner')) {
+    event.target.src = '/banners/Generic_Banner.webp';
+  } else {
+    event.target.src = '/banners/Generic_Banner.jpeg';
+  }
 };
 
 const loadUserProfile = async () => {
@@ -480,7 +489,7 @@ onUnmounted(() => {
         @click="router.push(`/list/${list.id}`)"
         @contextmenu.prevent="openOptions(list)"
       >
-        <img :src="getBannerUrl(list.name)" class="banner-img" @error="handleImageError" alt="Banner Background" />
+        <img :src="getBannerUrl(list.name)" class="banner-img" @error="handleImageError" alt="Banner Background" loading="lazy" decoding="async" />
         <div class="banner-overlay"></div>
         <div class="banner-content">
           <div class="banner-leading">
@@ -578,7 +587,7 @@ onUnmounted(() => {
             @click="selectPreset(store)"
           >
             <div class="store-svg-container">
-              <img :src="store.icon" :alt="store.name" />
+              <StoreLogo :name="store.name" :size="36" />
             </div>
             <span>{{ store.name }}</span>
           </button>
@@ -835,12 +844,12 @@ onUnmounted(() => {
 }
 
 .store-svg-container {
-  width: 46px; height: 46px; background: white; border-radius: 12px; padding: 6px; 
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; background: rgba(255, 255, 255, 0.05); border-radius: 12px; padding: 2px; 
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25); display: flex; align-items: center; justify-content: center;
   transition: transform 0.2s ease;
 }
 .preset-btn.active .store-svg-container {
-  transform: scale(1.04);
+  transform: scale(1.06);
 }
 .store-svg-container img { width: 100%; height: 100%; object-fit: contain; }
 

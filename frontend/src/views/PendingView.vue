@@ -18,7 +18,7 @@ const logout = () => {
       <p style="color: var(--ks-text); font-size: 16px; margin-bottom: 32px;">
         Dein Account wurde erfolgreich erstellt, muss aber noch von einem Administrator freigeschaltet werden. Bitte habe etwas Geduld.
       </p>
-      <button @click="logout" class="ks-btn-filled">Zurück zum Login</button>
+      <button @click="logout" class="ks-btn-pill-primary" style="width: 100%;">Zurück zum Login</button>
     </div>
   </div>
 </template>

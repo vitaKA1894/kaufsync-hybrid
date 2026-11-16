@@ -150,14 +150,14 @@ onMounted(() => {
                 </div>
 
                 <div class="user-actions" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <button v-if="user.status === 'pending'" class="ks-btn-text" @click="changeStatus(user.id, 'active')" style="padding: 4px 8px; font-size: 12px;">Aktivieren</button>
-                    <button v-if="user.status === 'active'" class="ks-btn-text" @click="changeStatus(user.id, 'locked')" style="padding: 4px 8px; font-size: 12px; color: var(--ks-error);">Sperren</button>
-                    <button v-if="user.status === 'locked'" class="ks-btn-text" @click="changeStatus(user.id, 'active')" style="padding: 4px 8px; font-size: 12px;">Entsperren</button>
+                    <button v-if="user.status === 'pending'" class="ks-btn-chip ks-btn-chip--success" @click="changeStatus(user.id, 'active')">✓ Aktivieren</button>
+                    <button v-if="user.status === 'active'" class="ks-btn-chip ks-btn-chip--danger" @click="changeStatus(user.id, 'locked')">🔒 Sperren</button>
+                    <button v-if="user.status === 'locked'" class="ks-btn-chip ks-btn-chip--success" @click="changeStatus(user.id, 'active')">🔓 Entsperren</button>
 
-                    <button v-if="user.is_admin" class="ks-btn-text" @click="promoteUser(user.id, false)" style="padding: 4px 8px; font-size: 12px; color: var(--ks-error);">Admin-Rechte entziehen</button>
-                    <button v-else class="ks-btn-text" @click="promoteUser(user.id, true)" style="padding: 4px 8px; font-size: 12px;">Zum Admin machen</button>
+                    <button v-if="user.is_admin" class="ks-btn-chip ks-btn-chip--danger" @click="promoteUser(user.id, false)">⚡ Admin entziehen</button>
+                    <button v-else class="ks-btn-chip ks-btn-chip--accent" @click="promoteUser(user.id, true)">⚡ Zum Admin machen</button>
 
-                    <button class="ks-btn-text" @click="resetPassword(user.id)" style="padding: 4px 8px; font-size: 12px;">Passwort zurücksetzen</button>
+                    <button class="ks-btn-chip" @click="resetPassword(user.id)">🔑 Passwort Reset</button>
                 </div>
             </div>
         </div>
@@ -260,5 +260,38 @@ onMounted(() => {
     border-radius: 12px;
     font-size: 12px;
     font-weight: 600;
+}
+.ks-btn-chip {
+  padding: 6px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.ks-btn-chip:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
+}
+.ks-btn-chip--success {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+.ks-btn-chip--danger {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
+}
+.ks-btn-chip--accent {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
 }
 </style>
