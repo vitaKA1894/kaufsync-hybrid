@@ -1039,7 +1039,7 @@ async def create_item(
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
+            if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -1125,7 +1125,7 @@ async def create_items_bulk(
                     action_url=f"/list/{db_list.id}"
                 )
                 db.add(notif)
-                if getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
+                if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
                     subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                     for sub in subs:
                         background_tasks.add_task(
@@ -1217,7 +1217,7 @@ async def start_shopping(
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if getattr(member, 'settings_push_shopping_started', True) and not is_in_quiet_hours(member):
+            if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_shopping_started', True) and not is_in_quiet_hours(member):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -1306,7 +1306,7 @@ async def update_item(
             members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
             members = {member.id: member for member in members_list if member}.values()
             for member in members:
-                if member.id != current_user.id and getattr(member, 'settings_push_completed_items', True) and not is_in_quiet_hours(member):
+                if member.id != current_user.id and getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_completed_items', True) and not is_in_quiet_hours(member):
                     notif = models.Notification(
                         user_id=member.id,
                         title="Artikel erledigt",
