@@ -10,6 +10,7 @@ from pydantic import BaseModel
 import models, schemas, auth, recipe_service
 from database import engine, get_db, SessionLocal
 import json
+import secrets
 from pywebpush import webpush, WebPushException
 from dotenv import load_dotenv
 
@@ -48,6 +49,16 @@ def ensure_columns():
             for col_name, col_type in item_cols_to_add:
                 if col_name not in existing_item_cols:
                     conn.exec_driver_sql(f"ALTER TABLE items ADD COLUMN {col_name} {col_type}")
+
+            # List columns for read-only sharing
+            existing_list_cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(lists)").fetchall()]
+            list_cols_to_add = [
+                ("readonly_token", "VARCHAR"),
+                ("readonly_enabled", "BOOLEAN DEFAULT 0"),
+            ]
+            for col_name, col_type in list_cols_to_add:
+                if col_name not in existing_list_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE lists ADD COLUMN {col_name} {col_type}")
             
             conn.commit()
     except Exception as e:
@@ -689,6 +700,95 @@ async def delete_list(
 
     return {"status": "ok", "message": "Liste erfolgreich gelöscht"}
     
+# --- READONLY PUBLIC SHARING ---
+
+@app.get("/api/public/list/{readonly_token}", response_model=schemas.PublicListResponse)
+def get_public_list(
+    readonly_token: str,
+    db: Session = Depends(get_db)
+):
+    """Öffentlich zugängliche Nur-Lesen-Ansicht einer Einkaufsliste."""
+    if not readonly_token or len(readonly_token) < 10:
+        raise HTTPException(status_code=404, detail="Ungültiger Freigabelink")
+
+    db_list = db.query(models.List).filter(
+        models.List.readonly_token == readonly_token,
+        models.List.readonly_enabled == True
+    ).first()
+
+    if not db_list:
+        raise HTTPException(
+            status_code=404,
+            detail="Diese Liste ist nicht öffentlich freigegeben oder der Link wurde deaktiviert."
+        )
+
+    # Nur aktive (nicht gelöschte) Items
+    active_items = [
+        item for item in db_list.items 
+        if not getattr(item, "is_deleted", False)
+    ]
+
+    return {
+        "id": db_list.id,
+        "name": db_list.name,
+        "icon_name": db_list.icon_name,
+        "created_at": db_list.created_at,
+        "items": active_items
+    }
+
+@app.post("/api/lists/{list_id}/readonly-link", response_model=schemas.ReadonlyLinkResponse)
+def manage_readonly_link(
+    list_id: str,
+    payload: Optional[schemas.ReadonlyLinkToggleRequest] = None,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Aktiviert oder verwaltet den Nur-Lesen Link einer Liste (nur Besitzer/Admin)."""
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    if db_list.created_by != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Nur der Listenbesitzer kann den Nur-Lesen Link verwalten.")
+
+    # Generiere Token falls noch keiner existiert
+    if not db_list.readonly_token:
+        db_list.readonly_token = secrets.token_urlsafe(24)
+
+    if payload and payload.enabled is not None:
+        db_list.readonly_enabled = payload.enabled
+    else:
+        db_list.readonly_enabled = not db_list.readonly_enabled
+
+    db.commit()
+    db.refresh(db_list)
+    return {
+        "readonly_token": db_list.readonly_token,
+        "readonly_enabled": db_list.readonly_enabled
+    }
+
+@app.delete("/api/lists/{list_id}/readonly-link", response_model=schemas.ReadonlyLinkResponse)
+def disable_readonly_link(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Deaktiviert den Nur-Lesen Link einer Liste."""
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    if db_list.created_by != current_user.id and not current_user.is_admin:
+        raise HTTPException(status_code=403, detail="Nur der Listenbesitzer kann den Nur-Lesen Link verwalten.")
+
+    db_list.readonly_enabled = False
+    db.commit()
+    db.refresh(db_list)
+    return {
+        "readonly_token": db_list.readonly_token,
+        "readonly_enabled": False
+    }
+
 @app.post("/api/lists/join")
 async def join_list(
     join_data: schemas.JoinListRequest, 

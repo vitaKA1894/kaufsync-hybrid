@@ -653,9 +653,17 @@ const rejectJoinRequest = async (requestId) => {
   }
 };
 
+const getShareBaseUrl = () => {
+  let base = window.location.origin;
+  if (!base || base.includes('localhost') || base.includes('capacitor://') || base.includes('ionic://')) {
+    return 'https://einkaufsliste.kotrini.de';
+  }
+  return base;
+};
+
 const shareOrCopyLink = async () => {
   if (!currentList.value) return;
-  const joinLink = `${window.location.origin}/join?code=${currentList.value.share_code}`;
+  const joinLink = `${getShareBaseUrl()}/join?code=${currentList.value.share_code}`;
   if (navigator.share) {
     try {
       await navigator.share({
@@ -671,6 +679,80 @@ const shareOrCopyLink = async () => {
   try {
     await navigator.clipboard.writeText(joinLink);
     successMessage.value = "Einladungs-Link kopiert!";
+    setTimeout(() => successMessage.value = '', 2000);
+  } catch (err) {
+    console.error('Kopieren fehlgeschlagen', err);
+  }
+};
+
+const isTogglingReadonly = ref(false);
+
+const toggleReadonlyLink = async () => {
+  if (!currentList.value || isTogglingReadonly.value) return;
+  isTogglingReadonly.value = true;
+  try {
+    const token = localStorage.getItem('token');
+    const newStatus = !currentList.value.readonly_enabled;
+    const res = await fetch(apiUrl(`/api/lists/${currentList.value.id}/readonly-link`), {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ enabled: newStatus })
+    });
+    if (!res.ok) throw new Error('Fehler beim Aktualisieren des Nur-Lesen Links');
+    const data = await res.json();
+    currentList.value.readonly_token = data.readonly_token;
+    currentList.value.readonly_enabled = data.readonly_enabled;
+
+    // Cache aktualisieren
+    const cachedData = localStorage.getItem('cachedLists');
+    if (cachedData) {
+      try {
+        const lists = JSON.parse(cachedData);
+        const idx = lists.findIndex(l => l.id === currentList.value.id);
+        if (idx !== -1) {
+          lists[idx].readonly_token = data.readonly_token;
+          lists[idx].readonly_enabled = data.readonly_enabled;
+          localStorage.setItem('cachedLists', JSON.stringify(lists));
+        }
+      } catch (e) {}
+    }
+
+    if (data.readonly_enabled) {
+      successMessage.value = "Nur-Lesen Link aktiviert!";
+    } else {
+      successMessage.value = "Nur-Lesen Link deaktiviert!";
+    }
+    setTimeout(() => successMessage.value = '', 2500);
+  } catch (err) {
+    errorMessage.value = "Fehler beim Umschalten des Nur-Lesen Links.";
+    setTimeout(() => errorMessage.value = '', 3000);
+  } finally {
+    isTogglingReadonly.value = false;
+  }
+};
+
+const shareOrCopyReadonlyLink = async () => {
+  if (!currentList.value || !currentList.value.readonly_token) return;
+  const publicLink = `${getShareBaseUrl()}/s/${currentList.value.readonly_token}`;
+
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: `Einkaufsliste: ${currentList.value.name}`,
+        text: `Hier ist die Einkaufsliste '${currentList.value.name}' (Nur-Lesen):`,
+        url: publicLink
+      });
+      return;
+    } catch (e) {
+      // User cancelled
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(publicLink);
+    successMessage.value = "Nur-Lesen Link kopiert!";
     setTimeout(() => successMessage.value = '', 2000);
   } catch (err) {
     console.error('Kopieren fehlgeschlagen', err);
@@ -931,6 +1013,47 @@ onUnmounted(() => {
              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
              Einladungs-Link teilen / kopieren
           </button>
+        </div>
+
+        <!-- 2. NUR-LESEN LINK (ÖFFENTLICHE ANSICHT) -->
+        <div v-if="isListOwner" class="share-section mt-4" style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 16px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 16px;">👀</span>
+              <p class="section-label" style="margin: 0; font-weight: 600; color: #f8fafc;">
+                Nur-Lesen Link
+              </p>
+            </div>
+            <!-- Toggle Switch -->
+            <label class="ks-switch" title="Nur-Lesen Link aktivieren/deaktivieren">
+              <input
+                type="checkbox"
+                :checked="currentList?.readonly_enabled"
+                :disabled="isTogglingReadonly"
+                @change="toggleReadonlyLink"
+              />
+              <span class="ks-switch-slider"></span>
+            </label>
+          </div>
+
+          <p class="sheet-support" style="margin: 0 0 10px 0; font-size: 13px; line-height: 1.4; color: var(--ks-text-muted);">
+            {{ currentList?.readonly_enabled 
+                ? 'Jeder mit diesem Link kann die Liste im Browser einsehen – ohne Account.' 
+                : 'Deaktiviert. Niemand kann die Liste ohne Login/Freigabe einsehen.' }}
+          </p>
+
+          <div v-if="currentList?.readonly_enabled" style="display: flex; flex-direction: column; gap: 8px;">
+            <button
+              class="ks-btn-pill-secondary full-width"
+              style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"
+              @click="shareOrCopyReadonlyLink"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+              </svg>
+              <span>Nur-Lesen Link teilen / kopieren</span>
+            </button>
+          </div>
         </div>
 
         <!-- AUSSTEHENDE ANFRAGEN (FÜR BESITZER) -->

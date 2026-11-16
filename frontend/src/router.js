@@ -7,12 +7,18 @@ import AdminView from './views/AdminView.vue';
 import PendingView from './views/PendingView.vue';
 import LockedView from './views/LockedView.vue';
 import ResetPassword from './views/ResetPassword.vue';
+import PublicListView from './views/PublicListView.vue';
 
 const routes = [
   {
     path: '/login',
     name: 'Login',
     component: Login
+  },
+  {
+    path: '/s/:token',
+    name: 'PublicList',
+    component: PublicListView
   },
   {
     path: '/',

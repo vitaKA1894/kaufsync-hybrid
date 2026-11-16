@@ -11,6 +11,21 @@ const handleIncomingShare = (sharedText) => {
   const targetUrl = match ? match[0] : sharedText.trim();
 
   if (targetUrl) {
+    if (targetUrl.includes('/s/')) {
+      const sMatch = targetUrl.match(/\/s\/([a-zA-Z0-9_-]+)/);
+      if (sMatch) {
+        router.push(`/s/${sMatch[1]}`);
+        return;
+      }
+    }
+    if (targetUrl.includes('/join')) {
+      const codeMatch = targetUrl.match(/code=([a-zA-Z0-9]+)/);
+      if (codeMatch) {
+        router.push(`/join?code=${codeMatch[1]}`);
+        return;
+      }
+    }
+
     localStorage.setItem('pending_recipe_import', JSON.stringify({ url: targetUrl }));
     router.push(`/share-target?url=${encodeURIComponent(targetUrl)}`);
   }

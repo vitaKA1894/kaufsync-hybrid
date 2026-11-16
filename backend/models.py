@@ -83,6 +83,8 @@ class List(Base):
     created_at = Column(DateTime, default=utc_now)
     created_by = Column(String, ForeignKey("users.id"), index=True)
     share_code = Column(String, unique=True, index=True, default=generate_share_code)
+    readonly_token = Column(String, unique=True, index=True, nullable=True)
+    readonly_enabled = Column(Boolean, default=False)
     
     # Beziehungen
     items = relationship("Item", back_populates="shopping_list", primaryjoin="and_(List.id==Item.list_id, Item.is_deleted==False)", cascade="all, delete-orphan")

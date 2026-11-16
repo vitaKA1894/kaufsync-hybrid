@@ -142,10 +142,44 @@ class ListResponse(ListBase):
     created_at: datetime
     created_by: str
     share_code: str
+    readonly_token: Optional[str] = None
+    readonly_enabled: Optional[bool] = False
     members: List[UserResponse] = []
     creator: Optional[UserResponse] = None
     items: List[ItemResponse] = []  # KORRIGIERT: List statt ListType
     
+    class Config:
+        from_attributes = True
+
+# --- READONLY LINK SCHEMAS ---
+class ReadonlyLinkToggleRequest(BaseModel):
+    enabled: Optional[bool] = None
+
+class ReadonlyLinkResponse(BaseModel):
+    readonly_token: Optional[str] = None
+    readonly_enabled: bool = False
+
+# --- PUBLIC LIST SCHEMAS ---
+class PublicItemResponse(BaseModel):
+    id: str
+    name: str
+    category: Optional[str] = "Sonstiges"
+    quantity: float = 1.0
+    unit: Optional[str] = "Stk"
+    note: Optional[str] = None
+    status: str = "active"
+    tags: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class PublicListResponse(BaseModel):
+    id: str
+    name: str
+    icon_name: Optional[str] = None
+    created_at: datetime
+    items: List[PublicItemResponse] = []
+
     class Config:
         from_attributes = True
 
