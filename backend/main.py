@@ -18,13 +18,103 @@ load_dotenv()
 # Erstellt alle Tabellen in der Datenbank
 models.Base.metadata.create_all(bind=engine)
 
+# Spalten-Migration für SQLite sicherstellen
+def ensure_columns():
+    try:
+        with engine.connect() as conn:
+            existing_cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(users)").fetchall()]
+            cols_to_add = [
+                ("settings_push_completed_items", "BOOLEAN DEFAULT 1"),
+                ("settings_push_cleared_items", "BOOLEAN DEFAULT 1"),
+                ("settings_push_shopping_started", "BOOLEAN DEFAULT 1"),
+                ("settings_push_shopping_done", "BOOLEAN DEFAULT 0"),
+                ("settings_push_members", "BOOLEAN DEFAULT 1"),
+                ("settings_push_quiet_hours", "BOOLEAN DEFAULT 0"),
+                ("settings_push_quiet_start", "VARCHAR DEFAULT '22:00'"),
+                ("settings_push_quiet_end", "VARCHAR DEFAULT '07:00'"),
+                ("settings_sound_enabled", "BOOLEAN DEFAULT 1"),
+                ("settings_vibration_enabled", "BOOLEAN DEFAULT 1"),
+            ]
+            for col_name, col_type in cols_to_add:
+                if col_name not in existing_cols:
+                    conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}")
+            conn.commit()
+    except Exception as e:
+        print(f"ensure_columns error (ignored): {e}")
+
+ensure_columns()
+
 app = FastAPI(title="KaufSync API", version="1.0.0")
 
 VAPID_PRIVATE_KEY = os.getenv("VAPID_PRIVATE_KEY")
 VAPID_PUBLIC_KEY = os.getenv("VAPID_PUBLIC_KEY")
 VAPID_CLAIMS = {"sub": "mailto:admin@kaufsync.com"}
 
+def init_vapid_keys():
+    global VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY
+    if VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY:
+        return
+    vapid_file = os.path.join(os.getenv("DATA_DIR", "."), ".vapid_keys.json")
+    if os.path.exists(vapid_file):
+        try:
+            with open(vapid_file, "r") as f:
+                data = json.load(f)
+                VAPID_PRIVATE_KEY = data.get("private_key")
+                VAPID_PUBLIC_KEY = data.get("public_key")
+        except Exception:
+            pass
+    if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
+        try:
+            from pywebpush import Vapid
+            import base64
+            from cryptography.hazmat.primitives import serialization
+            v = Vapid()
+            v.generate_keys()
+            priv_pem = v.private_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.PKCS8,
+                encryption_algorithm=serialization.NoEncryption()
+            ).decode('utf-8')
+            pub_der = v.public_key.public_bytes(
+                encoding=serialization.Encoding.X962,
+                format=serialization.PublicFormat.UncompressedPoint
+            )
+            pub_b64 = base64.urlsafe_b64encode(pub_der).decode('utf-8').rstrip('=')
+            VAPID_PRIVATE_KEY = priv_pem
+            VAPID_PUBLIC_KEY = pub_b64
+            with open(vapid_file, "w") as f:
+                json.dump({"private_key": VAPID_PRIVATE_KEY, "public_key": VAPID_PUBLIC_KEY}, f)
+            print("Auto-generated VAPID keys successfully.")
+        except Exception as e:
+            print(f"Could not auto-generate VAPID keys: {e}")
+
+init_vapid_keys()
+
+def is_in_quiet_hours(user: models.User) -> bool:
+    if not getattr(user, 'settings_push_quiet_hours', False):
+        return False
+    try:
+        now = datetime.now()
+        start_str = getattr(user, 'settings_push_quiet_start', '22:00') or '22:00'
+        end_str = getattr(user, 'settings_push_quiet_end', '07:00') or '07:00'
+        sh, sm = map(int, start_str.split(':'))
+        eh, em = map(int, end_str.split(':'))
+        current_time = now.hour * 60 + now.minute
+        start_time = sh * 60 + sm
+        end_time = eh * 60 + em
+        if start_time <= end_time:
+            return start_time <= current_time <= end_time
+        else:
+            return current_time >= start_time or current_time <= end_time
+    except Exception:
+        return False
+
 def send_push_notification(subscription_info: dict, payload: dict):
+    if not VAPID_PRIVATE_KEY:
+        init_vapid_keys()
+    if not VAPID_PRIVATE_KEY:
+        print("VAPID private key is missing; push notification skipped.")
+        return
     try:
         webpush(
             subscription_info=subscription_info,
@@ -33,15 +123,11 @@ def send_push_notification(subscription_info: dict, payload: dict):
             vapid_claims=VAPID_CLAIMS
         )
     except WebPushException as ex:
-        print("I'm sorry, Dave, I'm afraid I can't do that: {}", repr(ex))
-        # Mozilla returns additional information in the body of the response.
+        print("WebPushException:", repr(ex))
         if ex.response and ex.response.json():
-            extra = ex.response.json()
-            print("Remote service replied with a {}:{}, {}",
-                  extra.code,
-                  extra.errno,
-                  extra.message
-                  )
+            print("Remote push service replied:", ex.response.json())
+    except Exception as e:
+        print("Error sending push notification:", e)
 
 # --- CORS KONFIGURATION ---
 cors_origins_env = os.getenv("CORS_ORIGINS", "")
@@ -257,6 +343,8 @@ def get_admin_user(current_user: models.User = Depends(auth.get_current_user)):
 
 @app.get("/api/push/public-key")
 def get_push_public_key():
+    if not VAPID_PUBLIC_KEY:
+        init_vapid_keys()
     return {"public_key": VAPID_PUBLIC_KEY}
 
 @app.get("/api/admin/stats")
@@ -402,18 +490,23 @@ def get_current_user_profile(current_user: models.User = Depends(auth.get_curren
 
 @app.put("/api/users/me", response_model=schemas.UserResponse)
 def update_user_profile(
-    user_update: UserUpdate,
+    user_update: schemas.UserUpdate,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     """Aktualisiert das Profil des Nutzers."""
     current_user.display_name = user_update.display_name
-    if user_update.settings_push_async_events is not None:
-        current_user.settings_push_async_events = user_update.settings_push_async_events
-    if user_update.settings_push_new_items is not None:
-        current_user.settings_push_new_items = user_update.settings_push_new_items
-    if user_update.settings_push_admin_pending_users is not None:
-        current_user.settings_push_admin_pending_users = user_update.settings_push_admin_pending_users
+    fields = [
+        'settings_push_async_events', 'settings_push_new_items', 'settings_push_completed_items',
+        'settings_push_cleared_items', 'settings_push_shopping_started', 'settings_push_shopping_done',
+        'settings_push_members', 'settings_push_quiet_hours', 'settings_push_quiet_start',
+        'settings_push_quiet_end', 'settings_sound_enabled', 'settings_vibration_enabled',
+        'settings_push_admin_pending_users'
+    ]
+    for f in fields:
+        val = getattr(user_update, f, None)
+        if val is not None:
+            setattr(current_user, f, val)
     db.commit()
     db.refresh(current_user)
     return current_user
@@ -452,6 +545,29 @@ def subscribe_push(sub_data: schemas.PushSubscriptionCreate, db: Session = Depen
         existing.auth = sub_data.auth
         db.commit()
     return {"status": "ok"}
+
+@app.post("/api/push/test")
+def test_push_notification(
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    notif = models.Notification(
+        user_id=current_user.id,
+        title="KaufSync Test",
+        body="Benachrichtigungen funktionieren einwandfrei! 🎉",
+        action_url="/"
+    )
+    db.add(notif)
+    db.commit()
+    subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == current_user.id).all()
+    for sub in subs:
+        background_tasks.add_task(
+            send_push_notification,
+            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+            {"title": notif.title, "body": notif.body, "url": notif.action_url}
+        )
+    return {"status": "ok", "subscriptions_count": len(subs), "message": "Testbenachrichtigung gesendet"}
 
 @app.put("/api/users/me/password")
 def change_password(
@@ -890,7 +1006,7 @@ async def create_item(
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if member.settings_push_new_items:
+            if getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -976,7 +1092,7 @@ async def create_items_bulk(
                     action_url=f"/list/{db_list.id}"
                 )
                 db.add(notif)
-                if getattr(member, 'settings_push_new_items', False):
+                if getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
                     subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                     for sub in subs:
                         background_tasks.add_task(
@@ -1063,12 +1179,12 @@ async def start_shopping(
         if member.id != current_user.id:
             notif = models.Notification(
                 user_id=member.id,
-                title="Einkauf gestartet",
-                body=f"{current_user.display_name} hat den Einkauf für '{db_list.name}' gestartet.",
+                title="🛒 Ich gehe einkaufen!",
+                body=f"{current_user.display_name} ist jetzt für '{db_list.name}' einkaufen. Brauchst du noch etwas?",
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if member.settings_push_async_events:
+            if getattr(member, 'settings_push_shopping_started', True) and not is_in_quiet_hours(member):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -1113,6 +1229,7 @@ async def get_list_changelog(
 async def update_item(
     item_id: str, 
     item_data: schemas.ItemUpdate, 
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user) # SCHUTZ
 ):
@@ -1149,6 +1266,29 @@ async def update_item(
         )
         db.add(log_entry)
         db.commit()
+
+        # Push Notification an Mitglieder bei Abhaken
+        if item_data.status == "completed":
+            db_list = db_item.shopping_list
+            members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
+            members = {member.id: member for member in members_list if member}.values()
+            for member in members:
+                if member.id != current_user.id and getattr(member, 'settings_push_completed_items', True) and not is_in_quiet_hours(member):
+                    notif = models.Notification(
+                        user_id=member.id,
+                        title="Artikel erledigt",
+                        body=f"{current_user.display_name} hat '{db_item.name}' in '{db_list.name}' abgehakt.",
+                        action_url=f"/list/{db_list.id}"
+                    )
+                    db.add(notif)
+                    subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+                    for sub in subs:
+                        background_tasks.add_task(
+                            send_push_notification,
+                            {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                            {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                        )
+            db.commit()
 
         await manager.broadcast(db_item.list_id, {
             "event": "CHANGELOG_UPDATED",

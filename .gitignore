@@ -13,6 +13,7 @@ env/
 *.db
 *.sqlite3
 *.log
+*.vapid_keys.json
 
 # OS generierte Dateien
 .DS_Store

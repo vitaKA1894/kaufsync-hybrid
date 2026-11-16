@@ -13,6 +13,16 @@ class UserUpdate(BaseModel):
     display_name: str
     settings_push_async_events: Optional[bool] = None
     settings_push_new_items: Optional[bool] = None
+    settings_push_completed_items: Optional[bool] = None
+    settings_push_cleared_items: Optional[bool] = None
+    settings_push_shopping_started: Optional[bool] = None
+    settings_push_shopping_done: Optional[bool] = None
+    settings_push_members: Optional[bool] = None
+    settings_push_quiet_hours: Optional[bool] = None
+    settings_push_quiet_start: Optional[str] = None
+    settings_push_quiet_end: Optional[str] = None
+    settings_sound_enabled: Optional[bool] = None
+    settings_vibration_enabled: Optional[bool] = None
     settings_push_admin_pending_users: Optional[bool] = None
 
 # NEU: Für die Passwort-Änderung
@@ -26,9 +36,19 @@ class UserResponse(BaseModel):
     display_name: str
     is_admin: Optional[bool] = False
     status: str
-    settings_push_async_events: bool
-    settings_push_new_items: bool
-    settings_push_admin_pending_users: bool = False
+    settings_push_async_events: Optional[bool] = True
+    settings_push_new_items: Optional[bool] = True
+    settings_push_completed_items: Optional[bool] = True
+    settings_push_cleared_items: Optional[bool] = True
+    settings_push_shopping_started: Optional[bool] = True
+    settings_push_shopping_done: Optional[bool] = False
+    settings_push_members: Optional[bool] = True
+    settings_push_quiet_hours: Optional[bool] = False
+    settings_push_quiet_start: Optional[str] = "22:00"
+    settings_push_quiet_end: Optional[str] = "07:00"
+    settings_sound_enabled: Optional[bool] = True
+    settings_vibration_enabled: Optional[bool] = True
+    settings_push_admin_pending_users: Optional[bool] = False
 
     class Config:
         from_attributes = True
