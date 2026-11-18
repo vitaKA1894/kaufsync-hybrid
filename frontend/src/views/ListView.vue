@@ -666,10 +666,14 @@ const approveJoinRequest = async (requestId) => {
       joinRequests.value = joinRequests.value.filter(r => r.id !== requestId);
       loadItems();
       setTimeout(() => successMessage.value = '', 3000);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      errorMessage.value = err.detail || "Fehler beim Freischalten.";
+      setTimeout(() => errorMessage.value = '', 4000);
     }
   } catch (err) {
     errorMessage.value = "Fehler beim Freischalten.";
-    setTimeout(() => errorMessage.value = '', 3000);
+    setTimeout(() => errorMessage.value = '', 4000);
   }
 };
 
@@ -684,10 +688,14 @@ const rejectJoinRequest = async (requestId) => {
       successMessage.value = "Anfrage abgelehnt.";
       joinRequests.value = joinRequests.value.filter(r => r.id !== requestId);
       setTimeout(() => successMessage.value = '', 2000);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      errorMessage.value = err.detail || "Fehler beim Ablehnen der Anfrage.";
+      setTimeout(() => errorMessage.value = '', 4000);
     }
   } catch (err) {
     errorMessage.value = "Fehler beim Ablehnen.";
-    setTimeout(() => errorMessage.value = '', 3000);
+    setTimeout(() => errorMessage.value = '', 4000);
   }
 };
 

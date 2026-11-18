@@ -25,6 +25,7 @@ def ensure_columns():
         with engine.connect() as conn:
             existing_cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(users)").fetchall()]
             cols_to_add = [
+                ("settings_push_async_events", "BOOLEAN DEFAULT 1"),
                 ("settings_push_completed_items", "BOOLEAN DEFAULT 1"),
                 ("settings_push_cleared_items", "BOOLEAN DEFAULT 1"),
                 ("settings_push_shopping_started", "BOOLEAN DEFAULT 1"),
@@ -198,6 +199,9 @@ class ConnectionManager:
                     await connection.send_json(message)
                 except Exception:
                     pass
+
+    async def broadcast_to_list(self, list_id: str, message: dict):
+        await self.broadcast(list_id, message)
 
     async def connect_user(self, websocket: WebSocket, user_id: str):
         await websocket.accept()
@@ -937,7 +941,7 @@ async def approve_join_request(
     db.add(notif)
     db.commit()
 
-    if target_user.settings_push_async_events:
+    if getattr(target_user, "settings_push_members", True) or getattr(target_user, "settings_push_async_events", True):
         subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == target_user.id).all()
         for sub in subs:
             background_tasks.add_task(
@@ -949,7 +953,7 @@ async def approve_join_request(
     await manager.broadcast_user(str(target_user.id), {
         "event": "LIST_UPDATED"
     })
-    await manager.broadcast_to_list(str(db_list.id), {
+    await manager.broadcast(str(db_list.id), {
         "event": "MEMBER_JOINED",
         "payload": {"user_id": target_user.id, "display_name": target_user.display_name}
     })
