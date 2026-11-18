@@ -158,6 +158,8 @@ export async function triggerTestNotification({ title = 'KaufSync', body = 'Bena
             body,
             channelId: 'kaufsync_channel',
             smallIcon: 'ic_launcher',
+            isExactNotification: false,
+            isExactMandatory: false,
             extra: {
               url: '/'
             }

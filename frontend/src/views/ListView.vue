@@ -26,8 +26,24 @@ const route = useRoute();
 const router = useRouter();
 const listId = route.params.id;
 
-const items = ref([]);
-const currentList = ref(null);
+// Synchrone Vor-Initialisierung aus localStorage für 0-ms Render ohne Layout-Shift
+const initCachedList = () => {
+  try {
+    const cachedData = localStorage.getItem('cachedLists');
+    if (cachedData) {
+      const lists = JSON.parse(cachedData);
+      const found = lists.find(l => l.id === listId);
+      if (found) return found;
+    }
+  } catch (e) {}
+  return null;
+};
+
+const cachedListInitial = initCachedList();
+const currentList = ref(cachedListInitial);
+const items = ref(cachedListInitial?.items ? [...cachedListInitial.items] : []);
+const isInitialLoad = ref(true);
+
 const newItemName = ref('');
 const isAddModalOpen = ref(false);
 const startScanner = ref(false);
@@ -192,18 +208,24 @@ const currentChainKey = computed(() => {
 const loadCategoryOrder = () => {
   const saved = localStorage.getItem(`ks_sort_${listId}`);
   if (saved) {
-    categoryOrder.value = JSON.parse(saved);
-    isCustomOrder.value = true;
+    try {
+      categoryOrder.value = JSON.parse(saved);
+      isCustomOrder.value = true;
+      return;
+    } catch (e) {}
+  }
+
+  isCustomOrder.value = false;
+  const chainKey = currentChainKey.value;
+  if (chainKey && chainsConfig[chainKey]) {
+    categoryOrder.value = [...chainsConfig[chainKey].defaultOrder];
   } else {
-    isCustomOrder.value = false;
-    const chainKey = currentChainKey.value;
-    if (chainKey && chainsConfig[chainKey]) {
-      categoryOrder.value = [...chainsConfig[chainKey].defaultOrder];
-    } else {
-      categoryOrder.value = predefinedCategories.map(c => c.name);
-    }
+    categoryOrder.value = predefinedCategories.map(c => c.name);
   }
 };
+
+// Synchrone Initialisierung direkt beim Laden der Komponente
+loadCategoryOrder();
 
 const saveCategoryOrder = () => {
   localStorage.setItem(`ks_sort_${listId}`, JSON.stringify(categoryOrder.value));
@@ -811,13 +833,25 @@ const groupedActiveItems = computed(() => {
   });
 
   // Sortiere die Gruppen basierend auf dem aktiven Markt-Default oder User-Override
-  return Object.values(groups).sort((a, b) => {
+  const sortedGroups = Object.values(groups).sort((a, b) => {
     let indexA = categoryOrder.value.indexOf(a.name);
     let indexB = categoryOrder.value.indexOf(b.name);
     if (indexA === -1) indexA = 999;
     if (indexB === -1) indexB = 999;
     return indexA - indexB;
   });
+
+  // Stabile Sortierung der Artikel innerhalb jeder Kategorie, um Springen bei Cache/API-Updates zu verhindern
+  sortedGroups.forEach(group => {
+    group.items.sort((a, b) => {
+      const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+      const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+      if (timeA !== timeB) return timeA - timeB;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  });
+
+  return sortedGroups;
 });
 
 const sortedActiveItems = computed(() => {
@@ -861,6 +895,10 @@ onMounted(() => {
   processOfflineQueue();
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
+
+  setTimeout(() => {
+    isInitialLoad.value = false;
+  }, 400);
 
   // Auto-open recipe modal if shared via Share Target or query
   const pendingRecipe = localStorage.getItem('pending_recipe_import');
@@ -1214,7 +1252,7 @@ onUnmounted(() => {
                   {{ formatCategoryName(group.name) }} <span :style="{ backgroundColor: 'color-mix(in srgb, ' + group.def.color + ' 20%, transparent)', color: group.def.color }" style="padding: 2px 8px; border-radius: 9999px;">{{ group.items.length }}</span>
               </h2>
 
-            <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full">
+            <transition-group name="list" tag="div" :class="['ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full', { 'is-hydrating': isInitialLoad }]">
               <div v-for="item in group.items" :key="item.id" class="grid-card active" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
@@ -1257,7 +1295,7 @@ onUnmounted(() => {
           </section>
         </template>
         <template v-else>
-          <transition-group name="list" tag="div" class="ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full" style="padding-top: 0;">
+          <transition-group name="list" tag="div" :class="['ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full', { 'is-hydrating': isInitialLoad }]" style="padding-top: 0;">
             <div v-for="item in sortedActiveItems" :key="item.id" class="grid-card active" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
@@ -1324,7 +1362,7 @@ onUnmounted(() => {
                   </button>
               </h2>
         
-        <transition-group name="list" tag="div" class="grid grid-cols-2 gap-2 w-full pt-1">
+        <transition-group name="list" tag="div" :class="['grid grid-cols-2 gap-2 w-full pt-1', { 'is-hydrating': isInitialLoad }]">
           <div
             v-for="item in completedItems"
             :key="item.id"
@@ -1837,6 +1875,13 @@ onUnmounted(() => {
 .list-enter-active,
 .list-leave-active {
   transition: all 0.18s cubic-bezier(0.2, 0, 0, 1);
+}
+
+.is-hydrating.list-move,
+.is-hydrating .list-move,
+.is-hydrating .list-enter-active,
+.is-hydrating .list-leave-active {
+  transition: none !important;
 }
 
 .list-enter-from,
