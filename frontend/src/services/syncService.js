@@ -60,7 +60,14 @@ export function triggerSync(delay = 100) {
  */
 export async function getLocalLists() {
   try {
-    return await db.lists.toArray();
+    const lists = await db.lists.toArray();
+    for (const list of lists) {
+      if (!list.items || list.items.length === 0) {
+        const items = await db.items.where('list_id').equals(list.id).toArray();
+        list.items = items.filter(it => !it.is_deleted);
+      }
+    }
+    return lists;
   } catch (e) {
     console.error('Error loading local lists:', e);
     return [];
@@ -80,9 +87,13 @@ export async function saveLocalLists(lists) {
           name: list.name,
           icon_name: list.icon_name,
           created_by: list.created_by,
+          creator: list.creator || null,
           share_code: list.share_code,
+          readonly_token: list.readonly_token,
+          readonly_enabled: list.readonly_enabled,
           updated_at: list.created_at,
-          members: list.members || []
+          members: list.members || [],
+          items: list.items || []
         });
 
         if (Array.isArray(list.items)) {

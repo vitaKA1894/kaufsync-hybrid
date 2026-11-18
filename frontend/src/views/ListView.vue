@@ -44,6 +44,22 @@ const currentList = ref(cachedListInitial);
 const items = ref(cachedListInitial?.items ? [...cachedListInitial.items] : []);
 const isInitialLoad = ref(true);
 
+// Synchronisiere Items laufend in cachedLists, damit das Dashboard beim Zurückgehen sofort die exakte Anzahl hat
+watch(items, (newItems) => {
+  if (!newItems) return;
+  try {
+    const cachedData = localStorage.getItem('cachedLists');
+    if (cachedData) {
+      const lists = JSON.parse(cachedData);
+      const target = lists.find(l => l.id === listId);
+      if (target) {
+        target.items = newItems;
+        localStorage.setItem('cachedLists', JSON.stringify(lists));
+      }
+    }
+  } catch (e) {}
+}, { deep: true });
+
 const newItemName = ref('');
 const isAddModalOpen = ref(false);
 const startScanner = ref(false);
@@ -709,12 +725,13 @@ const shareOrCopyLink = async () => {
 
 const isTogglingReadonly = ref(false);
 
-const toggleReadonlyLink = async () => {
+const toggleReadonlyLink = async (event) => {
   if (!currentList.value || isTogglingReadonly.value) return;
   isTogglingReadonly.value = true;
+  const previousState = !!currentList.value.readonly_enabled;
   try {
     const token = localStorage.getItem('token');
-    const newStatus = !currentList.value.readonly_enabled;
+    const newStatus = !previousState;
     const res = await fetch(apiUrl(`/api/lists/${currentList.value.id}/readonly-link`), {
       method: 'POST',
       headers: {
@@ -749,6 +766,9 @@ const toggleReadonlyLink = async () => {
     }
     setTimeout(() => successMessage.value = '', 2500);
   } catch (err) {
+    if (event && event.target) {
+      event.target.checked = previousState;
+    }
     errorMessage.value = "Fehler beim Umschalten des Nur-Lesen Links.";
     setTimeout(() => errorMessage.value = '', 3000);
   } finally {
@@ -1068,7 +1088,7 @@ onUnmounted(() => {
                 type="checkbox"
                 :checked="currentList?.readonly_enabled"
                 :disabled="isTogglingReadonly"
-                @change="toggleReadonlyLink"
+                @change="toggleReadonlyLink($event)"
               />
               <span class="ks-switch-slider"></span>
             </label>

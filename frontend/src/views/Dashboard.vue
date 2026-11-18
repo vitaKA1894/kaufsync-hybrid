@@ -9,10 +9,31 @@ import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import { getLocalLists, saveLocalLists, isOnline } from '../services/syncService';
 
 const router = useRouter();
-const shoppingLists = ref([]);
+
+// Synchrone Vor-Initialisierung aus localStorage für 0-ms Render ohne Layout-Shift
+const initCachedLists = () => {
+  try {
+    const cached = localStorage.getItem('cachedLists');
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {}
+  return [];
+};
+
+const initCachedUser = () => {
+  try {
+    const cached = localStorage.getItem('cachedUser');
+    if (cached) return JSON.parse(cached);
+  } catch (e) {}
+  return null;
+};
+
+const shoppingLists = ref(initCachedLists());
 const invitations = ref([]);
 const errorMessage = ref('');
-const currentUser = ref(null);
+const currentUser = ref(initCachedUser());
 const successMessage = ref('');
 
 const showActionSheet = ref(false);
@@ -220,7 +241,9 @@ const loadLists = async () => {
   try {
     const local = await getLocalLists();
     if (local && local.length > 0) {
-      shoppingLists.value = local;
+      if (shoppingLists.value.length === 0) {
+        shoppingLists.value = local;
+      }
     }
   } catch (e) {
     console.warn('Local lists read error:', e);
@@ -239,6 +262,9 @@ const loadLists = async () => {
     if (!response.ok) throw new Error('Fehler beim Laden');
     const data = await response.json();
     shoppingLists.value = data;
+    try {
+      localStorage.setItem('cachedLists', JSON.stringify(data));
+    } catch (e) {}
     await saveLocalLists(data);
     setupWebSockets();
     checkPendingRecipeImport();
@@ -405,7 +431,11 @@ const loadUserProfile = async () => {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl('/api/users/me'), { headers: { 'Authorization': `Bearer ${token}` } });
     if (!response.ok) throw new Error('Fehler beim Laden des Profils');
-    currentUser.value = await response.json();
+    const user = await response.json();
+    currentUser.value = user;
+    try {
+      localStorage.setItem('cachedUser', JSON.stringify(user));
+    } catch (e) {}
     setupWebSockets();
   } catch (error) {
     console.error(error);
@@ -691,6 +721,8 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  min-height: 52px;
+  justify-content: flex-end;
 }
 
 .item-count-badge {
@@ -705,6 +737,8 @@ onUnmounted(() => {
   font-weight: 500;
   backdrop-filter: blur(4px);
   width: max-content;
+  min-width: 68px;
+  font-variant-numeric: tabular-nums;
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
@@ -749,7 +783,7 @@ onUnmounted(() => {
 }
 
 .profile-btn { padding: 4px; display: flex; align-items: center; justify-content: center; }
-.member-indicators { display: flex; align-items: center; }
+.member-indicators { display: flex; align-items: center; min-height: 20px; }
 .member-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--ks-surface-4); color: var(--ks-text); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; border: 1.5px solid var(--ks-surface-1); margin-left: -6px; }
 .member-avatar:first-child { margin-left: 0; }
 .member-avatar.creator { background: var(--ks-primary); color: var(--ks-on-primary); }
