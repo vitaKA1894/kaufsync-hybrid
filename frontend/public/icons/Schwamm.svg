@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cleaning sponge with grooved scouring top layer & pores -->
-  <rect x="4" y="8" width="16" height="11" rx="2" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="4" y="8" width="16" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-schwamm" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cleaning sponge with grooved scouring top layer & pores -->
+  <rect x="4" y="8" width="16" height="11" rx="2" fill="#FACC15" fill-opacity="0.14"/>
+  <rect x="4" y="8" width="16" height="11" rx="2" fill="none" stroke="#FACC15" filter="url(#glow-schwamm)" stroke-width="2"/>
   <!-- Green scouring fleece layer -->
-  <rect x="4" y="8" width="16" height="3.5" rx="1" fill="currentColor" fill-opacity="0.6"/>
+  <rect x="4" y="8" width="16" height="3.5" rx="1" fill="#FACC15" fill-opacity="0.14"/>
   <!-- Sponge pores -->
-  <circle cx="8" cy="14" r="1" fill="currentColor"/>
-  <circle cx="12" cy="16" r="1.3" fill="currentColor"/>
-  <circle cx="16" cy="14" r="0.8" fill="currentColor"/>
+  <circle cx="8" cy="14" r="1" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="12" cy="16" r="1.3" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="16" cy="14" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
 </svg>

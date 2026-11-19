@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pasta sauce jar with pasta fork emblem -->
-  <rect x="6" y="7" width="12" height="14" rx="2" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="6" y="7" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="5.5" y="4" width="13" height="3" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">PASTA</text>
+  <defs>
+    <filter id="glow-pasta-sauce" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pasta sauce jar with pasta fork emblem -->
+  <rect x="6" y="7" width="12" height="14" rx="2" fill="#EF4444" fill-opacity="0.14"/>
+  <rect x="6" y="7" width="12" height="14" rx="2" fill="none" stroke="#EF4444" filter="url(#glow-pasta-sauce)" stroke-width="2"/>
+  <rect x="5.5" y="4" width="13" height="3" rx="1" fill="#EF4444" fill-opacity="0.14" stroke="#EF4444" stroke-width="1.8"/>
+  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#EF4444" fill-opacity="0.35" text-anchor="middle">PASTA</text>
 </svg>

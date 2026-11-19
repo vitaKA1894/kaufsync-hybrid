@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dip bowl with tortilla chip dipping in -->
-  <path d="M4 13c0 4.5 3.5 7 8 7s8-2.5 8-7H4z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 13c0 4.5 3.5 7 8 7s8-2.5 8-7H4z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-dip" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dip bowl with tortilla chip dipping in -->
+  <path d="M4 13c0 4.5 3.5 7 8 7s8-2.5 8-7H4z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M4 13c0 4.5 3.5 7 8 7s8-2.5 8-7H4z" fill="none" stroke="#F59E0B" filter="url(#glow-dip)" stroke-width="2"/>
   <!-- Triangular chip dipping in -->
-  <polygon points="12,5 17,14 9,14" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <polygon points="12,5 17,14 9,14" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>

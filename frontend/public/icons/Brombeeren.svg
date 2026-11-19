@@ -1,14 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dark glossy blackberry drupelet cone -->
-  <ellipse cx="12" cy="14" rx="6.5" ry="6.5" fill="currentColor" fill-opacity="0.4"/>
-  <circle cx="9" cy="11" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="12" cy="10" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="15" cy="11" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="8" cy="14.5" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="12" cy="14" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="16" cy="14.5" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="10" cy="18" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
-  <circle cx="14" cy="18" r="1.8" fill="currentColor" stroke="#0b0f19" stroke-width="0.8"/>
+  <defs>
+    <filter id="glow-brombeeren" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#A855F7" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dark glossy blackberry drupelet cone -->
+  <ellipse cx="12" cy="14" rx="6.5" ry="6.5" fill="#A855F7" fill-opacity="0.14"/>
+  <circle cx="9" cy="11" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="12" cy="10" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="15" cy="11" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="8" cy="14.5" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="12" cy="14" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="16" cy="14.5" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="10" cy="18" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
+  <circle cx="14" cy="18" r="1.8" fill="#A855F7" fill-opacity="0.35" stroke="#0b0f19" stroke-width="0.8"/>
   <!-- Calyx -->
-  <path d="M12 6V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 6V3" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
 </svg>

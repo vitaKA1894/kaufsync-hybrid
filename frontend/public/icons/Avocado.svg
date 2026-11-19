@@ -1,9 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Avocado cut in half showing large round pit in center -->
-  <path d="M12 3c-4 0-7 5-7 10 0 5 3 8 7 8s7-3 7-8c0-5-3-10-7-10z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 3c-4 0-7 5-7 10 0 5 3 8 7 8s7-3 7-8c0-5-3-10-7-10z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <!-- Large round avocado seed pit -->
-  <circle cx="12" cy="14.5" r="4.2" fill="currentColor" fill-opacity="0.6"/>
-  <circle cx="12" cy="14.5" r="4.2" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  <circle cx="10.5" cy="13" r="0.8" fill="#0b0f19"/>
+  <defs>
+    <filter id="glow-avocado" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Avocado cut with glowing green peel outline -->
+  <path d="M12 3c-4 0-7 5-7 10 0 5 3 8 7 8s7-3 7-8c0-5-3-10-7-10z" fill="#84CC16" fill-opacity="0.12"/>
+  <path d="M12 3c-4 0-7 5-7 10 0 5 3 8 7 8s7-3 7-8c0-5-3-10-7-10z" fill="none" stroke="#22C55E" stroke-width="2" filter="url(#glow-avocado)"/>
+  <!-- Inner rim line -->
+  <path d="M12 5c-2.8 0-5 3.8-5 7.8 0 3.8 2 6.2 5 6.2s5-2.4 5-6.2c0-4-2.2-7.8-5-7.8z" fill="none" stroke="#A3E635" stroke-width="1.2" stroke-dasharray="3 1.5"/>
+  <!-- Round seed pit in warm brown outline -->
+  <circle cx="12" cy="14.5" r="4.2" fill="#D97706" fill-opacity="0.2"/>
+  <circle cx="12" cy="14.5" r="4.2" fill="none" stroke="#D97706" stroke-width="1.8"/>
+  <circle cx="10.5" cy="13" r="0.8" fill="#FDE68A"/>
 </svg>

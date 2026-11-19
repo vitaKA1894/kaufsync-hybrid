@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Traditional wooden pepper mill grinder with peppercorns -->
-  <path d="M9 20h6l-1-7h-4l-1 7z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M9 20h6l-1-7h-4l-1 7z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M10 13c-1-1-1-3 0-5h4c1 2 1 4 0 5h-4z" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
-  <rect x="11" y="5" width="2" height="3" fill="currentColor"/>
-  <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+  <defs>
+    <filter id="glow-pfefferkoerner" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#CBD5E1" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Traditional wooden pepper mill grinder with peppercorns -->
+  <path d="M9 20h6l-1-7h-4l-1 7z" fill="#94A3B8" fill-opacity="0.14"/>
+  <path d="M9 20h6l-1-7h-4l-1 7z" fill="none" stroke="#94A3B8" filter="url(#glow-pfefferkoerner)" stroke-width="2"/>
+  <path d="M10 13c-1-1-1-3 0-5h4c1 2 1 4 0 5h-4z" fill="#94A3B8" fill-opacity="0.14" stroke="#94A3B8" stroke-width="1.8"/>
+  <rect x="11" y="5" width="2" height="3" fill="#94A3B8" fill-opacity="0.35"/>
+  <circle cx="12" cy="4" r="1.5" fill="#94A3B8" fill-opacity="0.35"/>
   <!-- Whole black peppercorns -->
-  <circle cx="6" cy="19" r="1" fill="currentColor"/>
-  <circle cx="18" cy="19" r="1" fill="currentColor"/>
+  <circle cx="6" cy="19" r="1" fill="#94A3B8" fill-opacity="0.35"/>
+  <circle cx="18" cy="19" r="1" fill="#94A3B8" fill-opacity="0.35"/>
 </svg>

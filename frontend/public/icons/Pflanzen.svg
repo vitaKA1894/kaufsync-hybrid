@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Flowerpot -->
-  <path d="M7 14h10l-1.5 7h-7L7 14z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M7 14h10l-1.5 7h-7L7 14z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <rect x="6" y="13" width="12" height="2" rx="1" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-pflanzen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Flowerpot -->
+  <path d="M7 14h10l-1.5 7h-7L7 14z" fill="#22C55E" fill-opacity="0.14"/>
+  <path d="M7 14h10l-1.5 7h-7L7 14z" fill="none" stroke="#22C55E" filter="url(#glow-pflanzen)" stroke-width="2" stroke-linejoin="round"/>
+  <rect x="6" y="13" width="12" height="2" rx="1" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8"/>
   <!-- Big Monstera leaves -->
-  <path d="M12 13V5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 8c2.5-3.5 6.5-2.5 6.5 1.5-2 3.5-5.5 1-6.5-1.5z" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  <path d="M12 10c-2.5-3.5-6.5-2.5-6.5 1.5 2 3.5 5.5 1 6.5-1.5z" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M12 13V5" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 8c2.5-3.5 6.5-2.5 6.5 1.5-2 3.5-5.5 1-6.5-1.5z" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M12 10c-2.5-3.5-6.5-2.5-6.5 1.5 2 3.5 5.5 1 6.5-1.5z" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>

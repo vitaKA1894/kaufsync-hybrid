@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Multi-blade razor with pivoting head and grip handle -->
-  <path d="M6 4h12l-1.5 4h-9L6 4z" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-rasierer" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Multi-blade razor with pivoting head and grip handle -->
+  <path d="M6 4h12l-1.5 4h-9L6 4z" fill="#38BDF8" fill-opacity="0.14" stroke="#38BDF8" filter="url(#glow-rasierer)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Razor blades lines -->
-  <line x1="8" y1="6" x2="16" y2="6" stroke="currentColor" stroke-width="1.2"/>
+  <line x1="8" y1="6" x2="16" y2="6" stroke="#38BDF8" stroke-width="1.2"/>
   <!-- Handle -->
-  <path d="M12 8v13m-1.5-6h3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M12 8v13m-1.5-6h3" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

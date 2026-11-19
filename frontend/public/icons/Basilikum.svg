@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Basil sprig with paired oval succulent leaves with curved tips -->
-  <line x1="12" y1="21" x2="12" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <ellipse cx="8" cy="14" rx="3.5" ry="2.2" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" transform="rotate(-25 8 14)"/>
-  <ellipse cx="16" cy="14" rx="3.5" ry="2.2" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" transform="rotate(25 16 14)"/>
-  <ellipse cx="8.5" cy="8.5" rx="3" ry="2" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" transform="rotate(-20 8.5 8.5)"/>
-  <ellipse cx="15.5" cy="8.5" rx="3" ry="2" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" transform="rotate(20 15.5 8.5)"/>
-  <circle cx="12" cy="4" r="1.5" fill="currentColor"/>
+  <defs>
+    <filter id="glow-basilikum" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Basil sprig with paired oval succulent leaves with curved tips -->
+  <line x1="12" y1="21" x2="12" y2="4" stroke="#22C55E" filter="url(#glow-basilikum)" stroke-width="2" stroke-linecap="round"/>
+  <ellipse cx="8" cy="14" rx="3.5" ry="2.2" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" transform="rotate(-25 8 14)"/>
+  <ellipse cx="16" cy="14" rx="3.5" ry="2.2" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" transform="rotate(25 16 14)"/>
+  <ellipse cx="8.5" cy="8.5" rx="3" ry="2" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" transform="rotate(-20 8.5 8.5)"/>
+  <ellipse cx="15.5" cy="8.5" rx="3" ry="2" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8" transform="rotate(20 15.5 8.5)"/>
+  <circle cx="12" cy="4" r="1.5" fill="#22C55E" fill-opacity="0.35"/>
 </svg>

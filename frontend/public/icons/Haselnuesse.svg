@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Round hazelnut with woody base cap and pointed tip -->
-  <path d="M12 4c-3.5 3-6 7-4 11 1.5 3 5 5 8 4s5-3 5-7c0-3-4-6.5-9-8z" fill="currentColor" fill-opacity="0.3"/>
-  <path d="M12 4c-3.5 3-6 7-4 11 1.5 3 5 5 8 4s5-3 5-7c0-3-4-6.5-9-8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-haselnuesse" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Round hazelnut with woody base cap and pointed tip -->
+  <path d="M12 4c-3.5 3-6 7-4 11 1.5 3 5 5 8 4s5-3 5-7c0-3-4-6.5-9-8z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M12 4c-3.5 3-6 7-4 11 1.5 3 5 5 8 4s5-3 5-7c0-3-4-6.5-9-8z" fill="none" stroke="#D97706" filter="url(#glow-haselnuesse)" stroke-width="2"/>
   <!-- Pale base cap of hazelnut -->
-  <path d="M8 15c2 2 6 2 8 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 15c2 2 6 2 8 0" stroke="#D97706" stroke-width="2" stroke-linecap="round"/>
 </svg>

@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Sunscreen tube with sun emblem and SPF 50 label -->
-  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="9.5" y="3" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-sonnencreme" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Sunscreen tube with sun emblem and SPF 50 label -->
+  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="none" stroke="#F59E0B" filter="url(#glow-sonnencreme)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9.5" y="3" width="5" height="4" rx="1" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.8"/>
   <!-- Radiant sun symbol -->
-  <circle cx="12" cy="13" r="2.2" fill="currentColor"/>
-  <line x1="12" y1="9.5" x2="12" y2="8.5" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="12" y1="16.5" x2="12" y2="17.5" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="8.5" y1="13" x2="7.5" y2="13" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="15.5" y1="13" x2="16.5" y2="13" stroke="currentColor" stroke-width="1.5"/>
+  <circle cx="12" cy="13" r="2.2" fill="#F59E0B" fill-opacity="0.35"/>
+  <line x1="12" y1="9.5" x2="12" y2="8.5" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="12" y1="16.5" x2="12" y2="17.5" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="8.5" y1="13" x2="7.5" y2="13" stroke="#F59E0B" stroke-width="1.5"/>
+  <line x1="15.5" y1="13" x2="16.5" y2="13" stroke="#F59E0B" stroke-width="1.5"/>
 </svg>

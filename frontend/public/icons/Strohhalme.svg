@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Drinking glass with two striped bendy straws -->
-  <path d="M6 10h12l-1.5 11h-9L6 10z" fill="currentColor" fill-opacity="0.2"/>
-  <path d="M6 10h12l-1.5 11h-9L6 10z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-strohhalme" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Drinking glass with two striped bendy straws -->
+  <path d="M6 10h12l-1.5 11h-9L6 10z" fill="#EC4899" fill-opacity="0.2"/>
+  <path d="M6 10h12l-1.5 11h-9L6 10z" fill="none" stroke="#EC4899" filter="url(#glow-strohhalme)" stroke-width="2"/>
   <!-- Bendy straws -->
-  <path d="M9 10L11 4l4-2" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M13 10L14 3l4-1" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M9 10L11 4l4-2" fill="none" stroke="#EC4899" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M13 10L14 3l4-1" fill="none" stroke="#EC4899" stroke-width="2.2" stroke-linecap="round"/>
 </svg>

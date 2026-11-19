@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Solid head of Savoy/white cabbage with thick veined wrapping leaves -->
-  <circle cx="12" cy="12.5" r="8" fill="currentColor" fill-opacity="0.25"/>
-  <circle cx="12" cy="12.5" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kohl" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Solid head of Savoy/white cabbage with thick veined wrapping leaves -->
+  <circle cx="12" cy="12.5" r="8" fill="#22C55E" fill-opacity="0.14"/>
+  <circle cx="12" cy="12.5" r="8" fill="none" stroke="#22C55E" filter="url(#glow-kohl)" stroke-width="2"/>
   <!-- Big curved wrapping leaf ribs -->
-  <path d="M6 8c3 4 8 4 12-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M4.5 13.5c4 3 11 3 15-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M6 8c3 4 8 4 12-1" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M4.5 13.5c4 3 11 3 15-1" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Central stalk & vein branches -->
-  <path d="M12 5v15 M12 11l-3-2 M12 14l3-2 M12 17l-2.5-1.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 5v15 M12 11l-3-2 M12 14l3-2 M12 17l-2.5-1.5" stroke="#22C55E" stroke-width="1.6" stroke-linecap="round"/>
 </svg>

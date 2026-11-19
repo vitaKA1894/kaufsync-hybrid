@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pineapple body with diamond crosshatch and crown leaves -->
-  <ellipse cx="12" cy="14.5" rx="6" ry="7.5" fill="currentColor" fill-opacity="0.25"/>
-  <ellipse cx="12" cy="14.5" rx="6" ry="7.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-ananas" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pineapple body with diamond crosshatch and crown leaves -->
+  <ellipse cx="12" cy="14.5" rx="6" ry="7.5" fill="#FACC15" fill-opacity="0.14"/>
+  <ellipse cx="12" cy="14.5" rx="6" ry="7.5" fill="none" stroke="#FACC15" filter="url(#glow-ananas)" stroke-width="2"/>
   <!-- Diamond skin pattern -->
-  <line x1="8" y1="9" x2="16" y2="19" stroke="currentColor" stroke-width="1.3"/>
-  <line x1="16" y1="9" x2="8" y2="19" stroke="currentColor" stroke-width="1.3"/>
-  <line x1="6.5" y1="13" x2="14" y2="21.5" stroke="currentColor" stroke-width="1.3"/>
-  <line x1="17.5" y1="13" x2="10" y2="21.5" stroke="currentColor" stroke-width="1.3"/>
+  <line x1="8" y1="9" x2="16" y2="19" stroke="#FACC15" stroke-width="1.3"/>
+  <line x1="16" y1="9" x2="8" y2="19" stroke="#FACC15" stroke-width="1.3"/>
+  <line x1="6.5" y1="13" x2="14" y2="21.5" stroke="#FACC15" stroke-width="1.3"/>
+  <line x1="17.5" y1="13" x2="10" y2="21.5" stroke="#FACC15" stroke-width="1.3"/>
   <!-- Crown of spiky leaves -->
-  <path d="M12 7V1.5m0 5.5L8.5 2m3.5 5L15.5 2M9 7L6 4m9 3l3-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 7V1.5m0 5.5L8.5 2m3.5 5L15.5 2M9 7L6 4m9 3l3-3" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
 </svg>

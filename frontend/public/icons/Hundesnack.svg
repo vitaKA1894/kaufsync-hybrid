@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dog biscuit bone -->
-  <path d="M8 10h8m-8 0a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 8 10zm0 4h8m-8 0a2.5 2.5 0 1 1-2.5 2.5A2.5 2.5 0 0 1 8 14zm8-4a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 16 10zm0 4a2.5 2.5 0 1 1 2.5 2.5A2.5 2.5 0 0 1 16 14z" fill="currentColor" fill-opacity="0.35"/>
-  <path d="M8 10h8a2.5 2.5 0 1 0 2.5-2.5 2.5 2.5 0 0 0-2.5 2.5v4a2.5 2.5 0 1 0 2.5 2.5 2.5 2.5 0 0 0-2.5-2.5H8a2.5 2.5 0 1 0-2.5 2.5 2.5 2.5 0 0 0 2.5-2.5v-4a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 8 10z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-hundesnack" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dog biscuit bone -->
+  <path d="M8 10h8m-8 0a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 8 10zm0 4h8m-8 0a2.5 2.5 0 1 1-2.5 2.5A2.5 2.5 0 0 1 8 14zm8-4a2.5 2.5 0 1 0 2.5-2.5A2.5 2.5 0 0 0 16 10zm0 4a2.5 2.5 0 1 1 2.5 2.5A2.5 2.5 0 0 1 16 14z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M8 10h8a2.5 2.5 0 1 0 2.5-2.5 2.5 2.5 0 0 0-2.5 2.5v4a2.5 2.5 0 1 0 2.5 2.5 2.5 2.5 0 0 0-2.5-2.5H8a2.5 2.5 0 1 0-2.5 2.5 2.5 2.5 0 0 0 2.5-2.5v-4a2.5 2.5 0 1 0-2.5-2.5A2.5 2.5 0 0 0 8 10z" fill="none" stroke="#D97706" filter="url(#glow-hundesnack)" stroke-width="2"/>
 </svg>

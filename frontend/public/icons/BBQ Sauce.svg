@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Barbecue sauce bottle with bold BBQ label -->
-  <path d="M7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-2-4V2h-6v3L7 9z" fill="currentColor" fill-opacity="0.3"/>
-  <path d="M7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-2-4V2h-6v3L7 9z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="7.5" y="11" width="9" height="5.5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="3" font-weight="900" letter-spacing="0.5" fill="currentColor" text-anchor="middle">BBQ</text>
+  <defs>
+    <filter id="glow-bbq-sauce" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#B91C1C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Barbecue sauce bottle with bold BBQ label -->
+  <path d="M7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-2-4V2h-6v3L7 9z" fill="#B91C1C" fill-opacity="0.14"/>
+  <path d="M7 9v11a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9l-2-4V2h-6v3L7 9z" fill="none" stroke="#B91C1C" filter="url(#glow-bbq-sauce)" stroke-width="2"/>
+  <rect x="7.5" y="11" width="9" height="5.5" rx="1" fill="#B91C1C" fill-opacity="0.14"/>
+  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="3" font-weight="900" letter-spacing="0.5" fill="#B91C1C" fill-opacity="0.35" text-anchor="middle">BBQ</text>
 </svg>

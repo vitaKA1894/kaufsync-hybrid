@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Canned whole peeled plum tomatoes with TOMATEN label -->
-  <rect x="6" y="5" width="12" height="15" rx="2.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="5" width="12" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="6" y="9.5" width="12" height="6" fill="currentColor" fill-opacity="0.4"/>
-  <text x="12" y="13.7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.1" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">TOMATEN</text>
+  <defs>
+    <filter id="glow-dosentomaten" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Canned whole peeled plum tomatoes with TOMATEN label -->
+  <rect x="6" y="5" width="12" height="15" rx="2.5" fill="#EF4444" fill-opacity="0.14"/>
+  <rect x="6" y="5" width="12" height="15" rx="2.5" fill="none" stroke="#EF4444" filter="url(#glow-dosentomaten)" stroke-width="2"/>
+  <rect x="6" y="9.5" width="12" height="6" fill="#EF4444" fill-opacity="0.14"/>
+  <text x="12" y="13.7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.1" font-weight="900" letter-spacing="0.3" fill="#EF4444" fill-opacity="0.35" text-anchor="middle">TOMATEN</text>
   <!-- Plum tomato emblem -->
-  <ellipse cx="12" cy="17.5" rx="2" ry="1.5" fill="currentColor"/>
+  <ellipse cx="12" cy="17.5" rx="2" ry="1.5" fill="#EF4444" fill-opacity="0.35"/>
 </svg>

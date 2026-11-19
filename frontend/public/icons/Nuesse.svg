@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Nutcracker cracking a hazelnut -->
-  <circle cx="12" cy="14" r="5" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-nuesse" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Nutcracker cracking a hazelnut -->
+  <circle cx="12" cy="14" r="5" fill="#D97706" fill-opacity="0.14" stroke="#D97706" filter="url(#glow-nuesse)" stroke-width="2"/>
   <!-- Nutcracker lever arms -->
-  <path d="M6 3l6 9 6-9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6 3l6 9 6-9" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

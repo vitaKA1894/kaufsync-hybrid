@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Velvety peach with characteristic cleft dimple and large leaf -->
-  <path d="M12 6c-3.5-1.2-7 1.5-7 6.5 0 5 4 8.5 7 8.5s7-3.5 7-8.5c0-5-3.5-7.7-7-6.5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 6c-3.5-1.2-7 1.5-7 6.5 0 5 4 8.5 7 8.5s7-3.5 7-8.5c0-5-3.5-7.7-7-6.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-pfirsich" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FB923C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Velvety peach with characteristic cleft dimple and large leaf -->
+  <path d="M12 6c-3.5-1.2-7 1.5-7 6.5 0 5 4 8.5 7 8.5s7-3.5 7-8.5c0-5-3.5-7.7-7-6.5z" fill="#FB923C" fill-opacity="0.14"/>
+  <path d="M12 6c-3.5-1.2-7 1.5-7 6.5 0 5 4 8.5 7 8.5s7-3.5 7-8.5c0-5-3.5-7.7-7-6.5z" fill="none" stroke="#FB923C" filter="url(#glow-pfirsich)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Deep peach cleft -->
-  <path d="M12 6c0 4 1 8 0 15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 6c0 4 1 8 0 15" stroke="#FB923C" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Pointed peach leaf -->
-  <path d="M12 6c1.5-3 4-4 6-3-1 2-2 3-6 3z" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <path d="M12 6c1.5-3 4-4 6-3-1 2-2 3-6 3z" fill="#FB923C" fill-opacity="0.35" stroke="#FB923C" stroke-width="1.2"/>
 </svg>

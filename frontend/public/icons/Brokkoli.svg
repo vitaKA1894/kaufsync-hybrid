@@ -1,9 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Broccoli head with cloudy floret clusters and thick stalk -->
-  <path d="M10 14v7h4v-7" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Bumpy florets -->
-  <path d="M7 14c-2 0-3-2-2.5-4 .5-1.5 2-2.5 3.5-2 0-2 2-4 4-4s4 2 4 4c1.5-.5 3 .5 3.5 2 .5 2-.5 4-2.5 4H7z" fill="currentColor" fill-opacity="0.45"/>
-  <path d="M7 14c-2 0-3-2-2.5-4 .5-1.5 2-2.5 3.5-2 0-2 2-4 4-4s4 2 4 4c1.5-.5 3 .5 3.5 2 .5 2-.5 4-2.5 4H7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Branching stems in stalk -->
-  <path d="M10 14c0-2 2-3 2-3m2 3c0-2-2-3-2-3" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-brokkoli" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#10B981" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Stalk in crisp light-green outline -->
+  <path d="M10 14v7h4v-7" fill="#34D399" fill-opacity="0.12" stroke="#34D399" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 14c0-2 2-3 2-3m2 3c0-2-2-3-2-3" stroke="#34D399" stroke-width="1.6"/>
+  <!-- Bumpy florets with emerald outline glow -->
+  <path d="M7 14c-2 0-3-2-2.5-4 .5-1.5 2-2.5 3.5-2 0-2 2-4 4-4s4 2 4 4c1.5-.5 3 .5 3.5 2 .5 2-.5 4-2.5 4H7z" fill="#10B981" fill-opacity="0.16"/>
+  <path d="M7 14c-2 0-3-2-2.5-4 .5-1.5 2-2.5 3.5-2 0-2 2-4 4-4s4 2 4 4c1.5-.5 3 .5 3.5 2 .5 2-.5 4-2.5 4H7z" fill="none" stroke="#10B981" stroke-width="2" stroke-linejoin="round" filter="url(#glow-broccoli)"/>
+  <!-- Floret texture dots -->
+  <circle cx="9.5" cy="8.5" r="0.9" fill="#34D399"/>
+  <circle cx="14" cy="7.5" r="0.9" fill="#34D399"/>
+  <circle cx="12" cy="11" r="0.8" fill="#34D399"/>
 </svg>

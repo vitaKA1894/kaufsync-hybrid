@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Belgian waffle with square grid indentations -->
-  <rect x="4" y="4" width="16" height="16" rx="3" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-waffeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Belgian waffle with square grid indentations -->
+  <rect x="4" y="4" width="16" height="16" rx="3" fill="#F59E0B" fill-opacity="0.14"/>
+  <rect x="4" y="4" width="16" height="16" rx="3" fill="none" stroke="#F59E0B" filter="url(#glow-waffeln)" stroke-width="2"/>
   <!-- Waffle grid cells -->
-  <rect x="7" y="7" width="3.5" height="3.5" rx="0.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.2"/>
-  <rect x="13.5" y="7" width="3.5" height="3.5" rx="0.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.2"/>
-  <rect x="7" y="13.5" width="3.5" height="3.5" rx="0.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.2"/>
-  <rect x="13.5" y="13.5" width="3.5" height="3.5" rx="0.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.2"/>
+  <rect x="7" y="7" width="3.5" height="3.5" rx="0.5" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.2"/>
+  <rect x="13.5" y="7" width="3.5" height="3.5" rx="0.5" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.2"/>
+  <rect x="7" y="13.5" width="3.5" height="3.5" rx="0.5" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.2"/>
+  <rect x="13.5" y="13.5" width="3.5" height="3.5" rx="0.5" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.2"/>
 </svg>

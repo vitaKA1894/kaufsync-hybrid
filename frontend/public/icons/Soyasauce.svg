@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Iconic Kikkoman dispenser bottle with red dual-spout cap -->
-  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="currentColor" fill-opacity="0.35"/>
-  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-soyasauce" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Iconic Kikkoman dispenser bottle with red dual-spout cap -->
+  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="#451A03" fill-opacity="0.14"/>
+  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="none" stroke="#451A03" filter="url(#glow-soyasauce)" stroke-width="2"/>
   <!-- Two-spout dispenser cap -->
-  <path d="M9 10V6l-3-2v3h12V4l-3 2v4H9z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">SOYA</text>
+  <path d="M9 10V6l-3-2v3h12V4l-3 2v4H9z" fill="#451A03" fill-opacity="0.35" stroke="#451A03" stroke-width="1.5" stroke-linejoin="round"/>
+  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#451A03" fill-opacity="0.35" text-anchor="middle">SOYA</text>
 </svg>

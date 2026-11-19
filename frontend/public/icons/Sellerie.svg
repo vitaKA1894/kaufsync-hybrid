@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Celery bunch with deeply grooved stalks and bushy leafy heads -->
-  <path d="M7 21V9a2.5 2.5 0 0 1 2.5-2.5h5A2.5 2.5 0 0 1 17 9v12" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M7 21V9a2.5 2.5 0 0 1 2.5-2.5h5A2.5 2.5 0 0 1 17 9v12" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-sellerie" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Celery bunch with deeply grooved stalks and bushy leafy heads -->
+  <path d="M7 21V9a2.5 2.5 0 0 1 2.5-2.5h5A2.5 2.5 0 0 1 17 9v12" fill="#22C55E" fill-opacity="0.14"/>
+  <path d="M7 21V9a2.5 2.5 0 0 1 2.5-2.5h5A2.5 2.5 0 0 1 17 9v12" fill="none" stroke="#22C55E" filter="url(#glow-sellerie)" stroke-width="2"/>
   <!-- Individual ribbed stalk lines -->
-  <line x1="10.5" y1="7" x2="10.5" y2="21" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="13.5" y1="7" x2="13.5" y2="21" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="10.5" y1="7" x2="10.5" y2="21" stroke="#22C55E" stroke-width="1.8"/>
+  <line x1="13.5" y1="7" x2="13.5" y2="21" stroke="#22C55E" stroke-width="1.8"/>
   <!-- Bushy leafy crowns -->
-  <path d="M8 7c-1-2-3-3-4-2s0 3 2 3 M16 7c1-2 3-3 4-2s0 3-2 3 M12 6.5c0-2-1.5-3.5-2.5-3.5s-1 2 0 3.5 M12 6.5c0-2 1.5-3.5 2.5-3.5s1 2 0 3.5" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <path d="M8 7c-1-2-3-3-4-2s0 3 2 3 M16 7c1-2 3-3 4-2s0 3-2 3 M12 6.5c0-2-1.5-3.5-2.5-3.5s-1 2 0 3.5 M12 6.5c0-2 1.5-3.5 2.5-3.5s1 2 0 3.5" fill="#22C55E" fill-opacity="0.35" stroke="#22C55E" stroke-width="1.2"/>
 </svg>

@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Watermelon slice with thick dark rind and black seeds -->
-  <path d="M3 10c0 6 4.5 11 9 11s9-5 9-11H3z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M3 10c0 6 4.5 11 9 11s9-5 9-11H3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-wassermelone" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Watermelon slice with thick dark rind and black seeds -->
+  <path d="M3 10c0 6 4.5 11 9 11s9-5 9-11H3z" fill="#EF4444" fill-opacity="0.14"/>
+  <path d="M3 10c0 6 4.5 11 9 11s9-5 9-11H3z" fill="none" stroke="#EF4444" filter="url(#glow-wassermelone)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Rind white inner line -->
-  <path d="M5 11.5c.5 4 3.5 7.5 7 7.5s6.5-3.5 7-7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
+  <path d="M5 11.5c.5 4 3.5 7.5 7 7.5s6.5-3.5 7-7.5" fill="none" stroke="#EF4444" stroke-width="1.8" stroke-dasharray="2 2"/>
   <!-- Black watermelon seeds -->
-  <circle cx="8" cy="13" r="1" fill="currentColor"/>
-  <circle cx="12" cy="15.5" r="1" fill="currentColor"/>
-  <circle cx="16" cy="13" r="1" fill="currentColor"/>
+  <circle cx="8" cy="13" r="1" fill="#EF4444" fill-opacity="0.35"/>
+  <circle cx="12" cy="15.5" r="1" fill="#EF4444" fill-opacity="0.35"/>
+  <circle cx="16" cy="13" r="1" fill="#EF4444" fill-opacity="0.35"/>
 </svg>

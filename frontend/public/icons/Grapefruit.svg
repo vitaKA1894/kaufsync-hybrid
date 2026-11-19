@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Halved grapefruit showing bold ruby segments and thick white rind -->
-  <circle cx="12" cy="12" r="8.5" fill="currentColor" fill-opacity="0.25"/>
-  <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <circle cx="12" cy="12" r="6" fill="currentColor" fill-opacity="0.4"/>
+  <defs>
+    <filter id="glow-grapefruit" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F43F5E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Halved grapefruit showing bold ruby segments and thick white rind -->
+  <circle cx="12" cy="12" r="8.5" fill="#F43F5E" fill-opacity="0.14"/>
+  <circle cx="12" cy="12" r="8.5" fill="none" stroke="#F43F5E" filter="url(#glow-grapefruit)" stroke-width="2.5"/>
+  <circle cx="12" cy="12" r="6" fill="#F43F5E" fill-opacity="0.14"/>
   <!-- Big segment dividers -->
-  <line x1="12" y1="6" x2="12" y2="18" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="6" y1="12" x2="18" y2="12" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="7.8" y1="7.8" x2="16.2" y2="16.2" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="7.8" y1="16.2" x2="16.2" y2="7.8" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="12" y1="6" x2="12" y2="18" stroke="#F43F5E" stroke-width="1.8"/>
+  <line x1="6" y1="12" x2="18" y2="12" stroke="#F43F5E" stroke-width="1.8"/>
+  <line x1="7.8" y1="7.8" x2="16.2" y2="16.2" stroke="#F43F5E" stroke-width="1.8"/>
+  <line x1="7.8" y1="16.2" x2="16.2" y2="7.8" stroke="#F43F5E" stroke-width="1.8"/>
 </svg>

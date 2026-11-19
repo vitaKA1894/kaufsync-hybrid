@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Globe artichoke with overlapping pointed scales -->
-  <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor" fill-opacity="0.25"/>
-  <ellipse cx="12" cy="12" rx="7" ry="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-artischocken" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#15803D" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Globe artichoke with overlapping pointed scales -->
+  <ellipse cx="12" cy="12" rx="7" ry="8" fill="#15803D" fill-opacity="0.14"/>
+  <ellipse cx="12" cy="12" rx="7" ry="8" fill="none" stroke="#15803D" filter="url(#glow-artischocken)" stroke-width="2"/>
   <!-- Overlapping bracts -->
-  <path d="M12 4l-2 3h4l-2-3zm-4 4l-2 3h4l-2-3zm8 0l-2 3h4l-2-3zm-6 4l-2 3h4l-2-3zm4 0l-2 3h4l-2-3z" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
-  <path d="M12 20v3" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M12 4l-2 3h4l-2-3zm-4 4l-2 3h4l-2-3zm8 0l-2 3h4l-2-3zm-6 4l-2 3h4l-2-3zm4 0l-2 3h4l-2-3z" fill="#15803D" fill-opacity="0.35" stroke="#15803D" stroke-width="1.2"/>
+  <path d="M12 20v3" stroke="#15803D" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

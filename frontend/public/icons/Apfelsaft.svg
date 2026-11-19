@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Juice carton / bottle with Apple -->
-  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 7V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-apfelsaft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Juice carton / bottle with Apple -->
+  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="#F59E0B" filter="url(#glow-apfelsaft)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 7V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v3" fill="none" stroke="#F59E0B" stroke-width="1.8"/>
   <!-- Apple emblem -->
-  <circle cx="12" cy="13.5" r="3.2" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.5"/>
-  <path d="M12 10.5c.5-1.2 1.5-1.5 2-1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
-  <text x="12" y="19.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.2" font-weight="900" letter-spacing="0.4" fill="currentColor" text-anchor="middle">APFEL</text>
+  <circle cx="12" cy="13.5" r="3.2" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.5"/>
+  <path d="M12 10.5c.5-1.2 1.5-1.5 2-1" stroke="#F59E0B" stroke-width="1.3" stroke-linecap="round"/>
+  <text x="12" y="19.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.2" font-weight="900" letter-spacing="0.4" fill="#F59E0B" fill-opacity="0.35" text-anchor="middle">APFEL</text>
 </svg>

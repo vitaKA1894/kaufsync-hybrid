@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Hard Parmigiano wedge with craggy rind & label -->
-  <path d="M4 19L20 21V9L4 19z" fill="currentColor" fill-opacity="0.28"/>
-  <path d="M4 19L11 4l9 5" fill="currentColor" fill-opacity="0.15"/>
-  <path d="M4 19L20 21V9L4 19z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M4 19L11 4l9 5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-parmesan" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Hard Parmigiano wedge with craggy rind & label -->
+  <path d="M4 19L20 21V9L4 19z" fill="#FBBF24" fill-opacity="0.14"/>
+  <path d="M4 19L11 4l9 5" fill="#FBBF24" fill-opacity="0.15"/>
+  <path d="M4 19L20 21V9L4 19z" fill="none" stroke="#FBBF24" filter="url(#glow-parmesan)" stroke-width="2"/>
+  <path d="M4 19L11 4l9 5" fill="none" stroke="#FBBF24" stroke-width="2"/>
   <!-- Thick aged rind on edge -->
-  <line x1="20" y1="9" x2="20" y2="21" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/>
-  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">PARMA</text>
+  <line x1="20" y1="9" x2="20" y2="21" stroke="#FBBF24" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#FBBF24" fill-opacity="0.35" text-anchor="middle">PARMA</text>
 </svg>

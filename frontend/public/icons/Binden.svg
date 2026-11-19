@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Sanitary pad with side wings -->
-  <path d="M9 3c-2 0-3 3-3 9s1 9 3 9 3-3 3-9-1-9-3-9z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M9 3c-2 0-3 3-3 9s1 9 3 9 3-3 3-9-1-9-3-9z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-binden" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FB7185" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Sanitary pad with side wings -->
+  <path d="M9 3c-2 0-3 3-3 9s1 9 3 9 3-3 3-9-1-9-3-9z" fill="#FB7185" fill-opacity="0.14"/>
+  <path d="M9 3c-2 0-3 3-3 9s1 9 3 9 3-3 3-9-1-9-3-9z" fill="none" stroke="#FB7185" filter="url(#glow-binden)" stroke-width="2"/>
   <!-- Side wings -->
-  <path d="M6 10H3a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h3m6-4h3a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M6 10H3a2 2 0 0 0-2 2v0a2 2 0 0 0 2 2h3m6-4h3a2 2 0 0 1 2 2v0a2 2 0 0 1-2 2h-3" stroke="#FB7185" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

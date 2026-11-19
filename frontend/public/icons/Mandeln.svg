@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Whole pointed almond nut kernel with skin lines -->
-  <path d="M12 3c-4 4-7 9-4 14 2 3 6 4 8 2s4-5 1-10c-1.5-2.5-3.5-4.5-5-6z" fill="currentColor" fill-opacity="0.3"/>
-  <path d="M12 3c-4 4-7 9-4 14 2 3 6 4 8 2s4-5 1-10c-1.5-2.5-3.5-4.5-5-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M10 9c0 3 1 6 3 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-mandeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Whole pointed almond nut kernel with skin lines -->
+  <path d="M12 3c-4 4-7 9-4 14 2 3 6 4 8 2s4-5 1-10c-1.5-2.5-3.5-4.5-5-6z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M12 3c-4 4-7 9-4 14 2 3 6 4 8 2s4-5 1-10c-1.5-2.5-3.5-4.5-5-6z" fill="none" stroke="#D97706" filter="url(#glow-mandeln)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 9c0 3 1 6 3 8" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

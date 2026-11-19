@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Lens-shaped brown/red lentils -->
-  <ellipse cx="9" cy="15" rx="5" ry="3" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2" transform="rotate(-15 9 15)"/>
-  <ellipse cx="15" cy="12" rx="5" ry="3" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="2" transform="rotate(20 15 12)"/>
-  <ellipse cx="11" cy="9" rx="4" ry="2.5" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8" transform="rotate(-5 11 9)"/>
+  <defs>
+    <filter id="glow-linsen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EA580C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Lens-shaped brown/red lentils -->
+  <ellipse cx="9" cy="15" rx="5" ry="3" fill="#EA580C" fill-opacity="0.14" stroke="#EA580C" filter="url(#glow-linsen)" stroke-width="2" transform="rotate(-15 9 15)"/>
+  <ellipse cx="15" cy="12" rx="5" ry="3" fill="#EA580C" fill-opacity="0.14" stroke="#EA580C" stroke-width="2" transform="rotate(20 15 12)"/>
+  <ellipse cx="11" cy="9" rx="4" ry="2.5" fill="#EA580C" fill-opacity="0.14" stroke="#EA580C" stroke-width="1.8" transform="rotate(-5 11 9)"/>
 </svg>

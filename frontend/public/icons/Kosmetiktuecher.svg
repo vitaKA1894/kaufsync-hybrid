@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Rectangular facial tissue box with tissue pulled out -->
-  <rect x="3" y="11" width="18" height="9" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="3" y="11" width="18" height="9" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="12" cy="11" rx="5" ry="2" stroke="currentColor" stroke-width="1.5"/>
+  <defs>
+    <filter id="glow-kosmetiktuecher" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Rectangular facial tissue box with tissue pulled out -->
+  <rect x="3" y="11" width="18" height="9" rx="2" fill="#F8FAFC" fill-opacity="0.14"/>
+  <rect x="3" y="11" width="18" height="9" rx="2" fill="none" stroke="#F8FAFC" filter="url(#glow-kosmetiktuecher)" stroke-width="2"/>
+  <ellipse cx="12" cy="11" rx="5" ry="2" stroke="#F8FAFC" stroke-width="1.5"/>
   <!-- Puffed tissue emerging -->
-  <path d="M9 11c0-4 2-7 3-7s3 3 3 7H9z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M9 11c0-4 2-7 3-7s3 3 3 7H9z" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.5"/>
 </svg>

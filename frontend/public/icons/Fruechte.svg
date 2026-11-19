@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fruit assortment: Apple, Banana, Grapes -->
-  <circle cx="8.5" cy="14" r="5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2"/>
-  <path d="M8.5 9V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M13 18c3 2 6 1 7-2s0-5-2-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-fruechte" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FF334B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fruit assortment: Apple, Banana, Grapes -->
+  <circle cx="8.5" cy="14" r="5" fill="#FF334B" fill-opacity="0.14" stroke="#FF334B" filter="url(#glow-fruechte)" stroke-width="2"/>
+  <path d="M8.5 9V7" stroke="#FF334B" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M13 18c3 2 6 1 7-2s0-5-2-7" stroke="#FF334B" stroke-width="2" stroke-linecap="round"/>
   <!-- Grapes -->
-  <circle cx="14" cy="15" r="1.5" fill="currentColor"/>
-  <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+  <circle cx="14" cy="15" r="1.5" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="17" cy="14" r="1.5" fill="#FF334B" fill-opacity="0.35"/>
 </svg>

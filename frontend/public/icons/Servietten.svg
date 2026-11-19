@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Folded dinner paper napkins in triangular fold -->
-  <polygon points="4,18 20,18 12,5" fill="currentColor" fill-opacity="0.28"/>
-  <polygon points="4,18 20,18 12,5" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <polygon points="7,18 19,18 13,8" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-servietten" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Folded dinner paper napkins in triangular fold -->
+  <polygon points="4,18 20,18 12,5" fill="#F8FAFC" fill-opacity="0.14"/>
+  <polygon points="4,18 20,18 12,5" fill="none" stroke="#F8FAFC" filter="url(#glow-servietten)" stroke-width="2" stroke-linejoin="round"/>
+  <polygon points="7,18 19,18 13,8" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.5" stroke-linejoin="round"/>
 </svg>

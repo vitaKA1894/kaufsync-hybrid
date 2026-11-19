@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Classic Canadian maple syrup glass jug with ring handle and maple leaf -->
-  <path d="M8 8c1-1 2-2 2-4V2h4v2c0 2 1 3 2 4l1 11a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 19L8 8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M8 8c1-1 2-2 2-4V2h4v2c0 2 1 3 2 4l1 11a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 19L8 8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-ahornsirup" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Classic Canadian maple syrup glass jug with ring handle and maple leaf -->
+  <path d="M8 8c1-1 2-2 2-4V2h4v2c0 2 1 3 2 4l1 11a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 19L8 8z" fill="#B45309" fill-opacity="0.14"/>
+  <path d="M8 8c1-1 2-2 2-4V2h4v2c0 2 1 3 2 4l1 11a2.5 2.5 0 0 1-2.5 2.5h-5A2.5 2.5 0 0 1 7 19L8 8z" fill="none" stroke="#B45309" filter="url(#glow-ahornsirup)" stroke-width="2"/>
   <!-- Ring finger handle -->
-  <path d="M15 7c2 0 3 1.2 3 2.5S17 12 15 12" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M15 7c2 0 3 1.2 3 2.5S17 12 15 12" fill="none" stroke="#B45309" stroke-width="1.8"/>
   <!-- Maple leaf emblem -->
-  <path d="M12 11l.8 1.5 1.5-.5-.8 1.5 1.5 1.2-2 .3.5 1.5-1.5-.8-1.5.8.5-1.5-2-.3 1.5-1.2-.8-1.5 1.5.5z" fill="currentColor"/>
+  <path d="M12 11l.8 1.5 1.5-.5-.8 1.5 1.5 1.2-2 .3.5 1.5-1.5-.8-1.5.8.5-1.5-2-.3 1.5-1.2-.8-1.5 1.5.5z" fill="#B45309" fill-opacity="0.35"/>
 </svg>

@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="5" y="5" width="14" height="3" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
-  <text x="12" y="13.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2" font-weight="900" letter-spacing="0.2" fill="currentColor" text-anchor="middle">MANDEL</text>
-  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">MUS</text>
+  <defs>
+    <filter id="glow-mandelmus" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<rect x="6" y="8" width="12" height="13" rx="2" fill="#D97706" fill-opacity="0.14"/>
+  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="#D97706" filter="url(#glow-mandelmus)" stroke-width="2"/>
+  <rect x="5" y="5" width="14" height="3" rx="1" fill="#D97706" fill-opacity="0.14" stroke="#D97706" stroke-width="1.8"/>
+  <text x="12" y="13.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2" font-weight="900" letter-spacing="0.2" fill="#D97706" fill-opacity="0.35" text-anchor="middle">MANDEL</text>
+  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="#D97706" fill-opacity="0.35" text-anchor="middle">MUS</text>
 </svg>

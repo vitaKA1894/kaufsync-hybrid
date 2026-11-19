@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Yogurt cup with peeled back foil lid and spoon -->
-  <path d="M6 9h12l-1.5 11a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 9z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M6 9h12l-1.5 11a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 9z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-joghurt" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Yogurt cup with peeled back foil lid and spoon -->
+  <path d="M6 9h12l-1.5 11a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 9z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M6 9h12l-1.5 11a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 9z" fill="none" stroke="#F8FAFC" filter="url(#glow-joghurt)" stroke-width="2"/>
   <!-- Peeled back foil lid -->
-  <path d="M5 9c2-3 6-4 9-2l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M5 9c2-3 6-4 9-2l4 2" stroke="#F8FAFC" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Spoon dipping in -->
-  <path d="M15 4l-4 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="11.5" cy="15" r="2" fill="currentColor" fill-opacity="0.5"/>
+  <path d="M15 4l-4 7" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="11.5" cy="15" r="2" fill="#F8FAFC" fill-opacity="0.14"/>
 </svg>

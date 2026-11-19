@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Jam jar with traditional gingham cloth cover and strawberry label -->
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-marmelade" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Jam jar with traditional gingham cloth cover and strawberry label -->
+  <rect x="6" y="8" width="12" height="13" rx="2" fill="#EF4444" fill-opacity="0.14"/>
+  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="#EF4444" filter="url(#glow-marmelade)" stroke-width="2"/>
   <!-- Gingham cloth lid with ruffled skirt -->
-  <path d="M5 8c2-2 4-2 7-2s5 0 7 2l-1 2H6L5 8z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M5 8c2-2 4-2 7-2s5 0 7 2l-1 2H6L5 8z" fill="#EF4444" fill-opacity="0.14" stroke="#EF4444" stroke-width="1.8"/>
   <!-- Strawberry fruit emblem -->
-  <path d="M12 12c-1.5 0-2.5 1.5-2 3.5s2 2.5 2 2.5 2-.5 2-2.5-.5-3.5-2-3.5z" fill="currentColor"/>
+  <path d="M12 12c-1.5 0-2.5 1.5-2 3.5s2 2.5 2 2.5 2-.5 2-2.5-.5-3.5-2-3.5z" fill="#EF4444" fill-opacity="0.35"/>
 </svg>

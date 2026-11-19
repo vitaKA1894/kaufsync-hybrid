@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Prime Beef Steak with marbling and clean badge -->
-  <path d="M4 11c0-4 4-7 11-7 4 0 6 2 6 5.5s-2 8.5-8 8.5c-5 0-9-3-9-7z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 11c0-4 4-7 11-7 4 0 6 2 6 5.5s-2 8.5-8 8.5c-5 0-9-3-9-7z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <circle cx="8" cy="11" r="2" fill="currentColor" fill-opacity="0.6" stroke="currentColor" stroke-width="1.5"/>
-  <rect x="11.5" y="11.5" width="7.5" height="5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="15.2" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">RIND</text>
+  <defs>
+    <filter id="glow-rindfleisch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Prime Beef Steak with marbling and clean badge -->
+  <path d="M4 11c0-4 4-7 11-7 4 0 6 2 6 5.5s-2 8.5-8 8.5c-5 0-9-3-9-7z" fill="#EF4444" fill-opacity="0.14"/>
+  <path d="M4 11c0-4 4-7 11-7 4 0 6 2 6 5.5s-2 8.5-8 8.5c-5 0-9-3-9-7z" fill="none" stroke="#EF4444" filter="url(#glow-rindfleisch)" stroke-width="2"/>
+  <circle cx="8" cy="11" r="2" fill="#EF4444" fill-opacity="0.14" stroke="#EF4444" stroke-width="1.5"/>
+  <rect x="11.5" y="11.5" width="7.5" height="5" rx="1" fill="#EF4444" fill-opacity="0.14"/>
+  <text x="15.2" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#EF4444" fill-opacity="0.35" text-anchor="middle">RIND</text>
 </svg>

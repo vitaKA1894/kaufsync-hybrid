@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Rice bowl filled with steaming white rice and chopsticks -->
-  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-reis" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Rice bowl filled with steaming white rice and chopsticks -->
+  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="none" stroke="#F8FAFC" filter="url(#glow-reis)" stroke-width="2"/>
   <!-- Steaming rice mound -->
-  <path d="M6 12c1.5-3 3.5-4 6-4s4.5 1 6 4" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M6 12c1.5-3 3.5-4 6-4s4.5 1 6 4" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.8"/>
   <!-- Chopsticks -->
-  <line x1="3" y1="5" x2="19" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <line x1="5" y1="3" x2="19" y2="8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="3" y1="5" x2="19" y2="10" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round"/>
+  <line x1="5" y1="3" x2="19" y2="8" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round"/>
 </svg>

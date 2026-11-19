@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Round red radish with tail root and leafy greens -->
-  <circle cx="12" cy="13.5" r="6.5" fill="currentColor" fill-opacity="0.35"/>
-  <circle cx="12" cy="13.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-radieschen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F43F5E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Round red radish with tail root and leafy greens -->
+  <circle cx="12" cy="13.5" r="6.5" fill="#F43F5E" fill-opacity="0.14"/>
+  <circle cx="12" cy="13.5" r="6.5" fill="none" stroke="#F43F5E" filter="url(#glow-radieschen)" stroke-width="2"/>
   <!-- Taproot tail -->
-  <path d="M12 20c0 1.5-1 2.5-1 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 20c0 1.5-1 2.5-1 3.5" stroke="#F43F5E" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Leaves on top -->
-  <path d="M12 7V2m-2 5L7 3m7 4l3-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 7V2m-2 5L7 3m7 4l3-4" stroke="#F43F5E" stroke-width="2" stroke-linecap="round"/>
 </svg>

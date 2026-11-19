@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Turned-out flan / pudding mound with caramel sauce topping -->
-  <path d="M5 18c0 1.5 3 2.5 7 2.5s7-1 7-2.5l-2-9c0-1.5-2.2-2.5-5-2.5s-5 1-5 2.5l-2 9z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M5 18c0 1.5 3 2.5 7 2.5s7-1 7-2.5l-2-9c0-1.5-2.2-2.5-5-2.5s-5 1-5 2.5l-2 9z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-pudding" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FDE047" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Turned-out flan / pudding mound with caramel sauce topping -->
+  <path d="M5 18c0 1.5 3 2.5 7 2.5s7-1 7-2.5l-2-9c0-1.5-2.2-2.5-5-2.5s-5 1-5 2.5l-2 9z" fill="#FDE047" fill-opacity="0.14"/>
+  <path d="M5 18c0 1.5 3 2.5 7 2.5s7-1 7-2.5l-2-9c0-1.5-2.2-2.5-5-2.5s-5 1-5 2.5l-2 9z" fill="none" stroke="#FDE047" filter="url(#glow-pudding)" stroke-width="2"/>
   <!-- Caramel drip on top -->
-  <path d="M8 9c1 1 2 2 4 2s3-1 4-2" fill="currentColor" fill-opacity="0.6"/>
-  <circle cx="12" cy="5" r="1.5" fill="currentColor"/>
+  <path d="M8 9c1 1 2 2 4 2s3-1 4-2" fill="#FDE047" fill-opacity="0.14"/>
+  <circle cx="12" cy="5" r="1.5" fill="#FDE047" fill-opacity="0.35"/>
 </svg>

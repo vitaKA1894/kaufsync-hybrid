@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Slender white wine bottle with elongated glass -->
-  <path d="M6 9l1-2V3h3v4l1 2v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z" fill="currentColor" fill-opacity="0.18"/>
-  <path d="M6 9l1-2V3h3v4l1 2v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-weisswein" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FDE047" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Slender white wine bottle with elongated glass -->
+  <path d="M6 9l1-2V3h3v4l1 2v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z" fill="#FDE047" fill-opacity="0.18"/>
+  <path d="M6 9l1-2V3h3v4l1 2v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z" fill="none" stroke="#FDE047" filter="url(#glow-weisswein)" stroke-width="2"/>
   <!-- Slender flute glass -->
-  <path d="M14.5 8h5v6a2.5 2.5 0 0 1-5 0V8z" fill="currentColor" fill-opacity="0.28"/>
-  <path d="M14.5 8h5v6a2.5 2.5 0 0 1-5 0V8z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M17 14v6 M15 20h4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M14.5 8h5v6a2.5 2.5 0 0 1-5 0V8z" fill="#FDE047" fill-opacity="0.14"/>
+  <path d="M14.5 8h5v6a2.5 2.5 0 0 1-5 0V8z" fill="none" stroke="#FDE047" stroke-width="1.8"/>
+  <path d="M17 14v6 M15 20h4" stroke="#FDE047" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

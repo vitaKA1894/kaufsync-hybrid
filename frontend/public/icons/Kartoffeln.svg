@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Earthy potato with skin eyes/dimples -->
-  <path d="M4 12c0-5 4-8 10-8 4.5 0 6 3 6 7s-2.5 8-8 8c-5.5 0-8-3-8-7z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 12c0-5 4-8 10-8 4.5 0 6 3 6 7s-2.5 8-8 8c-5.5 0-8-3-8-7z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kartoffeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Earthy potato with skin eyes/dimples -->
+  <path d="M4 12c0-5 4-8 10-8 4.5 0 6 3 6 7s-2.5 8-8 8c-5.5 0-8-3-8-7z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M4 12c0-5 4-8 10-8 4.5 0 6 3 6 7s-2.5 8-8 8c-5.5 0-8-3-8-7z" fill="none" stroke="#D97706" filter="url(#glow-kartoffeln)" stroke-width="2"/>
   <!-- Potato eyes -->
-  <path d="M8 9c1 0 1.5.5 1 .8 M14 9c1 0 1.5.5 1 .8 M10 15c1 0 1.5.5 1 .8 M15 14c1 0 1.5.5 1 .8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M8 9c1 0 1.5.5 1 .8 M14 9c1 0 1.5.5 1 .8 M10 15c1 0 1.5.5 1 .8 M15 14c1 0 1.5.5 1 .8" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

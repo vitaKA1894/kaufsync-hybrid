@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fresh round head of butterhead/curly lettuce with ruffled leafy layers -->
-  <circle cx="12" cy="13" r="8" fill="currentColor" fill-opacity="0.22"/>
-  <circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-salat" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fresh round head of butterhead/curly lettuce with ruffled leafy layers -->
+  <circle cx="12" cy="13" r="8" fill="#22C55E" fill-opacity="0.14"/>
+  <circle cx="12" cy="13" r="8" fill="none" stroke="#22C55E" filter="url(#glow-salat)" stroke-width="2"/>
   <!-- Wavy ruffled outer leaf edges -->
-  <path d="M5 11c1.5-1.5 3-1 4.5.5s3.5 1.5 5 0 3-2 4.5-.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M5.5 15c2-1 4-.5 5.5 1s3.5 1 5.5 0 2-2 3.5-1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M5 11c1.5-1.5 3-1 4.5.5s3.5 1.5 5 0 3-2 4.5-.5" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M5.5 15c2-1 4-.5 5.5 1s3.5 1 5.5 0 2-2 3.5-1" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Rosette lettuce heart swirl -->
-  <path d="M10 10.5c1-1.5 3-1.5 4 0s.5 2.5-1 3-2.5 0-3-1" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M10 10.5c1-1.5 3-1.5 4 0s.5 2.5-1 3-2.5 0-3-1" fill="none" stroke="#22C55E" stroke-width="1.6" stroke-linecap="round"/>
 </svg>

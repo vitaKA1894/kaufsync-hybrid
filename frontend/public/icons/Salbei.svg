@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Sage sprig with velvety textured elongated leaves -->
-  <line x1="12" y1="21" x2="12" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 15c-4-1-6 2-5 5s5 0 5-5zm0 0c4-1 6 2 5 5s-5 0-5-5z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M12 9c-3.5-1-5 1.5-4 4s4 0 4-4zm0 0c3.5-1 5 1.5 4 4s-4 0-4-4z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-salbei" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#4ADE80" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Sage sprig with velvety textured elongated leaves -->
+  <line x1="12" y1="21" x2="12" y2="4" stroke="#4ADE80" filter="url(#glow-salbei)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 15c-4-1-6 2-5 5s5 0 5-5zm0 0c4-1 6 2 5 5s-5 0-5-5z" fill="#4ADE80" fill-opacity="0.14" stroke="#4ADE80" stroke-width="1.8"/>
+  <path d="M12 9c-3.5-1-5 1.5-4 4s4 0 4-4zm0 0c3.5-1 5 1.5 4 4s-4 0-4-4z" fill="#4ADE80" fill-opacity="0.14" stroke="#4ADE80" stroke-width="1.8"/>
 </svg>

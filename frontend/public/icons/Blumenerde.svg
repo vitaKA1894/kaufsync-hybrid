@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M5.5 7c3.5 1 9.5 1 13 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <rect x="7" y="11" width="10" height="5.5" rx="1.5" fill="currentColor" fill-opacity="0.35"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="3.2" font-weight="900" letter-spacing="0.5" fill="currentColor" text-anchor="middle">ERDE</text>
-  <path d="M12 4v3 M12 4c-1.5-1.5-3 0-3 0s1.5 2 3 1 M12 5c1.5-1.5 3 0 3 0s-1.5 2-3 1" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-blumenerde" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#78350F" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="#78350F" fill-opacity="0.14"/>
+  <path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="#78350F" filter="url(#glow-blumenerde)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M5.5 7c3.5 1 9.5 1 13 0" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
+  <rect x="7" y="11" width="10" height="5.5" rx="1.5" fill="#78350F" fill-opacity="0.14"/>
+  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="3.2" font-weight="900" letter-spacing="0.5" fill="#78350F" fill-opacity="0.35" text-anchor="middle">ERDE</text>
+  <path d="M12 4v3 M12 4c-1.5-1.5-3 0-3 0s1.5 2 3 1 M12 5c1.5-1.5 3 0 3 0s-1.5 2-3 1" fill="#78350F" fill-opacity="0.14" stroke="#78350F" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

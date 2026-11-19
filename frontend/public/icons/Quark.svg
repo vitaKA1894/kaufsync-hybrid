@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Quark tub with label -->
-  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="4" y="7" width="16" height="2.5" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.5"/>
-  <rect x="6.5" y="12" width="11" height="5.5" rx="1" fill="currentColor" fill-opacity="0.4"/>
-  <text x="12" y="15.8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.5" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">QUARK</text>
+  <defs>
+    <filter id="glow-quark" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Quark tub with label -->
+  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="none" stroke="#F8FAFC" filter="url(#glow-quark)" stroke-width="2"/>
+  <rect x="4" y="7" width="16" height="2.5" rx="1" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.5"/>
+  <rect x="6.5" y="12" width="11" height="5.5" rx="1" fill="#F8FAFC" fill-opacity="0.14"/>
+  <text x="12" y="15.8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.5" font-weight="900" letter-spacing="0.3" fill="#F8FAFC" fill-opacity="0.35" text-anchor="middle">QUARK</text>
 </svg>

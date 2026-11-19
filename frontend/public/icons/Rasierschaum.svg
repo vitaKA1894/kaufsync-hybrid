@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Shaving foam aerosol can with fluffy foam cloud -->
-  <rect x="7" y="9" width="10" height="12" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="7" y="9" width="10" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="9.5" y="6" width="5" height="3" rx="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-rasierschaum" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Shaving foam aerosol can with fluffy foam cloud -->
+  <rect x="7" y="9" width="10" height="12" rx="2" fill="#38BDF8" fill-opacity="0.14"/>
+  <rect x="7" y="9" width="10" height="12" rx="2" fill="none" stroke="#38BDF8" filter="url(#glow-rasierschaum)" stroke-width="2"/>
+  <rect x="9.5" y="6" width="5" height="3" rx="0.5" stroke="#38BDF8" stroke-width="1.8"/>
   <!-- Fluffy foam dollop on top -->
-  <circle cx="12" cy="4" r="2.2" fill="currentColor" fill-opacity="0.6"/>
-  <text x="12" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">FOAM</text>
+  <circle cx="12" cy="4" r="2.2" fill="#38BDF8" fill-opacity="0.14"/>
+  <text x="12" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#38BDF8" fill-opacity="0.35" text-anchor="middle">FOAM</text>
 </svg>

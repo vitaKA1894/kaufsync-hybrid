@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Thai wok noodle take-out box with lime wedge & chopsticks -->
-  <path d="M5 8l2 12h10l2-12L15 4H9L5 8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M5 8l2 12h10l2-12L15 4H9L5 8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-thai-to-go" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Thai wok noodle take-out box with lime wedge & chopsticks -->
+  <path d="M5 8l2 12h10l2-12L15 4H9L5 8z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M5 8l2 12h10l2-12L15 4H9L5 8z" fill="none" stroke="#F59E0B" filter="url(#glow-thai-to-go)" stroke-width="2"/>
   <!-- Lime wedge on side -->
-  <path d="M14 13a3 3 0 0 1 4 0h-4z" fill="currentColor"/>
+  <path d="M14 13a3 3 0 0 1 4 0h-4z" fill="#F59E0B" fill-opacity="0.35"/>
   <!-- Chopsticks -->
-  <line x1="4" y1="2" x2="16" y2="14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="12" y1="2" x2="18" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="4" y1="2" x2="16" y2="14" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="2" x2="18" y2="8" stroke="#F59E0B" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Bavarian pretzel with classic knot and salt crystals -->
-  <path d="M12 7c-2-3.5-6-3.5-8-1s-1 6 2 8l6 6 6-6c3-2 4-5.5 2-8s-6-2.5-8 1z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 7c-2-3.5-6-3.5-8-1s-1 6 2 8l6 6 6-6c3-2 4-5.5 2-8s-6-2.5-8 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M8 12c2 2 3 5 4 8m4-8c-2 2-3 5-4 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-brezeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Bavarian pretzel with classic knot and salt crystals -->
+  <path d="M12 7c-2-3.5-6-3.5-8-1s-1 6 2 8l6 6 6-6c3-2 4-5.5 2-8s-6-2.5-8 1z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M12 7c-2-3.5-6-3.5-8-1s-1 6 2 8l6 6 6-6c3-2 4-5.5 2-8s-6-2.5-8 1z" fill="none" stroke="#D97706" filter="url(#glow-brezeln)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8 12c2 2 3 5 4 8m4-8c-2 2-3 5-4 8" stroke="#D97706" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Coarse salt crystals -->
-  <circle cx="5" cy="9" r="0.7" fill="currentColor"/>
-  <circle cx="8" cy="6" r="0.7" fill="currentColor"/>
-  <circle cx="16" cy="6" r="0.7" fill="currentColor"/>
-  <circle cx="19" cy="9" r="0.7" fill="currentColor"/>
-  <circle cx="12" cy="18" r="0.7" fill="currentColor"/>
+  <circle cx="5" cy="9" r="0.7" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="8" cy="6" r="0.7" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="16" cy="6" r="0.7" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="19" cy="9" r="0.7" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="12" cy="18" r="0.7" fill="#D97706" fill-opacity="0.35"/>
 </svg>

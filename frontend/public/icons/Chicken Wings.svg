@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pair of crispy chicken wings / drumettes -->
-  <path d="M8 11c-2-3-1-6 2-7s6 2 7 5c-1 3-4 4-6 4s-2-1-3-2z" fill="currentColor" fill-opacity="0.35"/>
-  <path d="M8 11c-2-3-1-6 2-7s6 2 7 5c-1 3-4 4-6 4s-2-1-3-2z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-chicken-wings" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pair of crispy chicken wings / drumettes -->
+  <path d="M8 11c-2-3-1-6 2-7s6 2 7 5c-1 3-4 4-6 4s-2-1-3-2z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M8 11c-2-3-1-6 2-7s6 2 7 5c-1 3-4 4-6 4s-2-1-3-2z" fill="none" stroke="#F59E0B" filter="url(#glow-chicken-wings)" stroke-width="2"/>
   <!-- Bone tip -->
-  <path d="M15 9l4-3 M19 5a1 1 0 0 1 1 1 M20 7a1 1 0 0 1-1-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M15 9l4-3 M19 5a1 1 0 0 1 1 1 M20 7a1 1 0 0 1-1-1" stroke="#F59E0B" stroke-width="2" stroke-linecap="round"/>
   <!-- Second wing -->
-  <path d="M5 18c-2-2-1-5 2-6s5 1 6 4-2 3-4 3-3-.5-4-1z" fill="currentColor" fill-opacity="0.2"/>
-  <path d="M5 18c-2-2-1-5 2-6s5 1 6 4-2 3-4 3-3-.5-4-1z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M5 18c-2-2-1-5 2-6s5 1 6 4-2 3-4 3-3-.5-4-1z" fill="#F59E0B" fill-opacity="0.2"/>
+  <path d="M5 18c-2-2-1-5 2-6s5 1 6 4-2 3-4 3-3-.5-4-1z" fill="none" stroke="#F59E0B" stroke-width="1.8"/>
 </svg>

@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <path d="M3 13c0-5.5 4-8.5 9-8.5s9 3 9 8.5c-3-1-6-1-9 0-3-1-6-1-9 0z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M3 13c0-5.5 4-8.5 9-8.5s9 3 9 8.5c-3-1-6-1-9 0-3-1-6-1-9 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M12 4.5V2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-sonnenschirm" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<path d="M3 13c0-5.5 4-8.5 9-8.5s9 3 9 8.5c-3-1-6-1-9 0-3-1-6-1-9 0z" fill="#FACC15" fill-opacity="0.14"/>
+  <path d="M3 13c0-5.5 4-8.5 9-8.5s9 3 9 8.5c-3-1-6-1-9 0-3-1-6-1-9 0z" fill="none" stroke="#FACC15" filter="url(#glow-sonnenschirm)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12 4.5V2.5" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
   <!-- Ribs -->
-  <path d="M12 4.5c-2.5 3-3.8 5.5-4 8.5 M12 4.5c2.5 3 3.8 5.5 4 8.5" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M12 4.5c-2.5 3-3.8 5.5-4 8.5 M12 4.5c2.5 3 3.8 5.5 4 8.5" stroke="#FACC15" stroke-width="1.8"/>
   <!-- Pole & stand -->
-  <path d="M12 13v8 M9 21h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 13v8 M9 21h6" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
 </svg>

@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Flat tuna can with pull-tab and tuna fish silhouette -->
-  <ellipse cx="12" cy="8" rx="8" ry="4" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="2"/>
-  <path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-thunfisch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Flat tuna can with pull-tab and tuna fish silhouette -->
+  <ellipse cx="12" cy="8" rx="8" ry="4" fill="#38BDF8" fill-opacity="0.14" stroke="#38BDF8" filter="url(#glow-thunfisch)" stroke-width="2"/>
+  <path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8" fill="#38BDF8" fill-opacity="0.14"/>
+  <path d="M4 8v8c0 2.2 3.6 4 8 4s8-1.8 8-4V8" fill="none" stroke="#38BDF8" stroke-width="2"/>
   <!-- Pull tab ring -->
-  <circle cx="12" cy="8" r="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/>
-  <line x1="12" y1="8" x2="16" y2="7" stroke="currentColor" stroke-width="1.4"/>
+  <circle cx="12" cy="8" r="1.5" fill="none" stroke="#38BDF8" stroke-width="1.4"/>
+  <line x1="12" y1="8" x2="16" y2="7" stroke="#38BDF8" stroke-width="1.4"/>
   <!-- Tuna fish silhouette on side of can -->
-  <path d="M8 15c2-1 5-1 7 0l2-1v2l-2-1c-2 1-5 1-7 0z" fill="currentColor"/>
+  <path d="M8 15c2-1 5-1 7 0l2-1v2l-2-1c-2 1-5 1-7 0z" fill="#38BDF8" fill-opacity="0.35"/>
 </svg>

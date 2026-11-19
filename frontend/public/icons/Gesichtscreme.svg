@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cosmetic luxury face cream glass jar with screw lid -->
-  <rect x="5" y="10" width="14" height="10" rx="2.5" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="4" y="6" width="16" height="4" rx="1.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
-  <ellipse cx="12" cy="15" rx="3.5" ry="1.8" fill="currentColor" fill-opacity="0.4"/>
+  <defs>
+    <filter id="glow-gesichtscreme" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cosmetic luxury face cream glass jar with screw lid -->
+  <rect x="5" y="10" width="14" height="10" rx="2.5" fill="#EC4899" fill-opacity="0.14"/>
+  <rect x="5" y="10" width="14" height="10" rx="2.5" fill="none" stroke="#EC4899" filter="url(#glow-gesichtscreme)" stroke-width="2"/>
+  <rect x="4" y="6" width="16" height="4" rx="1.5" fill="#EC4899" fill-opacity="0.14" stroke="#EC4899" stroke-width="1.8"/>
+  <ellipse cx="12" cy="15" rx="3.5" ry="1.8" fill="#EC4899" fill-opacity="0.14"/>
 </svg>

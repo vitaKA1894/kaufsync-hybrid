@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cozy mug with hot cocoa and marshmallows -->
-  <rect x="5" y="8" width="11" height="11" rx="3" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="5" y="8" width="11" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kakao" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cozy mug with hot cocoa and marshmallows -->
+  <rect x="5" y="8" width="11" height="11" rx="3" fill="#78350F" fill-opacity="0.14"/>
+  <rect x="5" y="8" width="11" height="11" rx="3" fill="none" stroke="#78350F" filter="url(#glow-kakao)" stroke-width="2"/>
   <!-- Handle -->
-  <path d="M16 10h2.5a2 2 0 0 1 0 4H16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M16 10h2.5a2 2 0 0 1 0 4H16" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
   <!-- Whipped cream swirl / marshmallows -->
-  <circle cx="8.5" cy="7" r="1.5" fill="currentColor" fill-opacity="0.5"/>
-  <circle cx="12" cy="6.5" r="1.8" fill="currentColor" fill-opacity="0.6"/>
-  <text x="10.5" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">KAKAO</text>
+  <circle cx="8.5" cy="7" r="1.5" fill="#78350F" fill-opacity="0.14"/>
+  <circle cx="12" cy="6.5" r="1.8" fill="#78350F" fill-opacity="0.14"/>
+  <text x="10.5" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#78350F" fill-opacity="0.35" text-anchor="middle">KAKAO</text>
 </svg>

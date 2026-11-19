@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Lipstick / lip balm tube twisted up with beveled stick -->
-  <rect x="8" y="11" width="8" height="10" rx="1.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="8" y="11" width="8" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-lippenbalsam" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FB7185" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Lipstick / lip balm tube twisted up with beveled stick -->
+  <rect x="8" y="11" width="8" height="10" rx="1.5" fill="#FB7185" fill-opacity="0.14"/>
+  <rect x="8" y="11" width="8" height="10" rx="1.5" fill="none" stroke="#FB7185" filter="url(#glow-lippenbalsam)" stroke-width="2"/>
   <!-- Turning ring -->
-  <line x1="8" y1="18" x2="16" y2="18" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="8" y1="18" x2="16" y2="18" stroke="#FB7185" stroke-width="1.8"/>
   <!-- Beveled balm stick protruding -->
-  <path d="M9.5 11V6l5-3v8" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M9.5 11V6l5-3v8" fill="#FB7185" fill-opacity="0.14" stroke="#FB7185" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>

@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Rectangular crispbread with indented dimples -->
-  <rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-knaeckebrot" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Rectangular crispbread with indented dimples -->
+  <rect x="4" y="5" width="16" height="14" rx="2" fill="#D97706" fill-opacity="0.14"/>
+  <rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="#D97706" filter="url(#glow-knaeckebrot)" stroke-width="2"/>
   <!-- Crispbread perforations -->
-  <circle cx="8" cy="8.5" r="0.9" fill="currentColor"/>
-  <circle cx="12" cy="8.5" r="0.9" fill="currentColor"/>
-  <circle cx="16" cy="8.5" r="0.9" fill="currentColor"/>
-  <circle cx="8" cy="12" r="0.9" fill="currentColor"/>
-  <circle cx="12" cy="12" r="0.9" fill="currentColor"/>
-  <circle cx="16" cy="12" r="0.9" fill="currentColor"/>
-  <circle cx="8" cy="15.5" r="0.9" fill="currentColor"/>
-  <circle cx="12" cy="15.5" r="0.9" fill="currentColor"/>
-  <circle cx="16" cy="15.5" r="0.9" fill="currentColor"/>
+  <circle cx="8" cy="8.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="12" cy="8.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="16" cy="8.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="8" cy="12" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="12" cy="12" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="16" cy="12" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="8" cy="15.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="12" cy="15.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="16" cy="15.5" r="0.9" fill="#D97706" fill-opacity="0.35"/>
 </svg>

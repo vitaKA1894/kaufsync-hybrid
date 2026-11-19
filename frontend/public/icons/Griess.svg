@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Semolina pack labeled GRIESS -->
-  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="7" y="10" width="10" height="5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="12" y="13.7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.3" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">GRIESS</text>
+  <defs>
+    <filter id="glow-griess" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Semolina pack labeled GRIESS -->
+  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="#FBBF24" fill-opacity="0.14"/>
+  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="none" stroke="#FBBF24" filter="url(#glow-griess)" stroke-width="2"/>
+  <rect x="7" y="10" width="10" height="5" rx="1" fill="#FBBF24" fill-opacity="0.14"/>
+  <text x="12" y="13.7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.3" font-weight="900" letter-spacing="0.3" fill="#FBBF24" fill-opacity="0.35" text-anchor="middle">GRIESS</text>
   <!-- Fine semolina grains -->
-  <circle cx="9.5" cy="17.5" r="0.7" fill="currentColor"/>
-  <circle cx="12" cy="18" r="0.7" fill="currentColor"/>
-  <circle cx="14.5" cy="17.5" r="0.7" fill="currentColor"/>
+  <circle cx="9.5" cy="17.5" r="0.7" fill="#FBBF24" fill-opacity="0.35"/>
+  <circle cx="12" cy="18" r="0.7" fill="#FBBF24" fill-opacity="0.35"/>
+  <circle cx="14.5" cy="17.5" r="0.7" fill="#FBBF24" fill-opacity="0.35"/>
 </svg>

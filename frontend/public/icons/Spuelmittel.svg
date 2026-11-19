@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dish soap squeeze bottle with flip cap and dish plate -->
-  <path d="M8 9v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9l-1-4V2h-4v3L8 9z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M8 9v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9l-1-4V2h-4v3L8 9z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="12" cy="15" rx="2.5" ry="3.5" fill="currentColor" fill-opacity="0.5"/>
+  <defs>
+    <filter id="glow-spuelmittel" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dish soap squeeze bottle with flip cap and dish plate -->
+  <path d="M8 9v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9l-1-4V2h-4v3L8 9z" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M8 9v11a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V9l-1-4V2h-4v3L8 9z" fill="none" stroke="#06B6D4" filter="url(#glow-spuelmittel)" stroke-width="2"/>
+  <ellipse cx="12" cy="15" rx="2.5" ry="3.5" fill="#06B6D4" fill-opacity="0.14"/>
   <circle cx="12" cy="15" r="1.2" fill="#0b0f19"/>
 </svg>

@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pretzel sticks (Salzstangen) in a glass with salt crystals -->
-  <path d="M7 11h10l-1.5 9a2 2 0 0 1-2 1.8H10.5a2 2 0 0 1-2-1.8L7 11z" fill="currentColor" fill-opacity="0.2"/>
-  <path d="M7 11h10l-1.5 9a2 2 0 0 1-2 1.8H10.5a2 2 0 0 1-2-1.8L7 11z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-salzstangen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pretzel sticks (Salzstangen) in a glass with salt crystals -->
+  <path d="M7 11h10l-1.5 9a2 2 0 0 1-2 1.8H10.5a2 2 0 0 1-2-1.8L7 11z" fill="#D97706" fill-opacity="0.2"/>
+  <path d="M7 11h10l-1.5 9a2 2 0 0 1-2 1.8H10.5a2 2 0 0 1-2-1.8L7 11z" fill="none" stroke="#D97706" filter="url(#glow-salzstangen)" stroke-width="2"/>
   <!-- Sticks protruding -->
-  <line x1="8" y1="13" x2="6.5" y2="3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="10.5" y1="13" x2="10" y2="2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="13" y1="13" x2="13.5" y2="2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-  <line x1="15.5" y1="13" x2="17.5" y2="3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="8" y1="13" x2="6.5" y2="3" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="10.5" y1="13" x2="10" y2="2" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="13" y1="13" x2="13.5" y2="2" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="15.5" y1="13" x2="17.5" y2="3" stroke="#D97706" stroke-width="2.2" stroke-linecap="round"/>
   <!-- Salt crystals -->
-  <circle cx="6.5" cy="5" r="0.6" fill="currentColor"/>
-  <circle cx="10" cy="4" r="0.6" fill="currentColor"/>
-  <circle cx="13.5" cy="5" r="0.6" fill="currentColor"/>
-  <circle cx="17" cy="6" r="0.6" fill="currentColor"/>
+  <circle cx="6.5" cy="5" r="0.6" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="10" cy="4" r="0.6" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="13.5" cy="5" r="0.6" fill="#D97706" fill-opacity="0.35"/>
+  <circle cx="17" cy="6" r="0.6" fill="#D97706" fill-opacity="0.35"/>
 </svg>

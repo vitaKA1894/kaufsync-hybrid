@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Chocolate bar with wrapper peeled back showing segmented chocolate squares -->
-  <rect x="5" y="4" width="14" height="16" rx="2" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-schokolade" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Chocolate bar with wrapper peeled back showing segmented chocolate squares -->
+  <rect x="5" y="4" width="14" height="16" rx="2" fill="#92400E" fill-opacity="0.14"/>
+  <rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="#92400E" filter="url(#glow-schokolade)" stroke-width="2"/>
   <!-- Foil wrapper peeled halfway -->
-  <path d="M5 12h14v8H5v-8z" fill="currentColor" fill-opacity="0.5"/>
+  <path d="M5 12h14v8H5v-8z" fill="#92400E" fill-opacity="0.14"/>
   <!-- Chocolate squares grid -->
-  <line x1="12" y1="4" x2="12" y2="12" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="5" y1="8" x2="19" y2="8" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="12" y1="4" x2="12" y2="12" stroke="#92400E" stroke-width="1.8"/>
+  <line x1="5" y1="8" x2="19" y2="8" stroke="#92400E" stroke-width="1.8"/>
 </svg>

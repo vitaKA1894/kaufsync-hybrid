@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Button mushroom (Champignon) with rounded cap & gills -->
-  <path d="M4 13c0-5 3.5-9 8-9s8 4 8 9c0 1-1 1.5-2 1.5H6c-1 0-2-.5-2-1.5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 13c0-5 3.5-9 8-9s8 4 8 9c0 1-1 1.5-2 1.5H6c-1 0-2-.5-2-1.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M9.5 14.5v5a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-5" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-champignons" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Button mushroom (Champignon) with rounded cap & gills -->
+  <path d="M4 13c0-5 3.5-9 8-9s8 4 8 9c0 1-1 1.5-2 1.5H6c-1 0-2-.5-2-1.5z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M4 13c0-5 3.5-9 8-9s8 4 8 9c0 1-1 1.5-2 1.5H6c-1 0-2-.5-2-1.5z" fill="none" stroke="#F8FAFC" filter="url(#glow-champignons)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M9.5 14.5v5a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-5" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="2"/>
 </svg>

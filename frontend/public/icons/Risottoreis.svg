@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Rice box labeled RISOTTO with round arborio grains -->
-  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="7" y="9.5" width="10" height="5.5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="12" y="13.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.1" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">RISOTTO</text>
+  <defs>
+    <filter id="glow-risottoreis" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Rice box labeled RISOTTO with round arborio grains -->
+  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="#F8FAFC" fill-opacity="0.14"/>
+  <rect x="6" y="5" width="12" height="15" rx="1.5" fill="none" stroke="#F8FAFC" filter="url(#glow-risottoreis)" stroke-width="2"/>
+  <rect x="7" y="9.5" width="10" height="5.5" rx="1" fill="#F8FAFC" fill-opacity="0.14"/>
+  <text x="12" y="13.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.1" font-weight="900" letter-spacing="0.3" fill="#F8FAFC" fill-opacity="0.35" text-anchor="middle">RISOTTO</text>
   <!-- Round Arborio grain -->
-  <ellipse cx="12" cy="17.5" rx="1.8" ry="1.3" fill="currentColor"/>
+  <ellipse cx="12" cy="17.5" rx="1.8" ry="1.3" fill="#F8FAFC" fill-opacity="0.35"/>
 </svg>

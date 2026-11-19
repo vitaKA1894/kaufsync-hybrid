@@ -1,5 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Serrated lobed rocket / arugula leaf -->
-  <path d="M12 21V3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 4c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m0-14c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-rucola" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#16A34A" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Serrated lobed rocket / arugula leaf -->
+  <path d="M12 21V3" stroke="#16A34A" filter="url(#glow-rucola)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 4c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m0-14c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2" fill="#16A34A" fill-opacity="0.14" stroke="#16A34A" stroke-width="1.8" stroke-linejoin="round"/>
 </svg>

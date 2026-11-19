@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Round layered fennel bulb with feathery dill-like fronds -->
-  <path d="M6 14c0 4.5 2.5 7 6 7s6-2.5 6-7c0-3-2-5-6-5s-6 2-6 5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M6 14c0 4.5 2.5 7 6 7s6-2.5 6-7c0-3-2-5-6-5s-6 2-6 5z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M9 13c1 3 2 5 3 5s2-2 3-5" stroke="currentColor" stroke-width="1.6"/>
+  <defs>
+    <filter id="glow-fenchel" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#86EFAC" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Round layered fennel bulb with feathery dill-like fronds -->
+  <path d="M6 14c0 4.5 2.5 7 6 7s6-2.5 6-7c0-3-2-5-6-5s-6 2-6 5z" fill="#86EFAC" fill-opacity="0.14"/>
+  <path d="M6 14c0 4.5 2.5 7 6 7s6-2.5 6-7c0-3-2-5-6-5s-6 2-6 5z" fill="none" stroke="#86EFAC" filter="url(#glow-fenchel)" stroke-width="2"/>
+  <path d="M9 13c1 3 2 5 3 5s2-2 3-5" stroke="#86EFAC" stroke-width="1.6"/>
   <!-- Feathery fronds on top -->
-  <path d="M12 9V3m-3 6L7 4m7 5l2-5m-5 3l-2-2m2 4l2-2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 9V3m-3 6L7 4m7 5l2-5m-5 3l-2-2m2 4l2-2" stroke="#86EFAC" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

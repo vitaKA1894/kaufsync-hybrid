@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Mower body -->
-  <path d="M4 14h11a2 2 0 0 1 2 2v2H4v-4z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M4 14h11a2 2 0 0 1 2 2v2H4v-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-rasenmaeher" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#10B981" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Mower body -->
+  <path d="M4 14h11a2 2 0 0 1 2 2v2H4v-4z" fill="#10B981" fill-opacity="0.14"/>
+  <path d="M4 14h11a2 2 0 0 1 2 2v2H4v-4z" fill="none" stroke="#10B981" filter="url(#glow-rasenmaeher)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Engine cowl -->
-  <path d="M7 14v-2.5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2V14" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M7 14v-2.5a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2V14" fill="#10B981" fill-opacity="0.14" stroke="#10B981" stroke-width="1.8"/>
   <!-- Big back wheel -->
-  <circle cx="15.5" cy="18" r="3" fill="currentColor" fill-opacity="0.4"/>
-  <circle cx="15.5" cy="18" r="3" fill="none" stroke="currentColor" stroke-width="2"/>
-  <circle cx="15.5" cy="18" r="1" fill="currentColor"/>
+  <circle cx="15.5" cy="18" r="3" fill="#10B981" fill-opacity="0.14"/>
+  <circle cx="15.5" cy="18" r="3" fill="none" stroke="#10B981" stroke-width="2"/>
+  <circle cx="15.5" cy="18" r="1" fill="#10B981" fill-opacity="0.35"/>
   <!-- Front wheel -->
-  <circle cx="5.5" cy="18.5" r="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="5.5" cy="18.5" r="2" fill="none" stroke="#10B981" stroke-width="2"/>
   <!-- Handle -->
-  <path d="M13 12L20 5h-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M13 12L20 5h-2.5" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

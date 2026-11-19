@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fan of overlapping cold-cut meat slices -->
-  <ellipse cx="9" cy="10" rx="5.5" ry="4.5" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.8"/>
-  <ellipse cx="13" cy="12" rx="5.5" ry="4.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8"/>
-  <ellipse cx="15" cy="15" rx="5.5" ry="4.5" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-aufschnitt" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F43F5E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fan of overlapping cold-cut meat slices -->
+  <ellipse cx="9" cy="10" rx="5.5" ry="4.5" fill="#F43F5E" fill-opacity="0.2" stroke="#F43F5E" filter="url(#glow-aufschnitt)" stroke-width="1.8"/>
+  <ellipse cx="13" cy="12" rx="5.5" ry="4.5" fill="#F43F5E" fill-opacity="0.14" stroke="#F43F5E" stroke-width="1.8"/>
+  <ellipse cx="15" cy="15" rx="5.5" ry="4.5" fill="#F43F5E" fill-opacity="0.14" stroke="#F43F5E" stroke-width="2"/>
   <!-- Seasoning specks -->
-  <circle cx="14" cy="15" r="0.7" fill="currentColor"/>
-  <circle cx="16.5" cy="14" r="0.7" fill="currentColor"/>
+  <circle cx="14" cy="15" r="0.7" fill="#F43F5E" fill-opacity="0.35"/>
+  <circle cx="16.5" cy="14" r="0.7" fill="#F43F5E" fill-opacity="0.35"/>
 </svg>

@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Layered lasagna slice with wavy pasta sheets & cheese crust -->
-  <path d="M4 17l16 2v-9L4 8v9z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 17l16 2v-9L4 8v9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M4 8l4-3 12 2-4 3-12-2z" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-lasagne" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Layered lasagna slice with wavy pasta sheets & cheese crust -->
+  <path d="M4 17l16 2v-9L4 8v9z" fill="#FBBF24" fill-opacity="0.14"/>
+  <path d="M4 17l16 2v-9L4 8v9z" fill="none" stroke="#FBBF24" filter="url(#glow-lasagne)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M4 8l4-3 12 2-4 3-12-2z" fill="#FBBF24" fill-opacity="0.14" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/>
   <!-- Layer lines -->
-  <path d="M4 11c2-1 4 1 6 0s4 1 6 0 3 1 4 0" stroke="currentColor" stroke-width="1.6"/>
-  <path d="M4 14c2-1 4 1 6 0s4 1 6 0 3 1 4 0" stroke="currentColor" stroke-width="1.6"/>
+  <path d="M4 11c2-1 4 1 6 0s4 1 6 0 3 1 4 0" stroke="#FBBF24" stroke-width="1.6"/>
+  <path d="M4 14c2-1 4 1 6 0s4 1 6 0 3 1 4 0" stroke="#FBBF24" stroke-width="1.6"/>
 </svg>

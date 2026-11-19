@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Ribbed pumpkin with deep vertical segment grooves -->
-  <ellipse cx="12" cy="14" rx="8.5" ry="7" fill="currentColor" fill-opacity="0.25"/>
-  <ellipse cx="12" cy="14" rx="8.5" ry="7" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kuerbis" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F97316" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Ribbed pumpkin with deep vertical segment grooves -->
+  <ellipse cx="12" cy="14" rx="8.5" ry="7" fill="#F97316" fill-opacity="0.14"/>
+  <ellipse cx="12" cy="14" rx="8.5" ry="7" fill="none" stroke="#F97316" filter="url(#glow-kuerbis)" stroke-width="2"/>
   <!-- Ribbed segments -->
-  <ellipse cx="12" cy="14" rx="4.5" ry="7" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="12" y1="7" x2="12" y2="21" stroke="currentColor" stroke-width="1.8"/>
+  <ellipse cx="12" cy="14" rx="4.5" ry="7" fill="#F97316" fill-opacity="0.2" stroke="#F97316" stroke-width="1.8"/>
+  <line x1="12" y1="7" x2="12" y2="21" stroke="#F97316" stroke-width="1.8"/>
   <!-- Curved wooden pumpkin stalk -->
-  <path d="M12 7c0-2.5 1-4 2.5-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M12 7c0-2.5 1-4 2.5-4" stroke="#F97316" stroke-width="2.5" stroke-linecap="round"/>
 </svg>

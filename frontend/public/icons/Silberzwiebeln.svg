@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Jar of cocktail pearl onions -->
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="5" y="5" width="14" height="3" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-silberzwiebeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Jar of cocktail pearl onions -->
+  <rect x="6" y="8" width="12" height="13" rx="2" fill="#F8FAFC" fill-opacity="0.14"/>
+  <rect x="6" y="8" width="12" height="13" rx="2" fill="none" stroke="#F8FAFC" filter="url(#glow-silberzwiebeln)" stroke-width="2"/>
+  <rect x="5" y="5" width="14" height="3" rx="1" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.8"/>
   <!-- Pearl onions -->
-  <circle cx="9.5" cy="12.5" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <circle cx="14" cy="13" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <circle cx="11.5" cy="17" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+  <circle cx="9.5" cy="12.5" r="1.8" fill="#F8FAFC" fill-opacity="0.35" stroke="#F8FAFC" stroke-width="1"/>
+  <circle cx="14" cy="13" r="1.8" fill="#F8FAFC" fill-opacity="0.35" stroke="#F8FAFC" stroke-width="1"/>
+  <circle cx="11.5" cy="17" r="1.8" fill="#F8FAFC" fill-opacity="0.35" stroke="#F8FAFC" stroke-width="1"/>
 </svg>

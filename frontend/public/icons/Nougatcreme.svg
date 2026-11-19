@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Chocolate hazelnut spread jar with knife spreading brown cream -->
-  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="currentColor" fill-opacity="0.3"/>
-  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="7" y="4" width="10" height="4" rx="1" fill="currentColor" fill-opacity="0.6" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-nougatcreme" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Chocolate hazelnut spread jar with knife spreading brown cream -->
+  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="#78350F" fill-opacity="0.14"/>
+  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="none" stroke="#78350F" filter="url(#glow-nougatcreme)" stroke-width="2"/>
+  <rect x="7" y="4" width="10" height="4" rx="1" fill="#78350F" fill-opacity="0.14" stroke="#78350F" stroke-width="1.8"/>
   <!-- Hazelnut emblem -->
-  <circle cx="12" cy="14" r="2.5" fill="currentColor"/>
+  <circle cx="12" cy="14" r="2.5" fill="#78350F" fill-opacity="0.35"/>
 </svg>

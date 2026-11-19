@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Bottle and drink cup with straw -->
-  <rect x="4" y="6" width="6" height="15" rx="1.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="4" y="6" width="6" height="15" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M5.5 6V3h3v3" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-getraenke-allgemein" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Bottle and drink cup with straw -->
+  <rect x="4" y="6" width="6" height="15" rx="1.5" fill="#38BDF8" fill-opacity="0.14"/>
+  <rect x="4" y="6" width="6" height="15" rx="1.5" fill="none" stroke="#38BDF8" filter="url(#glow-getraenke-allgemein)" stroke-width="2"/>
+  <path d="M5.5 6V3h3v3" stroke="#38BDF8" stroke-width="1.8"/>
   <!-- Cup with straw -->
-  <path d="M12 10h7l-1 11h-5l-1-11z" fill="currentColor" fill-opacity="0.35"/>
-  <path d="M12 10h7l-1 11h-5l-1-11z" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M16 10l2-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 10h7l-1 11h-5l-1-11z" fill="#38BDF8" fill-opacity="0.14"/>
+  <path d="M12 10h7l-1 11h-5l-1-11z" fill="none" stroke="#38BDF8" stroke-width="1.8"/>
+  <path d="M16 10l2-6" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

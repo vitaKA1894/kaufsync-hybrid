@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pillar candle with glowing flame & wax drip -->
-  <rect x="8" y="9" width="8" height="12" rx="1.5" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="8" y="9" width="8" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kerzen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F97316" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pillar candle with glowing flame & wax drip -->
+  <rect x="8" y="9" width="8" height="12" rx="1.5" fill="#FACC15" fill-opacity="0.14"/>
+  <rect x="8" y="9" width="8" height="12" rx="1.5" fill="none" stroke="#FACC15" filter="url(#glow-kerzen)" stroke-width="2"/>
   <!-- Candle wick -->
-  <line x1="12" y1="9" x2="12" y2="6.5" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="12" y1="9" x2="12" y2="6.5" stroke="#FACC15" stroke-width="1.8"/>
   <!-- Flame -->
-  <path d="M12 2c-1.5 2-2 3.5-1 4.5s2 1 2-4.5z" fill="currentColor"/>
+  <path d="M12 2c-1.5 2-2 3.5-1 4.5s2 1 2-4.5z" fill="#FACC15" fill-opacity="0.35"/>
   <!-- Wax drip -->
-  <path d="M10 9v3c0 .5-.5 1-1 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M10 9v3c0 .5-.5 1-1 1" stroke="#FACC15" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

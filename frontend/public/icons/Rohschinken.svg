@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Delicate draped slice of prosciutto / Parma ham with white ribbon -->
-  <path d="M3 15c2-6 8-10 15-7 3 1.5 4 4.5 3 7-2 3-5 5-9 5s-8-2-9-5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M3 15c2-6 8-10 15-7 3 1.5 4 4.5 3 7-2 3-5 5-9 5s-8-2-9-5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-rohschinken" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#BE123C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Delicate draped slice of prosciutto / Parma ham with white ribbon -->
+  <path d="M3 15c2-6 8-10 15-7 3 1.5 4 4.5 3 7-2 3-5 5-9 5s-8-2-9-5z" fill="#BE123C" fill-opacity="0.14"/>
+  <path d="M3 15c2-6 8-10 15-7 3 1.5 4 4.5 3 7-2 3-5 5-9 5s-8-2-9-5z" fill="none" stroke="#BE123C" filter="url(#glow-rohschinken)" stroke-width="2" stroke-linecap="round"/>
   <!-- White fat ribbon waves -->
-  <path d="M5 13c4-3 9-3 14 1" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M7 16c3-1.5 7-1 10 1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M5 13c4-3 9-3 14 1" fill="none" stroke="#BE123C" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M7 16c3-1.5 7-1 10 1" fill="none" stroke="#BE123C" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

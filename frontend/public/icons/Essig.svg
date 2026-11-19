@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Glass vinegar cruet bottle with pourer spout -->
-  <path d="M9 10c-3 3-4 7-2 10s6 3 8 1 2-6-1-9L13 6V2h-2v4l-2 4z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M9 10c-3 3-4 7-2 10s6 3 8 1 2-6-1-9L13 6V2h-2v4l-2 4z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">ESSIG</text>
+  <defs>
+    <filter id="glow-essig" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Glass vinegar cruet bottle with pourer spout -->
+  <path d="M9 10c-3 3-4 7-2 10s6 3 8 1 2-6-1-9L13 6V2h-2v4l-2 4z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M9 10c-3 3-4 7-2 10s6 3 8 1 2-6-1-9L13 6V2h-2v4l-2 4z" fill="none" stroke="#F59E0B" filter="url(#glow-essig)" stroke-width="2"/>
+  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#F59E0B" fill-opacity="0.35" text-anchor="middle">ESSIG</text>
 </svg>

@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <path d="M5 12c0 3.9 3.1 7 7 7s7-3.1 7-7H5z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M5 12c0 3.9 3.1 7 7 7s7-3.1 7-7H5z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-grill" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F97316" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<path d="M5 12c0 3.9 3.1 7 7 7s7-3.1 7-7H5z" fill="#F97316" fill-opacity="0.14"/>
+  <path d="M5 12c0 3.9 3.1 7 7 7s7-3.1 7-7H5z" fill="none" stroke="#F97316" filter="url(#glow-grill)" stroke-width="2"/>
   <!-- Lid -->
-  <path d="M6 10c.5-3 3-5 6-5s5.5 2 6 5H6z" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M10 5a2 2 0 0 1 4 0" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 10c.5-3 3-5 6-5s5.5 2 6 5H6z" fill="#F97316" fill-opacity="0.14" stroke="#F97316" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M10 5a2 2 0 0 1 4 0" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
   <!-- Legs -->
-  <path d="M8 19l-3 4 M16 19l3 4 M12 19v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 19l-3 4 M16 19l3 4 M12 19v4" stroke="#F97316" stroke-width="2" stroke-linecap="round"/>
   <!-- Smoke -->
-  <path d="M10 2c-.5.8.5 1.4 0 2.2 M14 2c-.5.8.5 1.4 0 2.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M10 2c-.5.8.5 1.4 0 2.2 M14 2c-.5.8.5 1.4 0 2.2" stroke="#F97316" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Squeeze tube of hand cream with HAND label -->
-  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="9.5" y="3" width="5" height="4" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.5" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">HAND</text>
+  <defs>
+    <filter id="glow-handcreme" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Squeeze tube of hand cream with HAND label -->
+  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="#38BDF8" fill-opacity="0.14"/>
+  <path d="M6 19l2.5-12h7L18 19a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1z" fill="none" stroke="#38BDF8" filter="url(#glow-handcreme)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9.5" y="3" width="5" height="4" rx="1" fill="#38BDF8" fill-opacity="0.14" stroke="#38BDF8" stroke-width="1.8"/>
+  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.5" font-weight="900" letter-spacing="0.3" fill="#38BDF8" fill-opacity="0.35" text-anchor="middle">HAND</text>
 </svg>

@@ -1,13 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Popping bottle with bubbles & cork -->
-  <path d="M10 11l-2 9a1.5 1.5 0 0 0 1.5 1.8h5a1.5 1.5 0 0 0 1.5-1.8l-2-9-1-5h-2l-1 5z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M10 11l-2 9a1.5 1.5 0 0 0 1.5 1.8h5a1.5 1.5 0 0 0 1.5-1.8l-2-9-1-5h-2l-1 5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-champagner" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Popping bottle with bubbles & cork -->
+  <path d="M10 11l-2 9a1.5 1.5 0 0 0 1.5 1.8h5a1.5 1.5 0 0 0 1.5-1.8l-2-9-1-5h-2l-1 5z" fill="#FACC15" fill-opacity="0.14"/>
+  <path d="M10 11l-2 9a1.5 1.5 0 0 0 1.5 1.8h5a1.5 1.5 0 0 0 1.5-1.8l-2-9-1-5h-2l-1 5z" fill="none" stroke="#FACC15" filter="url(#glow-champagner)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Popped cork & bubbles -->
-  <rect x="11" y="1.5" width="2" height="2.5" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <circle cx="8" cy="4" r="0.8" fill="currentColor"/>
-  <circle cx="16" cy="3.5" r="1" fill="currentColor"/>
-  <circle cx="14" cy="1.5" r="0.6" fill="currentColor"/>
+  <rect x="11" y="1.5" width="2" height="2.5" rx="0.5" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1"/>
+  <circle cx="8" cy="4" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="16" cy="3.5" r="1" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="14" cy="1.5" r="0.6" fill="#FACC15" fill-opacity="0.35"/>
   <!-- Label with star -->
-  <rect x="9" y="13.5" width="6" height="4.5" rx="1" fill="currentColor" fill-opacity="0.4"/>
-  <polygon points="12,14.5 12.6,16 14,16 12.8,16.8 13.3,18 12,17.2 10.7,18 11.2,16.8 10,16 11.4,16" fill="currentColor"/>
+  <rect x="9" y="13.5" width="6" height="4.5" rx="1" fill="#FACC15" fill-opacity="0.14"/>
+  <polygon points="12,14.5 12.6,16 14,16 12.8,16.8 13.3,18 12,17.2 10.7,18 11.2,16.8 10,16 11.4,16" fill="#FACC15" fill-opacity="0.35"/>
 </svg>

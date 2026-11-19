@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pack body -->
-  <rect x="7" y="9" width="10" height="12" rx="1.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="7" y="9" width="10" height="12" rx="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-zigaretten" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pack body -->
+  <rect x="7" y="9" width="10" height="12" rx="1.5" fill="#F59E0B" fill-opacity="0.14"/>
+  <rect x="7" y="9" width="10" height="12" rx="1.5" fill="none" stroke="#F59E0B" filter="url(#glow-zigaretten)" stroke-width="2"/>
   <!-- Open flip top -->
-  <path d="M7 9l2-4.5h7l1.5 4.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M7 9l2-4.5h7l1.5 4.5" fill="#F59E0B" fill-opacity="0.14" stroke="#F59E0B" stroke-width="1.8" stroke-linejoin="round"/>
   <!-- Cigarette popping out -->
-  <rect x="10" y="3" width="2.2" height="6.5" rx="0.5" fill="none" stroke="currentColor" stroke-width="1.5"/>
-  <rect x="10" y="3" width="2.2" height="2.2" fill="currentColor" fill-opacity="0.5"/>
+  <rect x="10" y="3" width="2.2" height="6.5" rx="0.5" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+  <rect x="10" y="3" width="2.2" height="2.2" fill="#F59E0B" fill-opacity="0.14"/>
   <!-- Smoke -->
-  <path d="M11 1.8c-.4-.8.4-1.2 0-1.8" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <path d="M11 1.8c-.4-.8.4-1.2 0-1.8" stroke="#F59E0B" stroke-width="1.2" stroke-linecap="round"/>
 </svg>

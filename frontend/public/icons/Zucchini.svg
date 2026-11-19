@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Straight zucchini / courgette with dark skin, ridges and flower blossom end -->
-  <path d="M7 19c-2-2-1-6 1.5-8.5L16 3c1.5-1.5 3.5-1 4.5.5s.5 3-1 4.5L11 18c-1.5 1.5-2.5 1.5-4 1z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M7 19c-2-2-1-6 1.5-8.5L16 3c1.5-1.5 3.5-1 4.5.5s.5 3-1 4.5L11 18c-1.5 1.5-2.5 1.5-4 1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-zucchini" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#16A34A" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Straight zucchini / courgette with dark skin, ridges and flower blossom end -->
+  <path d="M7 19c-2-2-1-6 1.5-8.5L16 3c1.5-1.5 3.5-1 4.5.5s.5 3-1 4.5L11 18c-1.5 1.5-2.5 1.5-4 1z" fill="#16A34A" fill-opacity="0.14"/>
+  <path d="M7 19c-2-2-1-6 1.5-8.5L16 3c1.5-1.5 3.5-1 4.5.5s.5 3-1 4.5L11 18c-1.5 1.5-2.5 1.5-4 1z" fill="none" stroke="#16A34A" filter="url(#glow-zucchini)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Longitudinal ridge stripes -->
-  <path d="M10 14.5l6-6 M8.5 17.5l5.5-5.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M10 14.5l6-6 M8.5 17.5l5.5-5.5" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round"/>
   <!-- Stem end -->
-  <path d="M19.5 4l1.5-1.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M19.5 4l1.5-1.5" stroke="#86EFAC" stroke-width="2.2" stroke-linecap="round"/>
 </svg>

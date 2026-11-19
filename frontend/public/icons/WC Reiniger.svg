@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Angled neck toilet cleaner bottle (WC-Ente duck neck) -->
-  <path d="M8 12v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8l-2-3V5l3-2-2-1-4 2v5l-1 2z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M8 12v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8l-2-3V5l3-2-2-1-4 2v5l-1 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <text x="12" y="17.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">WC</text>
+  <defs>
+    <filter id="glow-wc-reiniger" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Angled neck toilet cleaner bottle (WC-Ente duck neck) -->
+  <path d="M8 12v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8l-2-3V5l3-2-2-1-4 2v5l-1 2z" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M8 12v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-8l-2-3V5l3-2-2-1-4 2v5l-1 2z" fill="none" stroke="#06B6D4" filter="url(#glow-wc-reiniger)" stroke-width="2" stroke-linejoin="round"/>
+  <text x="12" y="17.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="#06B6D4" fill-opacity="0.35" text-anchor="middle">WC</text>
 </svg>

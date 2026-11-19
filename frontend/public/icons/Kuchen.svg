@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Slice of layer cake with icing & cherry -->
-  <path d="M4 17l16 3V9L4 12v5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 17l16 3V9L4 12v5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M4 12L12 5l8 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-kuchen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Slice of layer cake with icing & cherry -->
+  <path d="M4 17l16 3V9L4 12v5z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M4 17l16 3V9L4 12v5z" fill="none" stroke="#F59E0B" filter="url(#glow-kuchen)" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M4 12L12 5l8 4" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Layer fillings -->
-  <line x1="4" y1="14.5" x2="20" y2="16.5" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="4" y1="14.5" x2="20" y2="16.5" stroke="#F59E0B" stroke-width="1.8"/>
   <!-- Cherry on top -->
-  <circle cx="12" cy="3.5" r="1.5" fill="currentColor"/>
+  <circle cx="12" cy="3.5" r="1.5" fill="#F59E0B" fill-opacity="0.35"/>
 </svg>

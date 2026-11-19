@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dog food tin can with dog bone emblem -->
-  <rect x="6" y="6" width="12" height="14" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <ellipse cx="12" cy="6" rx="6" ry="1.5" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.5"/>
+  <defs>
+    <filter id="glow-hundefutter" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dog food tin can with dog bone emblem -->
+  <rect x="6" y="6" width="12" height="14" rx="2" fill="#D97706" fill-opacity="0.14"/>
+  <rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="#D97706" filter="url(#glow-hundefutter)" stroke-width="2"/>
+  <ellipse cx="12" cy="6" rx="6" ry="1.5" fill="#D97706" fill-opacity="0.14" stroke="#D97706" stroke-width="1.5"/>
   <!-- Dog bone emblem on can -->
-  <path d="M10 12h4m-4 0a1 1 0 1 0-1-1 1 1 0 0 0 1 1zm0 0a1 1 0 1 1-1 1 1 1 0 0 1 1-1zm4 0a1 1 0 1 0 1-1 1 1 0 0 0-1 1zm0 0a1 1 0 1 1 1 1 1 1 0 0 1-1-1z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M10 12h4m-4 0a1 1 0 1 0-1-1 1 1 0 0 0 1 1zm0 0a1 1 0 1 1-1 1 1 1 0 0 1 1-1zm4 0a1 1 0 1 0 1-1 1 1 0 0 0-1 1zm0 0a1 1 0 1 1 1 1 1 1 0 0 1-1-1z" stroke="#D97706" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

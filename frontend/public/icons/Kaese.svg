@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Classic Swiss cheese wedge with big round holes (Emmentaler) -->
-  <path d="M3 18l18 3V10L3 13v5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M3 18l18 3V10L3 13v5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M3 13L13 4l8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-kaese" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Swiss cheese wedge with golden outline glow -->
+  <path d="M3 18l18 3V10L3 13v5z" fill="#FBBF24" fill-opacity="0.12"/>
+  <path d="M3 18l18 3V10L3 13v5z" fill="none" stroke="#FBBF24" stroke-width="2" stroke-linejoin="round" filter="url(#glow-cheese)"/>
+  <path d="M3 13L13 4l8 6" stroke="#FDE047" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   <!-- Cheese holes -->
-  <circle cx="8" cy="15.5" r="1.8" fill="currentColor" fill-opacity="0.6"/>
-  <circle cx="15" cy="17" r="1.3" fill="currentColor" fill-opacity="0.6"/>
-  <circle cx="16" cy="12.5" r="1.5" fill="currentColor" fill-opacity="0.6"/>
+  <circle cx="8" cy="15.5" r="1.8" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="1.4"/>
+  <circle cx="15" cy="17" r="1.4" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="1.4"/>
+  <circle cx="16" cy="12.5" r="1.5" fill="#F59E0B" fill-opacity="0.25" stroke="#F59E0B" stroke-width="1.4"/>
 </svg>

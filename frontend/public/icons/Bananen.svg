@@ -1,16 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Unmistakable bunch of 2 curved bananas with stem crown and dark tips -->
-  <!-- Banana 2 (behind) -->
-  <path d="M15 5c-3 5-7 10-10 13 2 1.5 5 1.5 8-.5 3-2 5-6 6.5-10.5" fill="currentColor" fill-opacity="0.2"/>
-  <path d="M15 5c-3 5-7 10-10 13 2 1.5 5 1.5 8-.5 3-2 5-6 6.5-10.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <!-- Banana 1 (front) -->
-  <path d="M17 5.5C14 11 9 16 3.5 15.5c-.8-.2-1.2-.8-.7-1.5 1.2-1.8 5-6.5 10.5-8.5" fill="currentColor" fill-opacity="0.32"/>
-  <path d="M17 5.5C14 11 9 16 3.5 15.5c-.8-.2-1.2-.8-.7-1.5 1.2-1.8 5-6.5 10.5-8.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Ridge facet line along front banana -->
-  <path d="M17 5.5C13 10.5 8 14.5 3 14.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-  <!-- Crown stalk connecting at top -->
-  <path d="M15 2.5h3.5l-.5 3h-3z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
-  <!-- Dark flower tips at bottom -->
-  <circle cx="3.2" cy="15.2" r="0.9" fill="currentColor"/>
-  <circle cx="5" cy="18" r="0.8" fill="currentColor"/>
+  <defs>
+    <filter id="glow-bananen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Banana 2 (behind) -->
+  <path d="M15 5c-3 5-7 10-10 13 2 1.5 5 1.5 8-.5 3-2 5-6 6.5-10.5" fill="#EAB308" fill-opacity="0.1"/>
+  <path d="M15 5c-3 5-7 10-10 13 2 1.5 5 1.5 8-.5 3-2 5-6 6.5-10.5" fill="none" stroke="#EAB308" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Banana 1 (front) with outline glow -->
+  <path d="M17 5.5C14 11 9 16 3.5 15.5c-.8-.2-1.2-.8-.7-1.5 1.2-1.8 5-6.5 10.5-8.5" fill="#FACC15" fill-opacity="0.15"/>
+  <path d="M17 5.5C14 11 9 16 3.5 15.5c-.8-.2-1.2-.8-.7-1.5 1.2-1.8 5-6.5 10.5-8.5" fill="none" stroke="#FACC15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-banana)"/>
+  <!-- Ridge facet line -->
+  <path d="M17 5.5C13 10.5 8 14.5 3 14.5" fill="none" stroke="#FEF08A" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Crown stalk -->
+  <path d="M15 2.5h3.5l-.5 3h-3z" fill="#84CC16" fill-opacity="0.3" stroke="#84CC16" stroke-width="1.2" stroke-linejoin="round"/>
+  <!-- Blossom tips -->
+  <circle cx="3.2" cy="15.2" r="0.9" fill="#A16207"/>
+  <circle cx="5" cy="18" r="0.8" fill="#A16207"/>
 </svg>

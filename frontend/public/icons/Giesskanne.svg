@@ -1,16 +1,21 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <path d="M6 11h8v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M6 11h8v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-giesskanne" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<path d="M6 11h8v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8z" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M6 11h8v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-8z" fill="none" stroke="#06B6D4" filter="url(#glow-giesskanne)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Spout -->
-  <path d="M14 15l5-4v-2l-5 2" fill="currentColor" fill-opacity="0.3"/>
-  <path d="M14 15l5-4v-2l-5 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M14 15l5-4v-2l-5 2" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M14 15l5-4v-2l-5 2" fill="none" stroke="#06B6D4" stroke-width="1.8" stroke-linejoin="round"/>
   <!-- Rose / sprinkler -->
-  <path d="M19 8.5l2-1.5v3l-2-1.5z" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <path d="M19 8.5l2-1.5v3l-2-1.5z" fill="#06B6D4" fill-opacity="0.35" stroke="#06B6D4" stroke-width="1.2"/>
   <!-- Droplets -->
-  <circle cx="22" cy="6" r="0.6" fill="currentColor"/>
-  <circle cx="23" cy="8.5" r="0.6" fill="currentColor"/>
+  <circle cx="22" cy="6" r="0.6" fill="#06B6D4" fill-opacity="0.35"/>
+  <circle cx="23" cy="8.5" r="0.6" fill="#06B6D4" fill-opacity="0.35"/>
   <!-- Top handle -->
-  <path d="M7 11V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M7 11V6a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v5" fill="none" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
   <!-- Back handle -->
-  <path d="M6 13H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M6 13H4a2 2 0 0 0-2 2v2a2 2 0 0 0 2 2h2" fill="none" stroke="#06B6D4" stroke-width="2" stroke-linecap="round"/>
 </svg>

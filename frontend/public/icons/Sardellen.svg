@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Flat tin with small anchovies inside -->
-  <rect x="3" y="7" width="18" height="11" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-sardellen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#60A5FA" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Flat tin with small anchovies inside -->
+  <rect x="3" y="7" width="18" height="11" rx="2" fill="#60A5FA" fill-opacity="0.14"/>
+  <rect x="3" y="7" width="18" height="11" rx="2" fill="none" stroke="#60A5FA" filter="url(#glow-sardellen)" stroke-width="2"/>
   <!-- Little anchovy fillets inside tin -->
-  <path d="M6 10c3-1.5 7-1.5 12 0 M6 13c3-1.5 7-1.5 12 0 M6 16c3-1.5 7-1.5 12 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M6 10c3-1.5 7-1.5 12 0 M6 13c3-1.5 7-1.5 12 0 M6 16c3-1.5 7-1.5 12 0" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Pull tab on tin -->
-  <ellipse cx="4.5" cy="12.5" rx="1" ry="2" stroke="currentColor" stroke-width="1.4"/>
+  <ellipse cx="4.5" cy="12.5" rx="1" ry="2" stroke="#60A5FA" stroke-width="1.4"/>
 </svg>

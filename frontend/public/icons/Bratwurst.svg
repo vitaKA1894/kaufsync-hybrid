@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Grilled sausage with diagonal grill knife slashes -->
-  <path d="M4 16C3 9 9 4 16 4c3.5 0 5 1.5 5 3.5 0 3-1.5 4.5-3.5 5-6 1.5-10 6-11 7-1 .5-2 .5-2.5-.5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 16C3 9 9 4 16 4c3.5 0 5 1.5 5 3.5 0 3-1.5 4.5-3.5 5-6 1.5-10 6-11 7-1 .5-2 .5-2.5-.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-bratwurst" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EA580C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Grilled sausage with diagonal grill knife slashes -->
+  <path d="M4 16C3 9 9 4 16 4c3.5 0 5 1.5 5 3.5 0 3-1.5 4.5-3.5 5-6 1.5-10 6-11 7-1 .5-2 .5-2.5-.5z" fill="#EA580C" fill-opacity="0.14"/>
+  <path d="M4 16C3 9 9 4 16 4c3.5 0 5 1.5 5 3.5 0 3-1.5 4.5-3.5 5-6 1.5-10 6-11 7-1 .5-2 .5-2.5-.5z" fill="none" stroke="#EA580C" filter="url(#glow-bratwurst)" stroke-width="2" stroke-linecap="round"/>
   <!-- Grill slashes -->
-  <line x1="8" y1="8" x2="10" y2="10.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="11.5" y1="6.5" x2="13.5" y2="9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="15" y1="5.5" x2="17" y2="8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="8" y1="8" x2="10" y2="10.5" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="11.5" y1="6.5" x2="13.5" y2="9" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="15" y1="5.5" x2="17" y2="8" stroke="#EA580C" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

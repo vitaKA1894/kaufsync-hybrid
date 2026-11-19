@@ -1,15 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Birthday / celebration cake with candles -->
-  <path d="M4 13h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M4 13h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-torte" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Birthday / celebration cake with candles -->
+  <path d="M4 13h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z" fill="#EC4899" fill-opacity="0.14"/>
+  <path d="M4 13h16v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7z" fill="none" stroke="#EC4899" filter="url(#glow-torte)" stroke-width="2"/>
   <!-- Top tier -->
-  <path d="M7 8h10v5H7V8z" fill="currentColor" fill-opacity="0.35"/>
-  <path d="M7 8h10v5H7V8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M7 8h10v5H7V8z" fill="#EC4899" fill-opacity="0.14"/>
+  <path d="M7 8h10v5H7V8z" fill="none" stroke="#EC4899" stroke-width="2"/>
   <!-- Candles & flames -->
-  <line x1="9" y1="8" x2="9" y2="5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="9" cy="3.5" r="0.8" fill="currentColor"/>
-  <line x1="12" y1="8" x2="12" y2="4.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="12" cy="3" r="0.8" fill="currentColor"/>
-  <line x1="15" y1="8" x2="15" y2="5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="15" cy="3.5" r="0.8" fill="currentColor"/>
+  <line x1="9" y1="8" x2="9" y2="5" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="9" cy="3.5" r="0.8" fill="#EC4899" fill-opacity="0.35"/>
+  <line x1="12" y1="8" x2="12" y2="4.5" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="12" cy="3" r="0.8" fill="#EC4899" fill-opacity="0.35"/>
+  <line x1="15" y1="8" x2="15" y2="5" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="15" cy="3.5" r="0.8" fill="#EC4899" fill-opacity="0.35"/>
 </svg>

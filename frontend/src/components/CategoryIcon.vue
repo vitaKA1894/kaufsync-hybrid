@@ -86,6 +86,10 @@ const normalizeUmlauts = (str) => {
     .replace(/é/g, 'e').replace(/è/g, 'e');
 };
 
+const isLetterFallback = computed(() => {
+  return currentImageSrc.value && currentImageSrc.value.includes('/icons/letters/');
+});
+
 const iconSources = computed(() => {
   if (!props.name) return [];
 
@@ -170,8 +174,9 @@ const onImageError = (event) => {
     >
       {{ name.charAt(0).toUpperCase() }}
     </div>
+    <!-- Fallback for generic letter initial SVGs -->
     <div
-      v-else-if="name"
+      v-else-if="name && isLetterFallback"
       class="item-icon-svg"
       :class="categoryClass"
       :style="{
@@ -189,10 +194,30 @@ const onImageError = (event) => {
         :alt="name"
       />
     </div>
+    <!-- Standard: All food & grocery items render full-color vector glow SVGs -->
+    <img
+      v-else-if="name"
+      class="item-icon-natural"
+      :src="currentImageSrc"
+      :style="{
+        width: !isNaN(size) ? `${size}px` : size,
+        height: !isNaN(size) ? `${size}px` : size
+      }"
+      @error="onImageError"
+      :alt="name"
+      :title="name"
+    />
   </div>
 </template>
 
 <style scoped>
+.item-icon-natural {
+  display: inline-block;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
+  transition: transform 0.15s ease;
+}
+
 .item-icon-svg {
   display: inline-block;
   mask-image: var(--icon-src);

@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cat litter sack with handle and litter granules -->
-  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M9 7V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-katzenstreu" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F97316" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cat litter sack with handle and litter granules -->
+  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="#F97316" fill-opacity="0.14"/>
+  <path d="M6 7h12l-1.5 13a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="#F97316" filter="url(#glow-katzenstreu)" stroke-width="2"/>
+  <path d="M9 7V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v3" fill="none" stroke="#F97316" stroke-width="2"/>
   <!-- Cat paw print emblem -->
-  <circle cx="12" cy="14.5" r="2.2" fill="currentColor"/>
-  <circle cx="9.5" cy="12" r="0.9" fill="currentColor"/>
-  <circle cx="12" cy="10.5" r="0.9" fill="currentColor"/>
-  <circle cx="14.5" cy="12" r="0.9" fill="currentColor"/>
+  <circle cx="12" cy="14.5" r="2.2" fill="#F97316" fill-opacity="0.35"/>
+  <circle cx="9.5" cy="12" r="0.9" fill="#F97316" fill-opacity="0.35"/>
+  <circle cx="12" cy="10.5" r="0.9" fill="#F97316" fill-opacity="0.35"/>
+  <circle cx="14.5" cy="12" r="0.9" fill="#F97316" fill-opacity="0.35"/>
 </svg>

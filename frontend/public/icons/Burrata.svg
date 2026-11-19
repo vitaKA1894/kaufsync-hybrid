@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Tied mozzarella purse with creamy filling oozing out -->
-  <path d="M6 15c0 4 3 6.5 6 6.5s6-2.5 6-6.5c0-3-2-5-4-6l1-4H9l1 4c-2 1-4 3-4 6z" fill="currentColor" fill-opacity="0.28"/>
-  <path d="M6 15c0 4 3 6.5 6 6.5s6-2.5 6-6.5c0-3-2-5-4-6l1-4H9l1 4c-2 1-4 3-4 6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-burrata" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Tied mozzarella purse with creamy filling oozing out -->
+  <path d="M6 15c0 4 3 6.5 6 6.5s6-2.5 6-6.5c0-3-2-5-4-6l1-4H9l1 4c-2 1-4 3-4 6z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M6 15c0 4 3 6.5 6 6.5s6-2.5 6-6.5c0-3-2-5-4-6l1-4H9l1 4c-2 1-4 3-4 6z" fill="none" stroke="#F8FAFC" filter="url(#glow-burrata)" stroke-width="2" stroke-linecap="round"/>
   <!-- Raffia tie string -->
-  <line x1="9" y1="9" x2="15" y2="9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <line x1="9" y1="9" x2="15" y2="9" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round"/>
   <!-- Creamy heart cut -->
-  <circle cx="12" cy="15" r="2.2" fill="currentColor" fill-opacity="0.6"/>
+  <circle cx="12" cy="15" r="2.2" fill="#F8FAFC" fill-opacity="0.14"/>
 </svg>

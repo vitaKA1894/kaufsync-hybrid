@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pork chop (Kotelett) with curved bone -->
-  <path d="M4 13c0-4 3.5-7.5 9-7.5 4.5 0 7 2 7 5.5s-2.5 8-8 8c-4.5 0-8-2-8-6z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 13c0-4 3.5-7.5 9-7.5 4.5 0 7 2 7 5.5s-2.5 8-8 8c-4.5 0-8-2-8-6z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-schweinefleisch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FB7185" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pork chop (Kotelett) with curved bone -->
+  <path d="M4 13c0-4 3.5-7.5 9-7.5 4.5 0 7 2 7 5.5s-2.5 8-8 8c-4.5 0-8-2-8-6z" fill="#FB7185" fill-opacity="0.14"/>
+  <path d="M4 13c0-4 3.5-7.5 9-7.5 4.5 0 7 2 7 5.5s-2.5 8-8 8c-4.5 0-8-2-8-6z" fill="none" stroke="#FB7185" filter="url(#glow-schweinefleisch)" stroke-width="2"/>
   <!-- Kotelett bone curving around -->
-  <path d="M4 13a6 6 0 0 1 5-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M4 13a6 6 0 0 1 5-6" stroke="#FB7185" stroke-width="2.2" stroke-linecap="round"/>
   <!-- Cute pig snout emblem -->
-  <ellipse cx="14" cy="13" rx="2.5" ry="1.8" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.3"/>
-  <circle cx="13.2" cy="13" r="0.4" fill="currentColor"/>
-  <circle cx="14.8" cy="13" r="0.4" fill="currentColor"/>
+  <ellipse cx="14" cy="13" rx="2.5" ry="1.8" fill="#FB7185" fill-opacity="0.14" stroke="#FB7185" stroke-width="1.3"/>
+  <circle cx="13.2" cy="13" r="0.4" fill="#FB7185" fill-opacity="0.35"/>
+  <circle cx="14.8" cy="13" r="0.4" fill="#FB7185" fill-opacity="0.35"/>
 </svg>

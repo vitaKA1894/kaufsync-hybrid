@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Romaine / Cos lettuce with tall upright crisp leaves -->
-  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="none" stroke="currentColor" stroke-width="2"/>
-  <line x1="12" y1="5" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-roemersalat" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Romaine / Cos lettuce with tall upright crisp leaves -->
+  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="#22C55E" fill-opacity="0.14"/>
+  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="none" stroke="#22C55E" filter="url(#glow-roemersalat)" stroke-width="2"/>
+  <line x1="12" y1="5" x2="12" y2="21" stroke="#22C55E" stroke-width="2"/>
   <!-- Leaf rib curves -->
-  <path d="M6 21v-7a3 3 0 0 1 2-3m10 10v-7a3 3 0 0 0-2-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M6 21v-7a3 3 0 0 1 2-3m10 10v-7a3 3 0 0 0-2-3" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

@@ -1,13 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Whole lemon with pointed ends, textured peel and leaf -->
-  <path d="M3.5 12c2-5.5 7-8.5 12.5-6.5l3-2.5v3c2 5.5-1 10.5-6.5 12.5-5.5 2-10.5-1-12-6.5H2l1.5-1.5z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M3.5 12c2-5.5 7-8.5 12.5-6.5l3-2.5v3c2 5.5-1 10.5-6.5 12.5-5.5 2-10.5-1-12-6.5H2l1.5-1.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Citrus peel dots -->
-  <circle cx="9" cy="10" r="0.7" fill="currentColor"/>
-  <circle cx="14" cy="11" r="0.7" fill="currentColor"/>
-  <circle cx="11" cy="14.5" r="0.7" fill="currentColor"/>
+  <defs>
+    <filter id="glow-zitrone" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Whole lemon body with vibrant yellow outline glow -->
+  <path d="M3.5 12c2-5.5 7-8.5 12.5-6.5l3-2.5v3c2 5.5-1 10.5-6.5 12.5-5.5 2-10.5-1-12-6.5H2l1.5-1.5z" fill="#FACC15" fill-opacity="0.12"/>
+  <path d="M3.5 12c2-5.5 7-8.5 12.5-6.5l3-2.5v3c2 5.5-1 10.5-6.5 12.5-5.5 2-10.5-1-12-6.5H2l1.5-1.5z" fill="none" stroke="#FACC15" stroke-width="2" stroke-linejoin="round" filter="url(#glow-lemon)"/>
+  <!-- Leaf accent -->
+  <path d="M17 5c1.5-2.5 3.5-1.5 3.5 0s-1.5 2-3.5 0z" fill="#22C55E" fill-opacity="0.3" stroke="#22C55E" stroke-width="1.2"/>
+  <!-- Peel texture dots -->
+  <circle cx="8" cy="10" r="0.7" fill="#FDE047"/>
+  <circle cx="13" cy="9.5" r="0.7" fill="#FDE047"/>
+  <circle cx="9.5" cy="14" r="0.7" fill="#FDE047"/>
   <!-- Cut slice wheel in corner -->
-  <circle cx="18" cy="18" r="4" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="18" y1="14" x2="18" y2="22" stroke="currentColor" stroke-width="1.2"/>
-  <line x1="14" y1="18" x2="22" y2="18" stroke="currentColor" stroke-width="1.2"/>
+  <circle cx="18" cy="18" r="4.2" fill="#FACC15" fill-opacity="0.15" stroke="#FACC15" stroke-width="1.6"/>
+  <line x1="18" y1="14" x2="18" y2="22" stroke="#FDE047" stroke-width="1.2"/>
+  <line x1="14" y1="18" x2="22" y2="18" stroke="#FDE047" stroke-width="1.2"/>
 </svg>

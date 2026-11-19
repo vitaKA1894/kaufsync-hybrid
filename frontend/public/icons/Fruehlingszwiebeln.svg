@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Scallions / spring onions with white bulb and long green tubes -->
-  <path d="M8 21v-8l-2-10m4 18v-8l2-10m-3 18h2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M14 21v-7l-1-11m3 18v-7l3-11" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-fruehlingszwiebeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Scallions / spring onions with white bulb and long green tubes -->
+  <path d="M8 21v-8l-2-10m4 18v-8l2-10m-3 18h2" stroke="#22C55E" filter="url(#glow-fruehlingszwiebeln)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14 21v-7l-1-11m3 18v-7l3-11" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
   <!-- White bulb swellings -->
-  <ellipse cx="8.5" cy="18" rx="2.5" ry="3" fill="currentColor" fill-opacity="0.35"/>
-  <ellipse cx="14.5" cy="18" rx="2.5" ry="3" fill="currentColor" fill-opacity="0.35"/>
+  <ellipse cx="8.5" cy="18" rx="2.5" ry="3" fill="#22C55E" fill-opacity="0.14"/>
+  <ellipse cx="14.5" cy="18" rx="2.5" ry="3" fill="#22C55E" fill-opacity="0.14"/>
 </svg>

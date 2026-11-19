@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Walnut with crinkly grooved brain-like shell halves -->
-  <ellipse cx="12" cy="13" rx="7.5" ry="8" fill="currentColor" fill-opacity="0.25"/>
-  <ellipse cx="12" cy="13" rx="7.5" ry="8" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-walnuesse" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#B45309" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Walnut with crinkly grooved brain-like shell halves -->
+  <ellipse cx="12" cy="13" rx="7.5" ry="8" fill="#B45309" fill-opacity="0.14"/>
+  <ellipse cx="12" cy="13" rx="7.5" ry="8" fill="none" stroke="#B45309" filter="url(#glow-walnuesse)" stroke-width="2"/>
   <!-- Center seam & brain-like lobes -->
-  <line x1="12" y1="5" x2="12" y2="21" stroke="currentColor" stroke-width="2"/>
-  <path d="M8 9c1 2 1 5 0 7m8-7c-1 2-1 5 0 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="12" y1="5" x2="12" y2="21" stroke="#B45309" stroke-width="2"/>
+  <path d="M8 9c1 2 1 5 0 7m8-7c-1 2-1 5 0 7" stroke="#B45309" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

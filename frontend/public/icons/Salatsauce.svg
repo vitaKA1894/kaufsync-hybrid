@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Salad dressing shaker bottle with herb dressing layers -->
-  <path d="M8 8l-1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L16 8V3h-8v5z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M8 8l-1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L16 8V3h-8v5z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-salatsauce" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#84CC16" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Salad dressing shaker bottle with herb dressing layers -->
+  <path d="M8 8l-1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L16 8V3h-8v5z" fill="#84CC16" fill-opacity="0.14"/>
+  <path d="M8 8l-1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2L16 8V3h-8v5z" fill="none" stroke="#84CC16" filter="url(#glow-salatsauce)" stroke-width="2"/>
   <!-- Dressing separation line -->
-  <line x1="7.5" y1="14" x2="16.5" y2="14" stroke="currentColor" stroke-width="1.8" stroke-dasharray="2 2"/>
+  <line x1="7.5" y1="14" x2="16.5" y2="14" stroke="#84CC16" stroke-width="1.8" stroke-dasharray="2 2"/>
   <!-- Herb specks in oil -->
-  <circle cx="10" cy="11" r="0.7" fill="currentColor"/>
-  <circle cx="14" cy="12" r="0.7" fill="currentColor"/>
+  <circle cx="10" cy="11" r="0.7" fill="#84CC16" fill-opacity="0.35"/>
+  <circle cx="14" cy="12" r="0.7" fill="#84CC16" fill-opacity="0.35"/>
 </svg>

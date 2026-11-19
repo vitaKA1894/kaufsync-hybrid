@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <path d="M12 13v8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 17c-2.5-1-4 0-4 0s.5 2.5 4 1 M12 15c2.5-1 4 0 4 0s-.5 2.5-4 1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M7 6c0 4.5 3 7 5 7s5-2.5 5-7c-2 2.5-3 2.5-5 0-2 2.5-3 2.5-5 0z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M7 6c0 4.5 3 7 5 7s5-2.5 5-7c-2 2.5-3 2.5-5 0-2 2.5-3 2.5-5 0z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
-  <circle cx="12" cy="5" r="1.5" fill="currentColor" fill-opacity="0.5"/>
+  <defs>
+    <filter id="glow-blumen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<path d="M12 13v8" stroke="#EC4899" filter="url(#glow-blumen)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 17c-2.5-1-4 0-4 0s.5 2.5 4 1 M12 15c2.5-1 4 0 4 0s-.5 2.5-4 1" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7 6c0 4.5 3 7 5 7s5-2.5 5-7c-2 2.5-3 2.5-5 0-2 2.5-3 2.5-5 0z" fill="#EC4899" fill-opacity="0.14"/>
+  <path d="M7 6c0 4.5 3 7 5 7s5-2.5 5-7c-2 2.5-3 2.5-5 0-2 2.5-3 2.5-5 0z" fill="none" stroke="#EC4899" stroke-width="2" stroke-linejoin="round"/>
+  <circle cx="12" cy="5" r="1.5" fill="#EC4899" fill-opacity="0.14"/>
 </svg>

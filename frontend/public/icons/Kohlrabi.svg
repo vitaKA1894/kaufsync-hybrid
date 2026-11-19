@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Kohlrabi: spherical stem tuber with long leaf stalks radiating out -->
-  <circle cx="12" cy="15" r="6" fill="currentColor" fill-opacity="0.25"/>
-  <circle cx="12" cy="15" r="6" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kohlrabi" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#4ADE80" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Kohlrabi: spherical stem tuber with long leaf stalks radiating out -->
+  <circle cx="12" cy="15" r="6" fill="#4ADE80" fill-opacity="0.14"/>
+  <circle cx="12" cy="15" r="6" fill="none" stroke="#4ADE80" filter="url(#glow-kohlrabi)" stroke-width="2"/>
   <!-- Root tuft at bottom -->
-  <path d="M12 21v2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 21v2" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Radiating leaf stalks with small leaf blades -->
-  <path d="M12 9V2.5 M12 3c-1-1-2 0-2 1s1 1 2-1z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M8 11L4 5 M4 5.5c-1-1 0-2 1-1.5s.5 1.5-1 1.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M16 11l4-5.5 M20 5.5c1-1 0-2-1-1.5s-.5 1.5 1 1.5z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <path d="M6.5 15H2.5 M17.5 15H21.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 9V2.5 M12 3c-1-1-2 0-2 1s1 1 2-1z" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M8 11L4 5 M4 5.5c-1-1 0-2 1-1.5s.5 1.5-1 1.5z" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M16 11l4-5.5 M20 5.5c1-1 0-2-1-1.5s-.5 1.5 1 1.5z" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M6.5 15H2.5 M17.5 15H21.5" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

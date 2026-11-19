@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Round onion with papery layered skin and pointed top -->
-  <path d="M12 3c-1.5 3-7 6-7 11 0 4.5 3 6 7 6s7-1.5 7-6c0-5-5.5-8-7-11z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 3c-1.5 3-7 6-7 11 0 4.5 3 6 7 6s7-1.5 7-6c0-5-5.5-8-7-11z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-zwiebeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Round onion with papery layered skin and pointed top -->
+  <path d="M12 3c-1.5 3-7 6-7 11 0 4.5 3 6 7 6s7-1.5 7-6c0-5-5.5-8-7-11z" fill="#D97706" fill-opacity="0.14"/>
+  <path d="M12 3c-1.5 3-7 6-7 11 0 4.5 3 6 7 6s7-1.5 7-6c0-5-5.5-8-7-11z" fill="none" stroke="#D97706" filter="url(#glow-zwiebeln)" stroke-width="2"/>
   <!-- Papery sheath curved lines -->
-  <path d="M12 3c-1 4-3 7-3 12m3-12c1 4 3 7 3 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
-  <path d="M10.5 20v2m3-2v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M12 3c-1 4-3 7-3 12m3-12c1 4 3 7 3 12" stroke="#D97706" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M10.5 20v2m3-2v2" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Ear of corn with husk leaves peeled back showing kernel rows -->
-  <ellipse cx="12" cy="11" rx="4.5" ry="8" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="2" transform="rotate(15 12 11)"/>
+  <defs>
+    <filter id="glow-mais" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Ear of corn with husk leaves peeled back showing kernel rows -->
+  <ellipse cx="12" cy="11" rx="4.5" ry="8" fill="#FACC15" fill-opacity="0.14" stroke="#FACC15" filter="url(#glow-mais)" stroke-width="2" transform="rotate(15 12 11)"/>
   <!-- Kernel grid -->
-  <line x1="10" y1="5" x2="14" y2="17" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="8" y1="9" x2="16" y2="11" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="7" y1="13" x2="15" y2="15" stroke="currentColor" stroke-width="1.5"/>
+  <line x1="10" y1="5" x2="14" y2="17" stroke="#FACC15" stroke-width="1.5"/>
+  <line x1="8" y1="9" x2="16" y2="11" stroke="#FACC15" stroke-width="1.5"/>
+  <line x1="7" y1="13" x2="15" y2="15" stroke="#FACC15" stroke-width="1.5"/>
   <!-- Husk leaves peeling at base -->
-  <path d="M8 17c-2 2-3 4-2 6m8-6c2 2 3 4 2 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M8 17c-2 2-3 4-2 6m8-6c2 2 3 4 2 6" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
 </svg>

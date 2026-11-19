@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Small trowel blade -->
-  <path d="M6 18l5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <path d="M11 13l4-4c1.5-1.5 3.5-1 4 .5s1 2.5-.5 4l-4 4-3.5-4.5z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M11 13l4-4c1.5-1.5 3.5-1 4 .5s1 2.5-.5 4l-4 4-3.5-4.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-gartenwerkzeug" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#10B981" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Small trowel blade -->
+  <path d="M6 18l5-5" stroke="#10B981" filter="url(#glow-gartenwerkzeug)" stroke-width="2" stroke-linecap="round"/>
+  <path d="M11 13l4-4c1.5-1.5 3.5-1 4 .5s1 2.5-.5 4l-4 4-3.5-4.5z" fill="#10B981" fill-opacity="0.14"/>
+  <path d="M11 13l4-4c1.5-1.5 3.5-1 4 .5s1 2.5-.5 4l-4 4-3.5-4.5z" fill="none" stroke="#10B981" stroke-width="2" stroke-linejoin="round"/>
   <!-- Handle grip -->
-  <path d="M4 20l2-2" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="16" cy="11" r="1.5" fill="currentColor" fill-opacity="0.4"/>
+  <path d="M4 20l2-2" stroke="#10B981" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="16" cy="11" r="1.5" fill="#10B981" fill-opacity="0.14"/>
 </svg>

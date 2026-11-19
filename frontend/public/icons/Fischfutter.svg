@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fish food container with fish flakes -->
-  <rect x="7" y="7" width="10" height="14" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="7" y="7" width="10" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="6" y="4" width="12" height="3" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-fischfutter" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fish food container with fish flakes -->
+  <rect x="7" y="7" width="10" height="14" rx="2" fill="#38BDF8" fill-opacity="0.14"/>
+  <rect x="7" y="7" width="10" height="14" rx="2" fill="none" stroke="#38BDF8" filter="url(#glow-fischfutter)" stroke-width="2"/>
+  <rect x="6" y="4" width="12" height="3" rx="1" fill="#38BDF8" fill-opacity="0.14" stroke="#38BDF8" stroke-width="1.8"/>
   <!-- Fish emblem -->
-  <path d="M9 14c2-1.5 4-1.5 6 0l1.5-1v2l-1.5-1c-2 1.5-4 1.5-6 0z" fill="currentColor"/>
+  <path d="M9 14c2-1.5 4-1.5 6 0l1.5-1v2l-1.5-1c-2 1.5-4 1.5-6 0z" fill="#38BDF8" fill-opacity="0.35"/>
 </svg>

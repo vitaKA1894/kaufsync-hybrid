@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pizza slice with melted cheese pull & pepperoni -->
-  <path d="M12 2L3 18c3 2.5 7 3 9 3s6-.5 9-3L12 2z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 2L3 18c3 2.5 7 3 9 3s6-.5 9-3L12 2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-pizza" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pizza slice with melted cheese pull & pepperoni -->
+  <path d="M12 2L3 18c3 2.5 7 3 9 3s6-.5 9-3L12 2z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M12 2L3 18c3 2.5 7 3 9 3s6-.5 9-3L12 2z" fill="none" stroke="#F59E0B" filter="url(#glow-pizza)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Crust edge -->
-  <path d="M3 18c3 2.5 7 3 9 3s6-.5 9-3" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <path d="M3 18c3 2.5 7 3 9 3s6-.5 9-3" stroke="#F59E0B" stroke-width="3" stroke-linecap="round"/>
   <!-- Pepperoni slices -->
-  <circle cx="12" cy="11" r="1.5" fill="currentColor"/>
-  <circle cx="9" cy="15" r="1.3" fill="currentColor"/>
-  <circle cx="15" cy="15" r="1.3" fill="currentColor"/>
+  <circle cx="12" cy="11" r="1.5" fill="#F59E0B" fill-opacity="0.35"/>
+  <circle cx="9" cy="15" r="1.3" fill="#F59E0B" fill-opacity="0.35"/>
+  <circle cx="15" cy="15" r="1.3" fill="#F59E0B" fill-opacity="0.35"/>
 </svg>

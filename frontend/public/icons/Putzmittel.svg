@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cleaning bucket with squeegee / mop & foam -->
-  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-putzmittel" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cleaning bucket with squeegee / mop & foam -->
+  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M5 9h14l-1.5 11a2 2 0 0 1-2 1.8H8.5a2 2 0 0 1-2-1.8L5 9z" fill="none" stroke="#06B6D4" filter="url(#glow-putzmittel)" stroke-width="2"/>
   <!-- Handle -->
-  <path d="M5 11c0-4 3-7 7-7s7 3 7 7" fill="none" stroke="currentColor" stroke-width="2"/>
+  <path d="M5 11c0-4 3-7 7-7s7 3 7 7" fill="none" stroke="#06B6D4" stroke-width="2"/>
   <!-- Mop handle sticking out -->
-  <line x1="16" y1="2" x2="11" y2="12" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="16" y1="2" x2="11" y2="12" stroke="#06B6D4" stroke-width="2.2" stroke-linecap="round"/>
 </svg>

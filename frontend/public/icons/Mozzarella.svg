@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Caprese: Mozzarella ball, ripe tomato slice & basil leaf -->
-  <ellipse cx="10" cy="15" rx="6.5" ry="5.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-mozzarella" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Caprese: Mozzarella ball, ripe tomato slice & basil leaf -->
+  <ellipse cx="10" cy="15" rx="6.5" ry="5.5" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" filter="url(#glow-mozzarella)" stroke-width="2"/>
   <!-- Tomato slice overlapped -->
-  <circle cx="16" cy="12" r="5" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.8"/>
-  <circle cx="16" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  <circle cx="16" cy="12" r="5" fill="#F8FAFC" fill-opacity="0.14" stroke="#F8FAFC" stroke-width="1.8"/>
+  <circle cx="16" cy="12" r="2" fill="none" stroke="#F8FAFC" stroke-width="1.2"/>
   <!-- Basil leaf -->
-  <path d="M10 7c-2-2-4 1-3 3s3 2 3-3z" fill="currentColor"/>
+  <path d="M10 7c-2-2-4 1-3 3s3 2 3-3z" fill="#F8FAFC" fill-opacity="0.35"/>
 </svg>

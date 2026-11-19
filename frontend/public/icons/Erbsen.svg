@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Pea pod popped open showing 4 green round peas -->
-  <path d="M3 14C3 8 9 5 19 5c2 4 1 11-5 13-5 2-10-1-11-4z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M3 14C3 8 9 5 19 5c2 4 1 11-5 13-5 2-10-1-11-4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-erbsen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Pea pod popped open showing 4 green round peas -->
+  <path d="M3 14C3 8 9 5 19 5c2 4 1 11-5 13-5 2-10-1-11-4z" fill="#22C55E" fill-opacity="0.14"/>
+  <path d="M3 14C3 8 9 5 19 5c2 4 1 11-5 13-5 2-10-1-11-4z" fill="none" stroke="#22C55E" filter="url(#glow-erbsen)" stroke-width="2" stroke-linecap="round"/>
   <!-- Round peas in row -->
-  <circle cx="7" cy="12.5" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
-  <circle cx="11" cy="11.5" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
-  <circle cx="15" cy="10.5" r="1.8" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <circle cx="7" cy="12.5" r="1.8" fill="#22C55E" fill-opacity="0.35" stroke="#22C55E" stroke-width="1.2"/>
+  <circle cx="11" cy="11.5" r="1.8" fill="#22C55E" fill-opacity="0.35" stroke="#22C55E" stroke-width="1.2"/>
+  <circle cx="15" cy="10.5" r="1.8" fill="#22C55E" fill-opacity="0.35" stroke="#22C55E" stroke-width="1.2"/>
 </svg>

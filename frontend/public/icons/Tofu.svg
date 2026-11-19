@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Block of firm tofu cut into cubes -->
-  <path d="M4 14l5-6h11l-5 6H4z" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  <rect x="4" y="14" width="11" height="7" rx="1" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M15 14l5-6v7l-5 6v-7z" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-tofu" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FDE68A" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Block of firm tofu cut into cubes -->
+  <path d="M4 14l5-6h11l-5 6H4z" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" filter="url(#glow-tofu)" stroke-width="1.8" stroke-linejoin="round"/>
+  <rect x="4" y="14" width="11" height="7" rx="1" fill="#FDE68A" fill-opacity="0.2" stroke="#FDE68A" stroke-width="1.8"/>
+  <path d="M15 14l5-6v7l-5 6v-7z" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" stroke-width="1.8" stroke-linejoin="round"/>
   <!-- Soybean sprout -->
-  <path d="M9 11c1-1 2 0 2 0" stroke="currentColor" stroke-width="1.5"/>
+  <path d="M9 11c1-1 2 0 2 0" stroke="#FDE68A" stroke-width="1.5"/>
 </svg>

@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Chewing gum blister pack with foil pockets -->
-  <rect x="5" y="4" width="14" height="16" rx="2" fill="currentColor" fill-opacity="0.2"/>
-  <rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-kaugummi" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Chewing gum blister pack with foil pockets -->
+  <rect x="5" y="4" width="14" height="16" rx="2" fill="#EC4899" fill-opacity="0.2"/>
+  <rect x="5" y="4" width="14" height="16" rx="2" fill="none" stroke="#EC4899" filter="url(#glow-kaugummi)" stroke-width="2"/>
   <!-- Pill pockets -->
-  <rect x="7.5" y="7" width="3.5" height="4.5" rx="1" fill="currentColor" fill-opacity="0.6"/>
-  <rect x="13" y="7" width="3.5" height="4.5" rx="1" fill="currentColor" fill-opacity="0.6"/>
-  <rect x="7.5" y="13" width="3.5" height="4.5" rx="1" fill="currentColor" fill-opacity="0.6"/>
-  <rect x="13" y="13" width="3.5" height="4.5" rx="1" fill="currentColor" fill-opacity="0.6"/>
+  <rect x="7.5" y="7" width="3.5" height="4.5" rx="1" fill="#EC4899" fill-opacity="0.14"/>
+  <rect x="13" y="7" width="3.5" height="4.5" rx="1" fill="#EC4899" fill-opacity="0.14"/>
+  <rect x="7.5" y="13" width="3.5" height="4.5" rx="1" fill="#EC4899" fill-opacity="0.14"/>
+  <rect x="13" y="13" width="3.5" height="4.5" rx="1" fill="#EC4899" fill-opacity="0.14"/>
 </svg>

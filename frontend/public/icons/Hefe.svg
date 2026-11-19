@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fresh yeast cube in paper wrap with HEFE label -->
-  <path d="M4 14l5-6h11l-5 6H4z" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  <rect x="4" y="14" width="11" height="7" rx="1" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M15 14l5-6v7l-5 6v-7z" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
-  <text x="9.5" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">HEFE</text>
+  <defs>
+    <filter id="glow-hefe" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fresh yeast cube in paper wrap with HEFE label -->
+  <path d="M4 14l5-6h11l-5 6H4z" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" filter="url(#glow-hefe)" stroke-width="1.8" stroke-linejoin="round"/>
+  <rect x="4" y="14" width="11" height="7" rx="1" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" stroke-width="1.8"/>
+  <path d="M15 14l5-6v7l-5 6v-7z" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" stroke-width="1.8" stroke-linejoin="round"/>
+  <text x="9.5" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.6" font-weight="900" letter-spacing="0.3" fill="#FDE68A" fill-opacity="0.35" text-anchor="middle">HEFE</text>
 </svg>

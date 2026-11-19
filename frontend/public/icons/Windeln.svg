@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Baby diaper with elastic leg cuffs and side adhesive tabs -->
-  <path d="M4 8h16v3c0 6-3.5 10-8 10s-8-4-8-10V8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 8h16v3c0 6-3.5 10-8 10s-8-4-8-10V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-windeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#60A5FA" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Baby diaper with elastic leg cuffs and side adhesive tabs -->
+  <path d="M4 8h16v3c0 6-3.5 10-8 10s-8-4-8-10V8z" fill="#60A5FA" fill-opacity="0.14"/>
+  <path d="M4 8h16v3c0 6-3.5 10-8 10s-8-4-8-10V8z" fill="none" stroke="#60A5FA" filter="url(#glow-windeln)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Leg cuffs curves -->
-  <path d="M4 11c3 1 4.5 4 4.5 7m11.5-7c-3 1-4.5 4-4.5 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M4 11c3 1 4.5 4 4.5 7m11.5-7c-3 1-4.5 4-4.5 7" stroke="#60A5FA" stroke-width="1.8" stroke-linecap="round"/>
   <!-- Fastening tape tabs -->
-  <rect x="3" y="8" width="4" height="2.5" rx="0.5" fill="currentColor"/>
-  <rect x="17" y="8" width="4" height="2.5" rx="0.5" fill="currentColor"/>
+  <rect x="3" y="8" width="4" height="2.5" rx="0.5" fill="#60A5FA" fill-opacity="0.35"/>
+  <rect x="17" y="8" width="4" height="2.5" rx="0.5" fill="#60A5FA" fill-opacity="0.35"/>
 </svg>

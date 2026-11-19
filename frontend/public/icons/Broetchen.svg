@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Crusty German Kaiser roll with star spiral cuts -->
-  <path d="M4 16c0-4.5 3.5-8 8-8s8 3.5 8 8c0 2-2 3-4 3H8c-2 0-4-1-4-3z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 16c0-4.5 3.5-8 8-8s8 3.5 8 8c0 2-2 3-4 3H8c-2 0-4-1-4-3z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-broetchen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Crusty German Kaiser roll with star spiral cuts -->
+  <path d="M4 16c0-4.5 3.5-8 8-8s8 3.5 8 8c0 2-2 3-4 3H8c-2 0-4-1-4-3z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M4 16c0-4.5 3.5-8 8-8s8 3.5 8 8c0 2-2 3-4 3H8c-2 0-4-1-4-3z" fill="none" stroke="#F59E0B" filter="url(#glow-broetchen)" stroke-width="2"/>
   <!-- Star curved scores of Kaisersemmel -->
-  <path d="M12 11c0-2-1-3-2-3m2 3c2-1 3-2 3-3m-3 3c-2 0-3 1-4 2m4-2c1 2 2 3 3 4m-3-4c-1 2-2 3-3 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 11c0-2-1-3-2-3m2 3c2-1 3-2 3-3m-3 3c-2 0-3 1-4 2m4-2c1 2 2 3 3 4m-3-4c-1 2-2 3-3 4" stroke="#F59E0B" stroke-width="1.6" stroke-linecap="round"/>
 </svg>

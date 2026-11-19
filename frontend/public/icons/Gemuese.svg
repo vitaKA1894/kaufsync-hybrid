@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Fresh vegetable harvest: Carrot, Broccoli & Tomato -->
+  <defs>
+    <filter id="glow-gemuese" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Fresh vegetable harvest: Carrot, Broccoli & Tomato -->
   <!-- Tomato -->
-  <circle cx="8" cy="15" r="4.5" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="1.8"/>
+  <circle cx="8" cy="15" r="4.5" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" filter="url(#glow-gemuese)" stroke-width="1.8"/>
   <!-- Carrot -->
-  <path d="M13 18l5-12c.5-.5 1 0 1 .5l-4 13-2-1.5z" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M13 18l5-12c.5-.5 1 0 1 .5l-4 13-2-1.5z" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-width="1.8"/>
   <!-- Broccoli crown -->
-  <circle cx="16" cy="13" r="3" fill="currentColor" fill-opacity="0.4"/>
+  <circle cx="16" cy="13" r="3" fill="#22C55E" fill-opacity="0.14"/>
 </svg>

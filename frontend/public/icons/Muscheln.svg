@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Ribbed scallop / clam shell -->
-  <path d="M12 21c-6 0-9-5-9-10 0-4.5 4-8 9-8s9 3.5 9 8c0 5-3 10-9 10z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 21c-6 0-9-5-9-10 0-4.5 4-8 9-8s9 3.5 9 8c0 5-3 10-9 10z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-muscheln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Ribbed scallop / clam shell -->
+  <path d="M12 21c-6 0-9-5-9-10 0-4.5 4-8 9-8s9 3.5 9 8c0 5-3 10-9 10z" fill="#38BDF8" fill-opacity="0.14"/>
+  <path d="M12 21c-6 0-9-5-9-10 0-4.5 4-8 9-8s9 3.5 9 8c0 5-3 10-9 10z" fill="none" stroke="#38BDF8" filter="url(#glow-muscheln)" stroke-width="2"/>
   <!-- Shell rib ridges radiating from base -->
-  <line x1="12" y1="21" x2="12" y2="3" stroke="currentColor" stroke-width="1.8"/>
-  <line x1="12" y1="21" x2="7" y2="5" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="12" y1="21" x2="17" y2="5" stroke="currentColor" stroke-width="1.5"/>
-  <line x1="12" y1="21" x2="4.5" y2="9" stroke="currentColor" stroke-width="1.4"/>
-  <line x1="12" y1="21" x2="19.5" y2="9" stroke="currentColor" stroke-width="1.4"/>
+  <line x1="12" y1="21" x2="12" y2="3" stroke="#38BDF8" stroke-width="1.8"/>
+  <line x1="12" y1="21" x2="7" y2="5" stroke="#38BDF8" stroke-width="1.5"/>
+  <line x1="12" y1="21" x2="17" y2="5" stroke="#38BDF8" stroke-width="1.5"/>
+  <line x1="12" y1="21" x2="4.5" y2="9" stroke="#38BDF8" stroke-width="1.4"/>
+  <line x1="12" y1="21" x2="19.5" y2="9" stroke="#38BDF8" stroke-width="1.4"/>
 </svg>

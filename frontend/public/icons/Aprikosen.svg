@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Halved apricot showing distinct flesh rim and dark almond kernel/stone inside -->
-  <path d="M12 6c-3.8-1-7 1.5-7 6.5 0 5 3.5 8.5 7 8.5s7-3.5 7-8.5c0-5-3.2-7.5-7-6.5z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M12 6c-3.8-1-7 1.5-7 6.5 0 5 3.5 8.5 7 8.5s7-3.5 7-8.5c0-5-3.2-7.5-7-6.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-aprikosen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FB923C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Halved apricot showing distinct flesh rim and dark almond kernel/stone inside -->
+  <path d="M12 6c-3.8-1-7 1.5-7 6.5 0 5 3.5 8.5 7 8.5s7-3.5 7-8.5c0-5-3.2-7.5-7-6.5z" fill="#FB923C" fill-opacity="0.14"/>
+  <path d="M12 6c-3.8-1-7 1.5-7 6.5 0 5 3.5 8.5 7 8.5s7-3.5 7-8.5c0-5-3.2-7.5-7-6.5z" fill="none" stroke="#FB923C" filter="url(#glow-aprikosen)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Cut cavity & almond kernel -->
-  <ellipse cx="12" cy="14" rx="3.2" ry="4.2" fill="currentColor" fill-opacity="0.55"/>
-  <ellipse cx="12" cy="14" rx="3.2" ry="4.2" fill="none" stroke="currentColor" stroke-width="1.6"/>
+  <ellipse cx="12" cy="14" rx="3.2" ry="4.2" fill="#FB923C" fill-opacity="0.14"/>
+  <ellipse cx="12" cy="14" rx="3.2" ry="4.2" fill="none" stroke="#FB923C" stroke-width="1.6"/>
   <!-- Almond stone point -->
-  <path d="M12 10.5V9.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M12 10.5V9.5" stroke="#FB923C" stroke-width="1.5" stroke-linecap="round"/>
   <!-- Stem & small leaf -->
-  <path d="M12 6V3c1.5 0 3 .5 3.5 2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M12 6V3c1.5 0 3 .5 3.5 2" fill="none" stroke="#FB923C" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

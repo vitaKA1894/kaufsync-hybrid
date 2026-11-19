@@ -1,14 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Strawberry with pointed cone shape, leaf calyx & seed pips -->
-  <path d="M12 7c-4 0-7 4-6 9 1 4 4 6 6 6s5-2 6-6c1-5-2-9-6-9z" fill="currentColor" fill-opacity="0.3"/>
-  <path d="M12 7c-4 0-7 4-6 9 1 4 4 6 6 6s5-2 6-6c1-5-2-9-6-9z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-erdbeeren" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FF334B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Strawberry with pointed cone shape, leaf calyx & seed pips -->
+  <path d="M12 7c-4 0-7 4-6 9 1 4 4 6 6 6s5-2 6-6c1-5-2-9-6-9z" fill="#FF334B" fill-opacity="0.14"/>
+  <path d="M12 7c-4 0-7 4-6 9 1 4 4 6 6 6s5-2 6-6c1-5-2-9-6-9z" fill="none" stroke="#FF334B" filter="url(#glow-erdbeeren)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Calyx green leaves at top -->
-  <path d="M12 7c-1.5-2-3-2-4-1m4 1c0-2.5 1-3.5 1-3.5m-1 3.5c1.5-2 3-2 4-1" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 7c-1.5-2-3-2-4-1m4 1c0-2.5 1-3.5 1-3.5m-1 3.5c1.5-2 3-2 4-1" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
   <!-- Seed pips -->
-  <circle cx="10" cy="11.5" r="0.7" fill="currentColor"/>
-  <circle cx="14" cy="11.5" r="0.7" fill="currentColor"/>
-  <circle cx="8.5" cy="15" r="0.7" fill="currentColor"/>
-  <circle cx="12" cy="15" r="0.7" fill="currentColor"/>
-  <circle cx="15.5" cy="15" r="0.7" fill="currentColor"/>
-  <circle cx="12" cy="18.5" r="0.7" fill="currentColor"/>
+  <circle cx="10" cy="11.5" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="14" cy="11.5" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="8.5" cy="15" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="12" cy="15" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="15.5" cy="15" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
+  <circle cx="12" cy="18.5" r="0.7" fill="#FF334B" fill-opacity="0.35"/>
 </svg>

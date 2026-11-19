@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <rect x="6" y="6" width="12" height="14" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-couscous" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<rect x="6" y="6" width="12" height="14" rx="2" fill="#FBBF24" fill-opacity="0.14"/>
+  <rect x="6" y="6" width="12" height="14" rx="2" fill="none" stroke="#FBBF24" filter="url(#glow-couscous)" stroke-width="2"/>
   <!-- Wheat / semolina grains -->
-  <circle cx="10" cy="9.5" r="0.8" fill="currentColor"/>
-  <circle cx="14" cy="9.5" r="0.8" fill="currentColor"/>
-  <rect x="6.5" y="12.5" width="11" height="5.5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="12" y="16.2" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="1.8" font-weight="900" letter-spacing="0.2" fill="currentColor" text-anchor="middle">COUSCOUS</text>
+  <circle cx="10" cy="9.5" r="0.8" fill="#FBBF24" fill-opacity="0.35"/>
+  <circle cx="14" cy="9.5" r="0.8" fill="#FBBF24" fill-opacity="0.35"/>
+  <rect x="6.5" y="12.5" width="11" height="5.5" rx="1" fill="#FBBF24" fill-opacity="0.14"/>
+  <text x="12" y="16.2" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="1.8" font-weight="900" letter-spacing="0.2" fill="#FBBF24" fill-opacity="0.35" text-anchor="middle">COUSCOUS</text>
 </svg>

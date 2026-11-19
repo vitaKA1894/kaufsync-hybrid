@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Breakfast cereal bowl overflowing with flakes, berries and a spoon -->
-  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-muesli" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Breakfast cereal bowl overflowing with flakes, berries and a spoon -->
+  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="#FBBF24" fill-opacity="0.14"/>
+  <path d="M4 12c0 5 3.5 8 8 8s8-3 8-8H4z" fill="none" stroke="#FBBF24" filter="url(#glow-muesli)" stroke-width="2"/>
   <!-- Muesli flakes mound -->
-  <path d="M5 12c1-2 4-3 7-3s6 1 7 3" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M5 12c1-2 4-3 7-3s6 1 7 3" stroke="#FBBF24" stroke-width="1.8"/>
   <!-- Spoon -->
-  <path d="M15 3l-3 7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M15 3l-3 7" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
   <!-- Berries & grain dots -->
-  <circle cx="9" cy="9.5" r="1.3" fill="currentColor"/>
-  <circle cx="14" cy="9" r="1.3" fill="currentColor"/>
+  <circle cx="9" cy="9.5" r="1.3" fill="#FBBF24" fill-opacity="0.35"/>
+  <circle cx="14" cy="9" r="1.3" fill="#FBBF24" fill-opacity="0.35"/>
 </svg>

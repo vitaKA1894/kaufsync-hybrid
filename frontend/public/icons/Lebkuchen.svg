@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Gingerbread man with icing buttons and smile -->
-  <circle cx="12" cy="6" r="3" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2"/>
-  <path d="M12 9v7m-4-4h8m-6 4l-2 5m4-5l2 5" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-lebkuchen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Gingerbread man with icing buttons and smile -->
+  <circle cx="12" cy="6" r="3" fill="#78350F" fill-opacity="0.14" stroke="#78350F" filter="url(#glow-lebkuchen)" stroke-width="2"/>
+  <path d="M12 9v7m-4-4h8m-6 4l-2 5m4-5l2 5" stroke="#78350F" stroke-width="3" stroke-linecap="round"/>
   <!-- Icing buttons -->
   <circle cx="12" cy="11.5" r="0.8" fill="#0b0f19"/>
   <circle cx="12" cy="14" r="0.8" fill="#0b0f19"/>

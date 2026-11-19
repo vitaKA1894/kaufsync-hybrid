@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Chives: tall hollow green spears with purple blossom on top -->
-  <line x1="8" y1="21" x2="9" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <line x1="12" y1="21" x2="12" y2="6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-  <line x1="16" y1="21" x2="15" y2="5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-schnittlauch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Chives: tall hollow green spears with purple blossom on top -->
+  <line x1="8" y1="21" x2="9" y2="4" stroke="#22C55E" filter="url(#glow-schnittlauch)" stroke-width="2" stroke-linecap="round"/>
+  <line x1="12" y1="21" x2="12" y2="6" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
+  <line x1="16" y1="21" x2="15" y2="5" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
   <!-- Chive flower blossom on main spear -->
-  <circle cx="9" cy="3.5" r="2.2" fill="currentColor"/>
+  <circle cx="9" cy="3.5" r="2.2" fill="#22C55E" fill-opacity="0.35"/>
 </svg>

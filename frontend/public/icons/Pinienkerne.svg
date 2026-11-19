@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Teardrop pine nuts (Pinoli) -->
-  <ellipse cx="9" cy="15" rx="3" ry="5.5" fill="currentColor" fill-opacity="0.3" stroke="currentColor" stroke-width="1.8" transform="rotate(-20 9 15)"/>
-  <ellipse cx="15.5" cy="12" rx="3" ry="5.5" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8" transform="rotate(25 15.5 12)"/>
-  <ellipse cx="10" cy="8.5" rx="2.5" ry="4" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.6" transform="rotate(5 10 8.5)"/>
+  <defs>
+    <filter id="glow-pinienkerne" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Teardrop pine nuts (Pinoli) -->
+  <ellipse cx="9" cy="15" rx="3" ry="5.5" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" filter="url(#glow-pinienkerne)" stroke-width="1.8" transform="rotate(-20 9 15)"/>
+  <ellipse cx="15.5" cy="12" rx="3" ry="5.5" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" stroke-width="1.8" transform="rotate(25 15.5 12)"/>
+  <ellipse cx="10" cy="8.5" rx="2.5" ry="4" fill="#FDE68A" fill-opacity="0.14" stroke="#FDE68A" stroke-width="1.6" transform="rotate(5 10 8.5)"/>
 </svg>

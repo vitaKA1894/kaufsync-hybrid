@@ -1,8 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Margarine tub with plant sprout emblem -->
-  <rect x="5" y="9" width="14" height="10" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="5" y="9" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="4" y="7" width="16" height="3" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-margarine" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Margarine tub with plant sprout emblem -->
+  <rect x="5" y="9" width="14" height="10" rx="2" fill="#FACC15" fill-opacity="0.14"/>
+  <rect x="5" y="9" width="14" height="10" rx="2" fill="none" stroke="#FACC15" filter="url(#glow-margarine)" stroke-width="2"/>
+  <rect x="4" y="7" width="16" height="3" rx="1" fill="#FACC15" fill-opacity="0.14" stroke="#FACC15" stroke-width="1.8"/>
   <!-- Plant sprout icon -->
-  <path d="M12 15v-3 M12 12c-1.5-1.5-3 0-3 0s0 2 3 1 M12 12c1.5-1.5 3 0 3 0s0 2-3 1" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <path d="M12 15v-3 M12 12c-1.5-1.5-3 0-3 0s0 2 3 1 M12 12c1.5-1.5 3 0 3 0s0 2-3 1" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1.2"/>
 </svg>

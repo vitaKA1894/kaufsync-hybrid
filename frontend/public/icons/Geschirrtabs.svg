@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- 2-in-1 dishwasher tablet with active power ball in center -->
-  <rect x="4" y="6" width="16" height="12" rx="2.5" fill="currentColor" fill-opacity="0.25"/>
-  <rect x="4" y="6" width="16" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-geschirrtabs" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- 2-in-1 dishwasher tablet with active power ball in center -->
+  <rect x="4" y="6" width="16" height="12" rx="2.5" fill="#06B6D4" fill-opacity="0.14"/>
+  <rect x="4" y="6" width="16" height="12" rx="2.5" fill="none" stroke="#06B6D4" filter="url(#glow-geschirrtabs)" stroke-width="2"/>
   <!-- Blue / white layer division -->
-  <line x1="4" y1="12" x2="20" y2="12" stroke="currentColor" stroke-width="1.8"/>
+  <line x1="4" y1="12" x2="20" y2="12" stroke="#06B6D4" stroke-width="1.8"/>
   <!-- Red power ball in center -->
-  <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
+  <circle cx="12" cy="12" r="3.2" fill="#06B6D4" fill-opacity="0.35"/>
   <circle cx="12" cy="12" r="1.5" fill="#0b0f19"/>
 </svg>

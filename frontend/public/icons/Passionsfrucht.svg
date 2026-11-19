@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Halved passion fruit with jelly pulp and black seeds -->
-  <circle cx="12" cy="12" r="8" fill="currentColor" fill-opacity="0.25"/>
-  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
-  <circle cx="12" cy="12" r="5.5" fill="currentColor" fill-opacity="0.4"/>
+  <defs>
+    <filter id="glow-passionsfrucht" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#A855F7" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Halved passion fruit with jelly pulp and black seeds -->
+  <circle cx="12" cy="12" r="8" fill="#A855F7" fill-opacity="0.14"/>
+  <circle cx="12" cy="12" r="8" fill="none" stroke="#A855F7" filter="url(#glow-passionsfrucht)" stroke-width="2.5"/>
+  <circle cx="12" cy="12" r="5.5" fill="#A855F7" fill-opacity="0.14"/>
   <!-- Crunchy seeds in pulp -->
-  <circle cx="10" cy="10" r="0.9" fill="currentColor"/>
-  <circle cx="14" cy="10.5" r="0.9" fill="currentColor"/>
-  <circle cx="12" cy="13" r="0.9" fill="currentColor"/>
-  <circle cx="10" cy="14" r="0.9" fill="currentColor"/>
-  <circle cx="13.5" cy="14.5" r="0.9" fill="currentColor"/>
+  <circle cx="10" cy="10" r="0.9" fill="#A855F7" fill-opacity="0.35"/>
+  <circle cx="14" cy="10.5" r="0.9" fill="#A855F7" fill-opacity="0.35"/>
+  <circle cx="12" cy="13" r="0.9" fill="#A855F7" fill-opacity="0.35"/>
+  <circle cx="10" cy="14" r="0.9" fill="#A855F7" fill-opacity="0.35"/>
+  <circle cx="13.5" cy="14.5" r="0.9" fill="#A855F7" fill-opacity="0.35"/>
 </svg>

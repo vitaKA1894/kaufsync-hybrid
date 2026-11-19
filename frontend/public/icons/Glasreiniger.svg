@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Window glass cleaner spray trigger bottle with sparkling window -->
-  <path d="M8 12l-1 8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l-1-8H8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M8 12l-1 8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l-1-8H8z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <path d="M10 12V8h4v4" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M7 6h8l1 2H9L7 6z" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
-  <path d="M10 8l-2 3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-glasreiniger" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Window glass cleaner spray trigger bottle with sparkling window -->
+  <path d="M8 12l-1 8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l-1-8H8z" fill="#38BDF8" fill-opacity="0.14"/>
+  <path d="M8 12l-1 8a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l-1-8H8z" fill="none" stroke="#38BDF8" filter="url(#glow-glasreiniger)" stroke-width="2"/>
+  <path d="M10 12V8h4v4" stroke="#38BDF8" stroke-width="1.8"/>
+  <path d="M7 6h8l1 2H9L7 6z" fill="#38BDF8" fill-opacity="0.35" stroke="#38BDF8" stroke-width="1.2"/>
+  <path d="M10 8l-2 3" stroke="#38BDF8" stroke-width="2" stroke-linecap="round"/>
   <!-- Clean glass pane shine streak -->
-  <line x1="10" y1="15" x2="14" y2="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="10" y1="15" x2="14" y2="19" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

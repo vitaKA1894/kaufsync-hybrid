@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Mouthwash bottle with measured dosage cap and mint leaf -->
-  <path d="M7 8h10l-1 13H8L7 8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M7 8h10l-1 13H8L7 8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-mundspuelung" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#06B6D4" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Mouthwash bottle with measured dosage cap and mint leaf -->
+  <path d="M7 8h10l-1 13H8L7 8z" fill="#06B6D4" fill-opacity="0.14"/>
+  <path d="M7 8h10l-1 13H8L7 8z" fill="none" stroke="#06B6D4" filter="url(#glow-mundspuelung)" stroke-width="2"/>
   <!-- Measuring cup cap -->
-  <rect x="9" y="3" width="6" height="5" rx="1" fill="currentColor" fill-opacity="0.5" stroke="currentColor" stroke-width="1.8"/>
+  <rect x="9" y="3" width="6" height="5" rx="1" fill="#06B6D4" fill-opacity="0.14" stroke="#06B6D4" stroke-width="1.8"/>
   <!-- Fresh mint leaf / splash in center -->
-  <path d="M12 12c-2 0-3 2-2 3.5s3 1.5 3-1.5c1 1.5 3 0 2-1.5s-2-.5-3-.5z" fill="currentColor"/>
+  <path d="M12 12c-2 0-3 2-2 3.5s3 1.5 3-1.5c1 1.5 3 0 2-1.5s-2-.5-3-.5z" fill="#06B6D4" fill-opacity="0.35"/>
 </svg>

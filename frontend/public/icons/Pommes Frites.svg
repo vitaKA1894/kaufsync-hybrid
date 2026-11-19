@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- French fries box with golden crispy fries sticking out -->
-  <path d="M6 10l1.5 11h9L18 10H6z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M6 10l1.5 11h9L18 10H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-pommes-frites" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- French fries box with golden crispy fries sticking out -->
+  <path d="M6 10l1.5 11h9L18 10H6z" fill="#FACC15" fill-opacity="0.14"/>
+  <path d="M6 10l1.5 11h9L18 10H6z" fill="none" stroke="#FACC15" filter="url(#glow-pommes-frites)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Fry cutout curve on box front -->
-  <path d="M8 10c1 2 3 3 4 3s3-1 4-3" stroke="currentColor" stroke-width="1.8"/>
+  <path d="M8 10c1 2 3 3 4 3s3-1 4-3" stroke="#FACC15" stroke-width="1.8"/>
   <!-- Golden fries sticking up -->
-  <rect x="7" y="3" width="2" height="7" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <rect x="10" y="2" width="2" height="8" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <rect x="13" y="4" width="2" height="6" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
-  <rect x="15.5" y="2.5" width="2" height="7.5" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+  <rect x="7" y="3" width="2" height="7" rx="0.5" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1"/>
+  <rect x="10" y="2" width="2" height="8" rx="0.5" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1"/>
+  <rect x="13" y="4" width="2" height="6" rx="0.5" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1"/>
+  <rect x="15.5" y="2.5" width="2" height="7.5" rx="0.5" fill="#FACC15" fill-opacity="0.35" stroke="#FACC15" stroke-width="1"/>
 </svg>

@@ -1,13 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Frozen vegetable bag with snowflake symbol -->
-  <rect x="5" y="5" width="14" height="15" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="5" y="5" width="14" height="15" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-gemuese-gefroren" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Frozen vegetable bag with snowflake symbol -->
+  <rect x="5" y="5" width="14" height="15" rx="2" fill="#38BDF8" fill-opacity="0.14"/>
+  <rect x="5" y="5" width="14" height="15" rx="2" fill="none" stroke="#38BDF8" filter="url(#glow-gemuese-gefroren)" stroke-width="2"/>
   <!-- Snowflake -->
-  <line x1="12" y1="8" x2="12" y2="16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <line x1="9" y1="9" x2="15" y2="15" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="9" y1="15" x2="15" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="12" y1="8" x2="12" y2="16" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="8" y1="12" x2="16" y2="12" stroke="#38BDF8" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="9" y1="9" x2="15" y2="15" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="9" y1="15" x2="15" y2="9" stroke="#38BDF8" stroke-width="1.5" stroke-linecap="round"/>
   <!-- Frozen peas/carrots inside -->
-  <circle cx="8" cy="18" r="0.9" fill="currentColor"/>
-  <circle cx="16" cy="18" r="0.9" fill="currentColor"/>
+  <circle cx="8" cy="18" r="0.9" fill="#38BDF8" fill-opacity="0.35"/>
+  <circle cx="16" cy="18" r="0.9" fill="#38BDF8" fill-opacity="0.35"/>
 </svg>

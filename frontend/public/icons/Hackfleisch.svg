@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Minced meat package with extruded wavy strands and clean badge -->
-  <rect x="4" y="5" width="16" height="14" rx="2" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-hackfleisch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Minced meat package with extruded wavy strands and clean badge -->
+  <rect x="4" y="5" width="16" height="14" rx="2" fill="#EF4444" fill-opacity="0.14"/>
+  <rect x="4" y="5" width="16" height="14" rx="2" fill="none" stroke="#EF4444" filter="url(#glow-hackfleisch)" stroke-width="2"/>
   <!-- Mince meat squiggles -->
-  <path d="M6 8c2-1 3 1 5 0s3 1 5 0 M6 11c2-1 3 1 5 0s3 1 5 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-  <rect x="6.5" y="13.5" width="11" height="5" rx="1" fill="currentColor" fill-opacity="0.45"/>
-  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">HACK</text>
+  <path d="M6 8c2-1 3 1 5 0s3 1 5 0 M6 11c2-1 3 1 5 0s3 1 5 0" stroke="#EF4444" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="6.5" y="13.5" width="11" height="5" rx="1" fill="#EF4444" fill-opacity="0.14"/>
+  <text x="12" y="17" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#EF4444" fill-opacity="0.35" text-anchor="middle">HACK</text>
 </svg>

@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Beer mug with foam -->
-  <path d="M5 8h9v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M5 8h9v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <defs>
+    <filter id="glow-bier" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Beer mug with foam -->
+  <path d="M5 8h9v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="#FBBF24" fill-opacity="0.14"/>
+  <path d="M5 8h9v11a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8z" fill="none" stroke="#FBBF24" filter="url(#glow-bier)" stroke-width="2" stroke-linecap="round"/>
   <!-- Foam head -->
-  <path d="M4 8c-.6-1 .4-2.5 1.8-2.2C6.5 4.5 8 4 9.5 4.8 11 4 12.5 4.5 13.5 5.5c1.2-.2 2.2 1 1.5 2.5H4z" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M4 8c-.6-1 .4-2.5 1.8-2.2C6.5 4.5 8 4 9.5 4.8 11 4 12.5 4.5 13.5 5.5c1.2-.2 2.2 1 1.5 2.5H4z" fill="#FBBF24" fill-opacity="0.14" stroke="#FBBF24" stroke-width="1.8" stroke-linejoin="round"/>
   <!-- Mug handle -->
-  <path d="M14 10h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path d="M14 10h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-3" fill="none" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
   <!-- Foam drips & bubbles -->
-  <line x1="8" y1="11" x2="8" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="11" y1="11" x2="11" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="8" y1="11" x2="8" y2="17" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="11" y1="11" x2="11" y2="16" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

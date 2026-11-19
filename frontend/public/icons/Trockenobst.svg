@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Dried fruit ring (dried apple slice) with star seed core -->
-  <circle cx="12" cy="12" r="8" fill="currentColor" fill-opacity="0.25"/>
-  <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/>
-  <circle cx="12" cy="12" r="3.5" fill="#0b0f19" stroke="currentColor" stroke-width="1.8"/>
-  <polygon points="12,10.5 12.5,11.5 13.5,11.5 12.7,12.2 13,13.2 12,12.6 11,13.2 11.3,12.2 10.5,11.5 11.5,11.5" fill="currentColor"/>
+  <defs>
+    <filter id="glow-trockenobst" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Dried fruit ring (dried apple slice) with star seed core -->
+  <circle cx="12" cy="12" r="8" fill="#D97706" fill-opacity="0.14"/>
+  <circle cx="12" cy="12" r="8" fill="none" stroke="#D97706" filter="url(#glow-trockenobst)" stroke-width="2"/>
+  <circle cx="12" cy="12" r="3.5" fill="#0b0f19" stroke="#D97706" stroke-width="1.8"/>
+  <polygon points="12,10.5 12.5,11.5 13.5,11.5 12.7,12.2 13,13.2 12,12.6 11,13.2 11.3,12.2 10.5,11.5 11.5,11.5" fill="#D97706" fill-opacity="0.35"/>
 </svg>

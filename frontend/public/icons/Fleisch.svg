@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Meat cleaver cutting a piece of meat -->
-  <path d="M4 14c0-3 3-5 7-5 3.5 0 6 1.5 6 4s-2.5 5.5-6.5 5.5c-4 0-6.5-1.5-6.5-4.5z" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="1.8"/>
+  <defs>
+    <filter id="glow-fleisch" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Meat cleaver cutting a piece of meat -->
+  <path d="M4 14c0-3 3-5 7-5 3.5 0 6 1.5 6 4s-2.5 5.5-6.5 5.5c-4 0-6.5-1.5-6.5-4.5z" fill="#EF4444" fill-opacity="0.14" stroke="#EF4444" filter="url(#glow-fleisch)" stroke-width="1.8"/>
   <!-- Butcher cleaver -->
-  <rect x="7" y="3" width="9" height="6" rx="1" fill="currentColor" fill-opacity="0.4" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M16 5h4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <rect x="7" y="3" width="9" height="6" rx="1" fill="#EF4444" fill-opacity="0.14" stroke="#EF4444" stroke-width="1.8"/>
+  <path d="M16 5h4" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round"/>
 </svg>

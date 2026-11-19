@@ -1,13 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Salami stick with a cut slice showing peppercorns -->
-  <rect x="4" y="6" width="13" height="6.5" rx="2" fill="currentColor" fill-opacity="0.22" transform="rotate(-20 10 9)"/>
-  <rect x="4" y="6" width="13" height="6.5" rx="2" fill="none" stroke="currentColor" stroke-width="2" transform="rotate(-20 10 9)"/>
+  <defs>
+    <filter id="glow-salami" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#DC2626" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Salami stick with a cut slice showing peppercorns -->
+  <rect x="4" y="6" width="13" height="6.5" rx="2" fill="#DC2626" fill-opacity="0.14" transform="rotate(-20 10 9)"/>
+  <rect x="4" y="6" width="13" height="6.5" rx="2" fill="none" stroke="#DC2626" filter="url(#glow-salami)" stroke-width="2" transform="rotate(-20 10 9)"/>
   <!-- Cut slice lying next to it -->
-  <circle cx="16" cy="16" r="4.5" fill="currentColor" fill-opacity="0.35"/>
-  <circle cx="16" cy="16" r="4.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <circle cx="16" cy="16" r="4.5" fill="#DC2626" fill-opacity="0.14"/>
+  <circle cx="16" cy="16" r="4.5" fill="none" stroke="#DC2626" stroke-width="2"/>
   <!-- Peppercorns / fat flecks in slice -->
-  <circle cx="14.5" cy="15" r="0.8" fill="currentColor"/>
-  <circle cx="17" cy="14.5" r="0.7" fill="currentColor"/>
-  <circle cx="16" cy="17.5" r="0.8" fill="currentColor"/>
-  <circle cx="18" cy="17" r="0.6" fill="currentColor"/>
+  <circle cx="14.5" cy="15" r="0.8" fill="#DC2626" fill-opacity="0.35"/>
+  <circle cx="17" cy="14.5" r="0.7" fill="#DC2626" fill-opacity="0.35"/>
+  <circle cx="16" cy="17.5" r="0.8" fill="#DC2626" fill-opacity="0.35"/>
+  <circle cx="18" cy="17" r="0.6" fill="#DC2626" fill-opacity="0.35"/>
 </svg>

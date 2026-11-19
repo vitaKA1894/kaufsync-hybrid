@@ -1,12 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cooking oil bottle with sunflower emblem -->
-  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8z" fill="currentColor" fill-opacity="0.22"/>
-  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8z" fill="none" stroke="currentColor" stroke-width="2"/>
-  <rect x="10" y="2" width="4" height="3" rx="0.5" stroke="currentColor" stroke-width="1.5"/>
+  <defs>
+    <filter id="glow-oel" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cooking oil bottle with sunflower emblem -->
+  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8z" fill="#FACC15" fill-opacity="0.14"/>
+  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3v11a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2V8z" fill="none" stroke="#FACC15" filter="url(#glow-oel)" stroke-width="2"/>
+  <rect x="10" y="2" width="4" height="3" rx="0.5" stroke="#FACC15" stroke-width="1.5"/>
   <!-- Sunflower center & petals -->
-  <circle cx="12" cy="14" r="2" fill="currentColor"/>
-  <circle cx="12" cy="11.5" r="0.8" fill="currentColor"/>
-  <circle cx="12" cy="16.5" r="0.8" fill="currentColor"/>
-  <circle cx="9.5" cy="14" r="0.8" fill="currentColor"/>
-  <circle cx="14.5" cy="14" r="0.8" fill="currentColor"/>
+  <circle cx="12" cy="14" r="2" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="12" cy="11.5" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="12" cy="16.5" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="9.5" cy="14" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
+  <circle cx="14.5" cy="14" r="0.8" fill="#FACC15" fill-opacity="0.35"/>
 </svg>

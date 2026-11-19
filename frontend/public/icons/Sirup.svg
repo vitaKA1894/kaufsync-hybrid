@@ -1,11 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Syrup bottle with pour spout & fruit drop -->
-  <rect x="7.5" y="8" width="9" height="13" rx="2.5" fill="currentColor" fill-opacity="0.22"/>
-  <rect x="7.5" y="8" width="9" height="13" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-sirup" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F43F5E" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Syrup bottle with pour spout & fruit drop -->
+  <rect x="7.5" y="8" width="9" height="13" rx="2.5" fill="#F43F5E" fill-opacity="0.14"/>
+  <rect x="7.5" y="8" width="9" height="13" rx="2.5" fill="none" stroke="#F43F5E" filter="url(#glow-sirup)" stroke-width="2"/>
   <!-- Neck & dispenser spout -->
-  <path d="M10 8V4h4v4" stroke="currentColor" stroke-width="1.8"/>
-  <path d="M14 3l3-1v2l-3 1" fill="currentColor" stroke="currentColor" stroke-width="1"/>
+  <path d="M10 8V4h4v4" stroke="#F43F5E" stroke-width="1.8"/>
+  <path d="M14 3l3-1v2l-3 1" fill="#F43F5E" fill-opacity="0.35" stroke="#F43F5E" stroke-width="1"/>
   <!-- Dripping syrup drop -->
-  <circle cx="18" cy="7" r="0.8" fill="currentColor"/>
-  <text x="12" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">SIRUP</text>
+  <circle cx="18" cy="7" r="0.8" fill="#F43F5E" fill-opacity="0.35"/>
+  <text x="12" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#F43F5E" fill-opacity="0.35" text-anchor="middle">SIRUP</text>
 </svg>

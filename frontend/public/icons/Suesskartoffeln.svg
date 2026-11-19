@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Elongated tapered sweet potato cut open showing vibrant interior -->
-  <ellipse cx="12" cy="13" rx="9" ry="5.5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2" transform="rotate(-20 12 13)"/>
+  <defs>
+    <filter id="glow-suesskartoffeln" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EA580C" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Elongated tapered sweet potato cut open showing vibrant interior -->
+  <ellipse cx="12" cy="13" rx="9" ry="5.5" fill="#EA580C" fill-opacity="0.14" stroke="#EA580C" filter="url(#glow-suesskartoffeln)" stroke-width="2" transform="rotate(-20 12 13)"/>
   <!-- Cut slice face -->
-  <ellipse cx="15.5" cy="10" rx="4.5" ry="3.5" fill="currentColor" fill-opacity="0.6" stroke="currentColor" stroke-width="1.8" transform="rotate(-20 15.5 10)"/>
+  <ellipse cx="15.5" cy="10" rx="4.5" ry="3.5" fill="#EA580C" fill-opacity="0.14" stroke="#EA580C" stroke-width="1.8" transform="rotate(-20 15.5 10)"/>
   <circle cx="15.5" cy="10" r="1.5" fill="#0b0f19"/>
 </svg>

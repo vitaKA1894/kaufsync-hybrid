@@ -1,10 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cream pouring pitcher / jug -->
-  <path d="M7 8h10l-1.5 12a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L7 8z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M7 8h10l-1.5 12a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L7 8z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-sahne" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cream pouring pitcher / jug -->
+  <path d="M7 8h10l-1.5 12a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L7 8z" fill="#F8FAFC" fill-opacity="0.14"/>
+  <path d="M7 8h10l-1.5 12a2 2 0 0 1-2 1.8H9.5a2 2 0 0 1-2-1.8L7 8z" fill="none" stroke="#F8FAFC" filter="url(#glow-sahne)" stroke-width="2"/>
   <!-- Pouring spout -->
-  <path d="M7 8l-3-2v3l3 1" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M7 8l-3-2v3l3 1" fill="#F8FAFC" fill-opacity="0.35" stroke="#F8FAFC" stroke-width="1.5" stroke-linejoin="round"/>
   <!-- Handle -->
-  <path d="M17 10h2.5a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H16" fill="none" stroke="currentColor" stroke-width="1.8"/>
-  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="currentColor" text-anchor="middle">SAHNE</text>
+  <path d="M17 10h2.5a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H16" fill="none" stroke="#F8FAFC" stroke-width="1.8"/>
+  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#F8FAFC" fill-opacity="0.35" text-anchor="middle">SAHNE</text>
 </svg>

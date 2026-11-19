@@ -1,7 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Cantaloupe melon wedge with textured netted rind -->
-  <path d="M4 11c0 5.5 4 9.5 8 9.5s8-4 8-9.5H4z" fill="currentColor" fill-opacity="0.28"/>
-  <path d="M4 11c0 5.5 4 9.5 8 9.5s8-4 8-9.5H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <defs>
+    <filter id="glow-melone" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Cantaloupe melon wedge with textured netted rind -->
+  <path d="M4 11c0 5.5 4 9.5 8 9.5s8-4 8-9.5H4z" fill="#F59E0B" fill-opacity="0.14"/>
+  <path d="M4 11c0 5.5 4 9.5 8 9.5s8-4 8-9.5H4z" fill="none" stroke="#F59E0B" filter="url(#glow-melone)" stroke-width="2" stroke-linejoin="round"/>
   <!-- Netted skin markings on rind -->
-  <path d="M6 15l2-2 M10 18l2-2 M14 18l2-2 M16 15l2-2" stroke="currentColor" stroke-width="1.3"/>
+  <path d="M6 15l2-2 M10 18l2-2 M14 18l2-2 M16 15l2-2" stroke="#F59E0B" stroke-width="1.3"/>
 </svg>

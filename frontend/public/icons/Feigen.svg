@@ -1,9 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-  <!-- Teardrop fig cut open showing seeded interior -->
-  <path d="M12 3c-1.5 2-4 5-4 9 0 5 3.5 8 8 8s8-3 8-8c0-4-2.5-7-4-9V3z" fill="currentColor" fill-opacity="0.25"/>
-  <path d="M12 3c-1.5 2-4 5-4 9 0 5 3.5 8 8 8s8-3 8-8c0-4-2.5-7-4-9V3z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <defs>
+    <filter id="glow-feigen" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#A855F7" flood-opacity="0.75"/>
+    </filter>
+  </defs>
+<!-- Teardrop fig cut open showing seeded interior -->
+  <path d="M12 3c-1.5 2-4 5-4 9 0 5 3.5 8 8 8s8-3 8-8c0-4-2.5-7-4-9V3z" fill="#A855F7" fill-opacity="0.14"/>
+  <path d="M12 3c-1.5 2-4 5-4 9 0 5 3.5 8 8 8s8-3 8-8c0-4-2.5-7-4-9V3z" fill="none" stroke="#A855F7" filter="url(#glow-feigen)" stroke-width="2"/>
   <!-- Seed core -->
-  <circle cx="14" cy="14" r="3.2" fill="currentColor" fill-opacity="0.5"/>
-  <circle cx="13" cy="13.5" r="0.6" fill="currentColor"/>
-  <circle cx="15" cy="14.5" r="0.6" fill="currentColor"/>
+  <circle cx="14" cy="14" r="3.2" fill="#A855F7" fill-opacity="0.14"/>
+  <circle cx="13" cy="13.5" r="0.6" fill="#A855F7" fill-opacity="0.35"/>
+  <circle cx="15" cy="14.5" r="0.6" fill="#A855F7" fill-opacity="0.35"/>
 </svg>
