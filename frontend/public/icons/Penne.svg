@@ -1,14 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-penne" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Tubular penne pasta cut diagonally with characteristic ridges -->
-  <path d="M6 18l10-14 3 2-10 14-3-2z" fill="#FBBF24" fill-opacity="0.14" stroke="#FBBF24" filter="url(#glow-penne)" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Penne diagonal cuts -->
-  <ellipse cx="7.5" cy="17" rx="1.5" ry="2.2" fill="#FBBF24" fill-opacity="0.14" transform="rotate(-35 7.5 17)"/>
-  <!-- Longitudinal ridges -->
-  <line x1="8.5" y1="13.5" x2="16.5" y2="4.5" stroke="#FBBF24" stroke-width="1.3"/>
-  <line x1="10.5" y1="15" x2="18.5" y2="6" stroke="#FBBF24" stroke-width="1.3"/>
+  <!-- Trio of Penne Rigate with 45° diagonal cut ends and parallel ridged grooves -->
+  <!-- Penne 1 (diagonal across center) -->
+  <path d="M6 6 L16 16 M8 4 L18 14" fill="none" stroke="#FACC15" stroke-width="2" stroke-linecap="round" filter="url(#glow-penne)"/>
+  <!-- 45° cut ends -->
+  <ellipse cx="7" cy="5" rx="1.5" ry="2.2" transform="rotate(45 7 5)" fill="#EAB308" fill-opacity="0.4" stroke="#FACC15" stroke-width="1.8"/>
+  <ellipse cx="17" cy="15" rx="1.5" ry="2.2" transform="rotate(45 17 15)" fill="#EAB308" fill-opacity="0.4" stroke="#FACC15" stroke-width="1.8"/>
+  <!-- Longitudinal ridges (Rigate) -->
+  <path d="M7.5 7 L16.5 16 M9 5.5 L17.5 14" fill="none" stroke="#EAB308" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Penne 2 (upper right) -->
+  <path d="M12 3 L19 10 M14 1.5 L21 8.5" fill="none" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Penne 3 (lower left) -->
+  <path d="M3 15 L10 22 M5 13.5 L12 20.5" fill="none" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

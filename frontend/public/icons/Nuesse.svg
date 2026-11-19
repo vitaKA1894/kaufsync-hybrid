@@ -1,11 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-nuesse" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#B45309" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Nutcracker cracking a hazelnut -->
-  <circle cx="12" cy="14" r="5" fill="#D97706" fill-opacity="0.14" stroke="#D97706" filter="url(#glow-nuesse)" stroke-width="2"/>
-  <!-- Nutcracker lever arms -->
-  <path d="M6 3l6 9 6-9" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Half-cracked walnut shell with brain-like kernel beside a hazelnut -->
+  <!-- Walnut shell & kernel -->
+  <path d="M4 14 C3 9 7 5 11 6 C15 7 16 12 15 17 C14 20 8 20 4 14 Z" fill="#78350F" fill-opacity="0.2"/>
+  <path d="M4 14 C3 9 7 5 11 6 C15 7 16 12 15 17 C14 20 8 20 4 14 Z" fill="none" stroke="#B45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-nuesse)"/>
+  <path d="M10.5 6 C10 11 10 15 11 19" fill="none" stroke="#78350F" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Walnut kernel folds -->
+  <path d="M7 9 C8 8 9.5 8.5 9.5 10 C9.5 11.5 8 12 7 11 M7.5 13 C8.5 14 10 13.5 10 12 M7 16 C8 17 10 16 10.5 15" fill="none" stroke="#D97706" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Smooth hazelnut on right with cap -->
+  <path d="M15 13 C14 10 17 8 19 9 C21 10 22 13 21 16 C20 18.5 18 19 16.5 17.5 Z" fill="#D97706" fill-opacity="0.25" stroke="#B45309" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M16 9.5 C17 8 19 8 21 9" fill="none" stroke="#78350F" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

@@ -4,13 +4,15 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Skillet pan with sizzling strips of beef -->
-  <circle cx="11" cy="13" r="8" fill="#EF4444" fill-opacity="0.14"/>
-  <circle cx="11" cy="13" r="8" fill="none" stroke="#EF4444" filter="url(#glow-rindergeschnetzeltes)" stroke-width="2"/>
-  <!-- Pan handle -->
-  <path d="M17 7l5-5" stroke="#EF4444" stroke-width="2.5" stroke-linecap="round"/>
-  <!-- Beef strips inside -->
-  <path d="M7 12c1.5-1 3 0 4-1 M10 15c2-1 3.5 0 4.5-1 M7 15c1 1 2.5 1 3.5 0" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/>
-  <!-- Sizzle steam -->
-  <path d="M9 4c0-.8.6-1.2.6-1.8 M13 4c0-.8.6-1.2.6-1.8" stroke="#EF4444" stroke-width="1.3" stroke-linecap="round"/>
+  <!-- Sizzling skillet with tender beef strips and mushroom slice -->
+  <!-- Cast iron skillet pan -->
+  <ellipse cx="10.5" cy="13" rx="7.5" ry="6" fill="#1E293B" stroke="#64748B" stroke-width="2"/>
+  <path d="M18 13 L22 13" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Seared beef strips inside skillet -->
+  <path d="M6 12 C7 10.5 10 10.5 11 12 C10 13.5 8 13.5 6 12 Z" fill="#DC2626" fill-opacity="0.5" stroke="#EF4444" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-rindergeschnetzeltes)"/>
+  <path d="M9 14.5 C11 13.5 14 14.5 15 16 C13 17 11 16.5 9 14.5 Z" fill="#DC2626" fill-opacity="0.5" stroke="#EF4444" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-rindergeschnetzeltes)"/>
+  <!-- Sliced mushroom in sauce -->
+  <path d="M12 9 C12 8 13.5 8 13.5 9 L13.5 10.5 L12 10.5 Z" fill="#FDE047" stroke="#FACC15" stroke-width="1"/>
+  <!-- Sizzling steam wisp -->
+  <path d="M9 4.5 C9.5 3.5 9 2.5 9.5 2 M12 5 C12.5 4 12 3 12.5 2" fill="none" stroke="#FCA5A5" stroke-width="1.3" stroke-linecap="round"/>
 </svg>

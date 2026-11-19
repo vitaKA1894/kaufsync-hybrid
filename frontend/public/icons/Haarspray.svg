@@ -1,14 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-haarspray" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#8B5CF6" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#C084FC" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Tall hairspray aerosol can with spray nozzle mist -->
-  <rect x="8" y="7" width="8" height="14" rx="2" fill="#8B5CF6" fill-opacity="0.14"/>
-  <rect x="8" y="7" width="8" height="14" rx="2" fill="none" stroke="#8B5CF6" filter="url(#glow-haarspray)" stroke-width="2"/>
-  <rect x="10" y="4" width="4" height="3" rx="0.5" stroke="#8B5CF6" stroke-width="1.5"/>
-  <!-- Spray mist lines -->
-  <path d="M6 3c-1.5 0-3 1-3 2.5m1 2l-2 1" stroke="#8B5CF6" stroke-width="1.5" stroke-linecap="round"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2" font-weight="900" fill="#8B5CF6" fill-opacity="0.35" text-anchor="middle">SPRAY</text>
+  <!-- Sleek aerosol spray can with actuator button and expanding fine mist spray (NO text) -->
+  <rect x="8" y="9" width="8" height="13" rx="1.5" fill="#C084FC" fill-opacity="0.16"/>
+  <rect x="8" y="9" width="8" height="13" rx="1.5" fill="none" stroke="#C084FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-haarspray)"/>
+  <!-- Domed shoulder & actuator push button -->
+  <path d="M8 9 C8 7.5 10 6.5 12 6.5 C14 6.5 16 7.5 16 9" fill="none" stroke="#C084FC" stroke-width="1.8" stroke-linecap="round"/>
+  <rect x="10.5" y="4" width="3" height="2.5" rx="0.5" fill="#F8FAFC" stroke="#F8FAFC" stroke-width="1.2"/>
+  <!-- Expanding conical fine mist spray to the left -->
+  <path d="M9.5 4.8 L4 2 M9.5 5.2 L3 5.2 M9.5 5.6 L4 8.5" fill="none" stroke="#38BDF8" stroke-width="1.4" stroke-linecap="round"/>
+  <circle cx="5" cy="3.5" r="0.6" fill="#38BDF8"/>
+  <circle cx="2" cy="5.2" r="0.7" fill="#38BDF8"/>
+  <circle cx="5" cy="7" r="0.6" fill="#38BDF8"/>
 </svg>

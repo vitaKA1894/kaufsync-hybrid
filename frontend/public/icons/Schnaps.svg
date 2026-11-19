@@ -1,15 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-schnaps" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#38BDF8" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#A5B4FC" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Shot glass with drink line + small flask -->
-  <path d="M5 8h6l-1 11a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 6 19L5 8z" fill="#F8FAFC" fill-opacity="0.14"/>
-  <path d="M5 8h6l-1 11a1.5 1.5 0 0 1-1.5 1.5h-1A1.5 1.5 0 0 1 6 19L5 8z" fill="none" stroke="#F8FAFC" filter="url(#glow-schnaps)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="5.5" y1="12" x2="10.5" y2="12" stroke="#F8FAFC" stroke-width="1.5" stroke-dasharray="1.5 1.5"/>
-  <!-- Small pocket flask -->
-  <rect x="13.5" y="9" width="6.5" height="11.5" rx="1.5" fill="#F8FAFC" fill-opacity="0.14"/>
-  <rect x="13.5" y="9" width="6.5" height="11.5" rx="1.5" fill="none" stroke="#F8FAFC" stroke-width="1.8"/>
-  <rect x="15.5" y="6" width="2.5" height="3" rx="0.5" stroke="#F8FAFC" stroke-width="1.5"/>
+  <!-- Heavy-bottom shot glass with drink level and fresh lemon wedge on rim -->
+  <path d="M6 5 L18 5 L16 19 C16 20.5 15 21 13.5 21 L10.5 21 C9 21 8 20.5 8 19 Z" fill="#A5B4FC" fill-opacity="0.14"/>
+  <path d="M6 5 L18 5 L16 19 C16 20.5 15 21 13.5 21 L10.5 21 C9 21 8 20.5 8 19 Z" fill="none" stroke="#A5B4FC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-schnaps)"/>
+  <!-- Solid thick glass bottom -->
+  <path d="M8.5 17 L15.5 17" fill="none" stroke="#A5B4FC" stroke-width="2" stroke-linecap="round"/>
+  <!-- Liquid level -->
+  <path d="M7 9 C10 10 14 10 17 9" fill="none" stroke="#60A5FA" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Fresh lemon wedge resting on glass rim -->
+  <path d="M4 3.5 C5.5 1.5 8 2 8 4.5 C6.5 5 4.5 4.5 4 3.5 Z" fill="#FDE047" fill-opacity="0.4" stroke="#FACC15" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

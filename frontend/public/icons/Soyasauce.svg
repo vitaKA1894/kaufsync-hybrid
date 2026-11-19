@@ -1,13 +1,16 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-soyasauce" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#F59E0B" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Iconic Kikkoman dispenser bottle with red dual-spout cap -->
-  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="#451A03" fill-opacity="0.14"/>
-  <path d="M8 10L6 20a1.5 1.5 0 0 0 1.5 1.5h9A1.5 1.5 0 0 0 18 20L16 10H8z" fill="none" stroke="#451A03" filter="url(#glow-soyasauce)" stroke-width="2"/>
-  <!-- Two-spout dispenser cap -->
-  <path d="M9 10V6l-3-2v3h12V4l-3 2v4H9z" fill="#451A03" fill-opacity="0.35" stroke="#451A03" stroke-width="1.5" stroke-linejoin="round"/>
-  <text x="12" y="16.5" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="2.4" font-weight="900" letter-spacing="0.3" fill="#451A03" fill-opacity="0.35" text-anchor="middle">SOYA</text>
+  <!-- Iconic Japanese dispenser bottle with red twin-spout cap & dark soy sauce (NO text) -->
+  <!-- Iconic red twin pour spout cap -->
+  <path d="M9 5 C9 3.5 15 3.5 15 5 L15 7 L9 7 Z" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linejoin="round" filter="url(#glow-soyasauce)"/>
+  <path d="M9 6 L6 5 L6.5 7 L9 7 M15 6 L18 5 L17.5 7 L15 7" fill="#EF4444" stroke="#EF4444" stroke-width="1.5" stroke-linejoin="round"/>
+  <!-- Teardrop glass bottle body -->
+  <path d="M9.5 7 L9.5 9 C7 11 5 15 5 18 C5 20.5 7.5 22 12 22 C16.5 22 19 20.5 19 18 C19 15 17 11 14.5 9 L14.5 7 Z" fill="#451A03" fill-opacity="0.3"/>
+  <path d="M9.5 7 L9.5 9 C7 11 5 15 5 18 C5 20.5 7.5 22 12 22 C16.5 22 19 20.5 19 18 C19 15 17 11 14.5 9 L14.5 7 Z" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Dark fermented soy sauce fill level -->
+  <path d="M6 16 C8.5 15 15.5 15 18 16" fill="none" stroke="#EF4444" stroke-width="1.6" stroke-linecap="round"/>
 </svg>

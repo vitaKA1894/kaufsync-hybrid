@@ -1,13 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-nougatcreme" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#78350F" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Chocolate hazelnut spread jar with knife spreading brown cream -->
-  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="#78350F" fill-opacity="0.14"/>
-  <rect x="6" y="8" width="12" height="13" rx="2.5" fill="none" stroke="#78350F" filter="url(#glow-nougatcreme)" stroke-width="2"/>
-  <rect x="7" y="4" width="10" height="4" rx="1" fill="#78350F" fill-opacity="0.14" stroke="#78350F" stroke-width="1.8"/>
-  <!-- Hazelnut emblem -->
-  <circle cx="12" cy="14" r="2.5" fill="#78350F" fill-opacity="0.35"/>
+  <!-- Rounded glass jar of hazelnut chocolate nougat with lid and hazelnut -->
+  <rect x="7" y="4" width="10" height="3" rx="0.8" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1.8"/>
+  <rect x="6" y="7" width="12" height="14" rx="3" fill="#451A03" fill-opacity="0.22"/>
+  <rect x="6" y="7" width="12" height="14" rx="3" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-nougatcreme)"/>
+  <!-- Glass reflection & cream swirl inside -->
+  <path d="M8.5 9 L15.5 9" fill="none" stroke="#A16207" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M8 13 C10 12 14 14 16 13" fill="none" stroke="#D97706" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Whole hazelnut with leafy cap -->
+  <circle cx="12" cy="16.5" r="2" fill="#D97706" stroke="#B45309" stroke-width="1"/>
+  <path d="M10.5 15.5 C11.5 14.5 12.5 14.5 13.5 15.5" fill="none" stroke="#78350F" stroke-width="1" stroke-linecap="round"/>
 </svg>

@@ -4,8 +4,15 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#4ADE80" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Sage sprig with velvety textured elongated leaves -->
-  <line x1="12" y1="21" x2="12" y2="4" stroke="#4ADE80" filter="url(#glow-salbei)" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 15c-4-1-6 2-5 5s5 0 5-5zm0 0c4-1 6 2 5 5s-5 0-5-5z" fill="#4ADE80" fill-opacity="0.14" stroke="#4ADE80" stroke-width="1.8"/>
-  <path d="M12 9c-3.5-1-5 1.5-4 4s4 0 4-4zm0 0c3.5-1 5 1.5 4 4s-4 0-4-4z" fill="#4ADE80" fill-opacity="0.14" stroke="#4ADE80" stroke-width="1.8"/>
+  <!-- Oblong, velvety tongue-shaped sage leaves spray -->
+  <!-- Stem -->
+  <path d="M12 22 C12 17 12 14 12 12" fill="none" stroke="#16A34A" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Central main sage leaf -->
+  <path d="M12 12 C9 9.5 8 5 10.5 2.5 C11.5 2 12.5 2 13.5 2.5 C16 5 15 9.5 12 12 Z" fill="#4ADE80" fill-opacity="0.2"/>
+  <path d="M12 12 C9 9.5 8 5 10.5 2.5 C11.5 2 12.5 2 13.5 2.5 C16 5 15 9.5 12 12 Z" fill="none" stroke="#4ADE80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-salbei)"/>
+  <path d="M12 11 L12 4" fill="none" stroke="#86EFAC" stroke-width="1.4" stroke-linecap="round"/>
+  <!-- Left leaf -->
+  <path d="M11 14 C7.5 13.5 4 12 3 9 C4.5 7.5 7 8 10 11 Z" fill="#4ADE80" fill-opacity="0.18" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-salbei)"/>
+  <!-- Right leaf -->
+  <path d="M13 14 C16.5 13.5 20 12 21 9 C19.5 7.5 17 8 14 11 Z" fill="#4ADE80" fill-opacity="0.18" stroke="#4ADE80" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-salbei)"/>
 </svg>

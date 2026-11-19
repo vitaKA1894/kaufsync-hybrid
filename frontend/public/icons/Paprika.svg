@@ -4,11 +4,13 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EF4444" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Bell pepper with distinct 3-lobed shape and curved stalk -->
-  <path d="M6 9c-2 3-1 8 1 10 1.5 1.5 3 1.5 5 1s3.5.5 5-1c2-2 3-7 1-10-1.5-1.5-3.5-1.5-6-1s-4.5-.5-6 1z" fill="#EF4444" fill-opacity="0.14"/>
-  <path d="M6 9c-2 3-1 8 1 10 1.5 1.5 3 1.5 5 1s3.5.5 5-1c2-2 3-7 1-10-1.5-1.5-3.5-1.5-6-1s-4.5-.5-6 1z" fill="none" stroke="#EF4444" filter="url(#glow-paprika)" stroke-width="2" stroke-linejoin="round"/>
-  <!-- Lobe groove divisions -->
-  <path d="M10 8.5c-.5 3-.5 8 0 11.5m4-11.5c.5 3 .5 8 0 11.5" stroke="#EF4444" stroke-width="1.8"/>
-  <!-- Stem -->
-  <path d="M12 8c0-3 1.5-4 3-4" stroke="#EF4444" stroke-width="2" stroke-linecap="round"/>
+  <!-- Bell pepper body with 3 distinct lobes and indented top -->
+  <path d="M7 6.5 C4 6.5 3 9.5 3 13.5 C3 18.5 5.5 21 8.5 21 C10 21 11 20 12 20 C13 20 14 21 15.5 21 C18.5 21 21 18.5 21 13.5 C21 9.5 20 6.5 17 6.5 C15 6.5 13.5 7.5 12 7.5 C10.5 7.5 9 6.5 7 6.5 Z" fill="#EF4444" fill-opacity="0.14"/>
+  <path d="M7 6.5 C4 6.5 3 9.5 3 13.5 C3 18.5 5.5 21 8.5 21 C10 21 11 20 12 20 C13 20 14 21 15.5 21 C18.5 21 21 18.5 21 13.5 C21 9.5 20 6.5 17 6.5 C15 6.5 13.5 7.5 12 7.5 C10.5 7.5 9 6.5 7 6.5 Z" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-paprika)"/>
+  <!-- Lobe contour lines -->
+  <path d="M8.5 7 C8 11 8 16.5 8.5 21 M15.5 7 C16 11 16 16.5 15.5 21" fill="none" stroke="#F87171" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Green 5-pointed calyx crown -->
+  <path d="M9 7 C10 5.5 11 6.5 12 6 C13 6.5 14 5.5 15 7 C14 7.5 13 7.5 12 7.5 C11 7.5 10 7.5 9 7 Z" fill="#22C55E" fill-opacity="0.4" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Curved green stem -->
+  <path d="M12 6 C12 3.5 13.5 2.5 15 2" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
 </svg>

@@ -4,7 +4,16 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#16A34A" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Rosemary sprig with slender pine needle leaves -->
-  <line x1="12" y1="21" x2="12" y2="3" stroke="#16A34A" filter="url(#glow-rosmarin)" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 18l-3-2m3 0l3-2m-3-3l-3.5-2m3.5 0l3.5-2m-3.5-3l-3-2m3 0l3-2m-3-3l-2.5-1.5m2.5 0l2.5-1.5" stroke="#16A34A" stroke-width="2" stroke-linecap="round"/>
+  <!-- Rosemary sprig: central woody stem with dense upward-pointing needle leaves -->
+  <path d="M12 22 C12 16 12.5 9 12 2" fill="none" stroke="#78350F" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Tier 1 (bottom needles) -->
+  <path d="M12 19 L6.5 16 M12 19 L17.5 16" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" filter="url(#glow-rosmarin)"/>
+  <!-- Tier 2 -->
+  <path d="M12 15.5 L5.5 12 M12 15.5 L18.5 12" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" filter="url(#glow-rosmarin)"/>
+  <!-- Tier 3 -->
+  <path d="M12 12 L6.5 8.5 M12 12 L17.5 8.5" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" filter="url(#glow-rosmarin)"/>
+  <!-- Tier 4 -->
+  <path d="M12 8.5 L7.5 5 M12 8.5 L16.5 5" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
+  <!-- Top needle shoot -->
+  <path d="M12 5 L9.5 2 M12 5 L14.5 2 M12 3 L12 1.5" fill="none" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

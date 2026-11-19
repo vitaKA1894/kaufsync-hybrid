@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-nudeln" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Bowl of hot noodles with chopsticks -->
-  <path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z" fill="#FBBF24" fill-opacity="0.14"/>
-  <path d="M4 11c0 5 3.5 8 8 8s8-3 8-8H4z" fill="none" stroke="#FBBF24" filter="url(#glow-nudeln)" stroke-width="2"/>
-  <!-- Wavy noodles -->
-  <path d="M7 11c1-2 2-2 3 0s2 2 3 0 2-2 3 0 2 2 3 0" stroke="#FBBF24" stroke-width="1.8" stroke-linecap="round"/>
-  <!-- Chopsticks -->
-  <line x1="3" y1="6" x2="19" y2="10" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
-  <line x1="5" y1="4" x2="19" y2="8" stroke="#FBBF24" stroke-width="2" stroke-linecap="round"/>
+  <!-- European pasta: pinched Farfalle bow-tie and helical Fusilli spiral -->
+  <!-- Farfalle (bow-tie pasta) on left -->
+  <path d="M4 6 C5 7.5 5 9.5 4 11 C5 12.5 5 14.5 4 16 C7 15 9 13.5 10 11 C9 8.5 7 7 4 6 Z" fill="#FACC15" fill-opacity="0.25" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-nudeln)"/>
+  <path d="M16 6 C15 7.5 15 9.5 16 11 C15 12.5 15 14.5 16 16 C13 15 11 13.5 10 11 C11 8.5 13 7 16 6 Z" fill="#FACC15" fill-opacity="0.25" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-nudeln)"/>
+  <path d="M9.5 9 L10.5 13" fill="none" stroke="#D97706" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Fusilli (spiral pasta) on right -->
+  <path d="M18 4 C20 5 21 7 19 8 C17 9 16 11 18 12 C20 13 21 15 19 16 C17 17 16 19 18 20" fill="none" stroke="#FACC15" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-nudeln)"/>
+  <path d="M19 6 C17.5 7 17.5 8.5 19 10 C20.5 11.5 17 13.5 18 14.5" fill="none" stroke="#EAB308" stroke-width="1.4" stroke-linecap="round"/>
 </svg>

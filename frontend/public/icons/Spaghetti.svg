@@ -1,12 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-spaghetti" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Fork twirling long spaghetti pasta -->
-  <path d="M12 2v8m-4-8v7c0 1 1.5 1 2 1m6-8v7c0 1-1.5 1-2 1" stroke="#FBBF24" filter="url(#glow-spaghetti)" stroke-width="1.8" stroke-linecap="round"/>
-  <!-- Spaghetti swirls wrapped around fork -->
-  <path d="M6 13c3-2 9-2 12 0s-3 3-6 3-9-1-6-3z" fill="#FBBF24" fill-opacity="0.14" stroke="#FBBF24" stroke-width="2"/>
-  <path d="M7 16c2 2 5 2 7 1m-5 2c2 1 4 1 6 0" stroke="#FBBF24" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Fork lifting twirled, wavy strands of pasta with graceful hanging spaghetti ribbons -->
+  <!-- Fork handle & tines -->
+  <path d="M12 2 L12 7" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M9 7 C9 9 15 9 15 7" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round"/>
+  <path d="M9.5 7 L9.5 10 M11 7 L11 10 M13 7 L13 10 M14.5 7 L14.5 10" fill="none" stroke="#94A3B8" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Swirling pasta loops twirled around tines -->
+  <path d="M7 10 C5 11 7 13 10 13 C14 13 17 11 15 10 C13 9 9 9 7 10 Z" fill="#FACC15" fill-opacity="0.25" stroke="#FACC15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-spaghetti)"/>
+  <path d="M6 12 C5 14 9 15 12 15 C15.5 15 18 14 17 12" fill="none" stroke="#FACC15" stroke-width="2" stroke-linecap="round" filter="url(#glow-spaghetti)"/>
+  <!-- Cascading dangling spaghetti strands -->
+  <path d="M8 14 C7.5 17 10 19 9 22" fill="none" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M11 15 C11 18 12.5 19 12 22" fill="none" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M14 14.5 C14.5 17 13 19 14.5 22" fill="none" stroke="#FACC15" stroke-width="1.8" stroke-linecap="round"/>
 </svg>

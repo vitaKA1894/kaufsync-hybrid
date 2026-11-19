@@ -4,10 +4,15 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#22C55E" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Romaine / Cos lettuce with tall upright crisp leaves -->
-  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="#22C55E" fill-opacity="0.14"/>
-  <path d="M8 21V9a4 4 0 0 1 4-4 4 4 0 0 1 4 4v12" fill="none" stroke="#22C55E" filter="url(#glow-roemersalat)" stroke-width="2"/>
-  <line x1="12" y1="5" x2="12" y2="21" stroke="#22C55E" stroke-width="2"/>
-  <!-- Leaf rib curves -->
-  <path d="M6 21v-7a3 3 0 0 1 2-3m10 10v-7a3 3 0 0 0-2-3" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Upright Romaine lettuce head with thick white crunchy rib and wavy outer leaves -->
+  <!-- Outer leaf body tapering to flat cut base -->
+  <path d="M9 22 C7 18 5.5 12 6.5 7 C7.5 4 10 2 12 2 C14 2 16.5 4 17.5 7 C18.5 12 17 18 15 22 Z" fill="#22C55E" fill-opacity="0.15"/>
+  <path d="M9 22 C7 18 5.5 12 6.5 7 C7.5 4 10 2 12 2 C14 2 16.5 4 17.5 7 C18.5 12 17 18 15 22 Z" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-roemersalat)"/>
+  <!-- Wavy leaf apex frills -->
+  <path d="M6.5 7 C8 8.5 10 6.5 12 7 C14 6.5 16 8.5 17.5 7" fill="none" stroke="#4ADE80" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Central thick crunchy rib (white/light-green) -->
+  <path d="M12 22 L12 8" fill="none" stroke="#F8FAFC" stroke-width="2" stroke-linecap="round"/>
+  <!-- Diagonal leaf rib veins -->
+  <path d="M12 17 C9.5 15.5 8 14 7 13.5 M12 17 C14.5 15.5 16 14 17 13.5" fill="none" stroke="#86EFAC" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M12 13 C10 11.5 8.5 10 7.5 9.5 M12 13 C14 11.5 15.5 10 16.5 9.5" fill="none" stroke="#86EFAC" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

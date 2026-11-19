@@ -4,8 +4,14 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#16A34A" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Broad succulent spinach leaf with central stem and veins -->
-  <path d="M12 21V4 M12 4c-4 0-7 4-7 10s4 7 7 7c3 0 7-1 7-7s-3-10-7-10z" fill="#16A34A" fill-opacity="0.14"/>
-  <path d="M12 21V4 M12 4c-4 0-7 4-7 10s4 7 7 7c3 0 7-1 7-7s-3-10-7-10z" fill="none" stroke="#16A34A" filter="url(#glow-spinat)" stroke-width="2"/>
-  <path d="M12 10l-3 2m3 2l-3 2m3-4l3 2m-3 2l3 2" stroke="#16A34A" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Tender baby spinach leaf duo: oval-pointed succulent leaves with gentle curves -->
+  <!-- Rear leaf -->
+  <path d="M8 15 C5 14 3.5 10 5 6 C6.5 3.5 10 4 12 7 C11 11 9.5 14 8 15 Z" fill="#22C55E" fill-opacity="0.18" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Main foreground spinach leaf -->
+  <path d="M12 22 C12 17 12 14 12 13 C8 12 6 8 8 4 C10 1.5 14 1.5 16 4 C18 8 16 12 12 13 Z" fill="#16A34A" fill-opacity="0.2"/>
+  <path d="M12 22 C12 17 12 14 12 13 C8 12 6 8 8 4 C10 1.5 14 1.5 16 4 C18 8 16 12 12 13 Z" fill="none" stroke="#16A34A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-spinat)"/>
+  <!-- Center vein & gentle side arches -->
+  <path d="M12 13 L12 4" fill="none" stroke="#86EFAC" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 10 C10.5 8.5 9 8.5 8 9 M12 10 C13.5 8.5 15 8.5 16 9" fill="none" stroke="#86EFAC" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M12 7 C10.8 5.8 9.5 5.8 9 6.2 M12 7 C13.2 5.8 14.5 5.8 15 6.2" fill="none" stroke="#86EFAC" stroke-width="1.4" stroke-linecap="round"/>
 </svg>

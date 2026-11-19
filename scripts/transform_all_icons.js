@@ -399,7 +399,13 @@ const iconColorMap = {
 };
 
 // Handcrafted, perfected SVGs that replace flawed geometry
+let revised52 = {};
+try {
+  revised52 = require('./update_52_icons.js').revised52 || {};
+} catch(e) {}
+
 const customSVGs = {
+  ...revised52,
   'Steak': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-steak" x="-30%" y="-30%" width="160%" height="160%">

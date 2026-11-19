@@ -4,9 +4,14 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#EC4899" flood-opacity="0.75"/>
     </filter>
   </defs>
-<rect x="7" y="4" width="10" height="16" rx="2" fill="#EC4899" fill-opacity="0.14" transform="rotate(-15 12 12)"/>
-  <rect x="7" y="4" width="10" height="16" rx="2" fill="none" stroke="#EC4899" filter="url(#glow-geschenkpapier)" stroke-width="2" transform="rotate(-15 12 12)"/>
-  <ellipse cx="12" cy="4" rx="4" ry="1.5" fill="#EC4899" fill-opacity="0.14" stroke="#EC4899" stroke-width="1.8" transform="rotate(-15 12 4)"/>
-  <path d="M6 10l12-3 M6 15l12-3" stroke="#EC4899" stroke-width="1.8" stroke-dasharray="2 2"/>
-  <circle cx="11" cy="12" r="1.5" fill="#EC4899" fill-opacity="0.14"/>
+  <!-- Slender wrapping paper roll unrolling with star pattern and curling ribbon -->
+  <!-- Cylinder roll -->
+  <ellipse cx="6" cy="5" rx="3" ry="1.5" fill="#EC4899" fill-opacity="0.3" stroke="#EC4899" stroke-width="1.8"/>
+  <ellipse cx="6" cy="5" rx="1.2" ry="0.6" fill="#F8FAFC"/>
+  <path d="M3 5 L3 19 C3 20 4.5 20.5 6 20.5 C7.5 20.5 9 20 9 19 L9 5" fill="none" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Unrolling festive paper sheet to the right -->
+  <path d="M9 12 C13 11 16 13 21 11 L21 19 C16 21 13 19 9 20" fill="#EC4899" fill-opacity="0.15"/>
+  <path d="M9 12 C13 11 16 13 21 11 L21 19 C16 21 13 19 9 20" fill="none" stroke="#EC4899" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-geschenkpapier)"/>
+  <!-- Decorative star motif on unrolled sheet -->
+  <path d="M15 15 L16 13 L17 15 L19 16 L17 17 L16 19 L15 17 L13 16 Z" fill="#FACC15" stroke="#FACC15" stroke-width="0.8"/>
 </svg>

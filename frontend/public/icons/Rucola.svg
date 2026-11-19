@@ -4,7 +4,9 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#16A34A" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Serrated lobed rocket / arugula leaf -->
-  <path d="M12 21V3" stroke="#16A34A" filter="url(#glow-rucola)" stroke-width="2" stroke-linecap="round"/>
-  <path d="M12 4c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m-3 2c-2 0-3 1-3 2 0 1.5 2 2 3 2m0-14c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2m3 2c2 0 3 1 3 2 0 1.5-2 2-3 2" fill="#16A34A" fill-opacity="0.14" stroke="#16A34A" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Iconic lobed arugula / rocket leaf with deep sinuses and rounded top -->
+  <path d="M12 22 L12 17 C9.5 16.5 7 15 7.5 13.5 C9 13.5 10.5 14 11.5 13 C8.5 12 6 10.5 6.5 9 C8.5 9 10 10 11.5 9 C8.5 8 8 6 9 5 C10.5 5 11 6.5 12 6 C11.5 4 11 2 12 2 C13 2 12.5 4 12 6 C13 6.5 13.5 5 15 5 C16 6 15.5 8 12.5 9 C14 10 15.5 9 17.5 9 C18 10.5 15.5 12 12.5 13 C13.5 14 15 13.5 16.5 13.5 C17 15 14.5 16.5 12 17 Z" fill="#16A34A" fill-opacity="0.18"/>
+  <path d="M12 22 L12 17 C9.5 16.5 7 15 7.5 13.5 C9 13.5 10.5 14 11.5 13 C8.5 12 6 10.5 6.5 9 C8.5 9 10 10 11.5 9 C8.5 8 8 6 9 5 C10.5 5 11 6.5 12 6 C11.5 4 11 2 12 2 C13 2 12.5 4 12 6 C13 6.5 13.5 5 15 5 C16 6 15.5 8 12.5 9 C14 10 15.5 9 17.5 9 C18 10.5 15.5 12 12.5 13 C13.5 14 15 13.5 16.5 13.5 C17 15 14.5 16.5 12 17 Z" fill="none" stroke="#16A34A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-rucola)"/>
+  <!-- Central vein running from stem to tip -->
+  <path d="M12 17 L12 4" fill="none" stroke="#86EFAC" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

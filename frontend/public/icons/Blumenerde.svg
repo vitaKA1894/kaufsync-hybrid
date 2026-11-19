@@ -4,10 +4,15 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#78350F" flood-opacity="0.75"/>
     </filter>
   </defs>
-<path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="#78350F" fill-opacity="0.14"/>
-  <path d="M6 7h12l-1.2 13a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8L6 7z" fill="none" stroke="#78350F" filter="url(#glow-blumenerde)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M5.5 7c3.5 1 9.5 1 13 0" stroke="#78350F" stroke-width="2" stroke-linecap="round"/>
-  <rect x="7" y="11" width="10" height="5.5" rx="1.5" fill="#78350F" fill-opacity="0.14"/>
-  <text x="12" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="3.2" font-weight="900" letter-spacing="0.5" fill="#78350F" fill-opacity="0.35" text-anchor="middle">ERDE</text>
-  <path d="M12 4v3 M12 4c-1.5-1.5-3 0-3 0s1.5 2 3 1 M12 5c1.5-1.5 3 0 3 0s-1.5 2-3 1" fill="#78350F" fill-opacity="0.14" stroke="#78350F" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Soil sack with garden trowel and tender green sprout (NO text) -->
+  <!-- Soil sack body -->
+  <path d="M6 8 L18 8 L19 21 L5 21 Z" fill="#78350F" fill-opacity="0.2"/>
+  <path d="M6 8 L18 8 L19 21 L5 21 Z" fill="none" stroke="#78350F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-blumenerde)"/>
+  <!-- Sack top fold & handle -->
+  <path d="M7 5 L17 5 L18 8 L6 8 Z" fill="#92400E" fill-opacity="0.3" stroke="#92400E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="10" y="6" width="4" height="1" rx="0.5" fill="#F8FAFC"/>
+  <!-- Fresh young two-leaf seedling sprout on front of bag -->
+  <path d="M12 17 L12 12" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round"/>
+  <path d="M12 12 C10 10.5 8 11.5 9 13.5 C10.5 13.5 11.5 12.5 12 12 Z" fill="#22C55E" fill-opacity="0.4" stroke="#22C55E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 12 C14 10.5 16 11.5 15 13.5 C13.5 13.5 12.5 12.5 12 12 Z" fill="#22C55E" fill-opacity="0.4" stroke="#22C55E" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

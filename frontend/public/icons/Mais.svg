@@ -4,12 +4,14 @@
       <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Ear of corn with husk leaves peeled back showing kernel rows -->
-  <ellipse cx="12" cy="11" rx="4.5" ry="8" fill="#FACC15" fill-opacity="0.14" stroke="#FACC15" filter="url(#glow-mais)" stroke-width="2" transform="rotate(15 12 11)"/>
-  <!-- Kernel grid -->
-  <line x1="10" y1="5" x2="14" y2="17" stroke="#FACC15" stroke-width="1.5"/>
-  <line x1="8" y1="9" x2="16" y2="11" stroke="#FACC15" stroke-width="1.5"/>
-  <line x1="7" y1="13" x2="15" y2="15" stroke="#FACC15" stroke-width="1.5"/>
-  <!-- Husk leaves peeling at base -->
-  <path d="M8 17c-2 2-3 4-2 6m8-6c2 2 3 4 2 6" stroke="#FACC15" stroke-width="2" stroke-linecap="round"/>
+  <!-- Conical ear of corn with distinct kernel grid and peeling green husks -->
+  <!-- Corn cob core -->
+  <path d="M8.5 16 C7 11 8 4.5 12 2 C16 4.5 17 11 15.5 16 Z" fill="#FACC15" fill-opacity="0.22"/>
+  <path d="M8.5 16 C7 11 8 4.5 12 2 C16 4.5 17 11 15.5 16 Z" fill="none" stroke="#FACC15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-mais)"/>
+  <!-- Kernel tiers and vertical dividers -->
+  <path d="M9 6 C10.5 7 13.5 7 15 6 M8.5 9.5 C10.5 10.5 13.5 10.5 15.5 9.5 M8.5 13 C10.5 14 13.5 14 15.5 13" fill="none" stroke="#EAB308" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M12 2 L12 16 M10.2 6 L10.2 15 M13.8 6 L13.8 15" fill="none" stroke="#EAB308" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Peeling green husks wrapping from stem -->
+  <path d="M12 22 C10 19 6 17 5 12 C5 9 6.5 8 7 11 C8 15 10 18 12 22" fill="#22C55E" fill-opacity="0.2" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 22 C14 19 18 17 19 12 C19 9 17.5 8 17 11 C16 15 14 18 12 22" fill="#22C55E" fill-opacity="0.2" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

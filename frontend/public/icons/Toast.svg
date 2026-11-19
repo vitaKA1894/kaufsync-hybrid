@@ -1,13 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-toast" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FBBF24" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#D97706" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Two sliced toast breads popping up from toaster -->
-  <path d="M5 9c0-2 1.5-3 3-3 1.5 0 2.5.8 4 .8s2.5-.8 4-.8c1.5 0 3 1 3 3v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9z" fill="#FBBF24" fill-opacity="0.14"/>
-  <path d="M5 9c0-2 1.5-3 3-3 1.5 0 2.5.8 4 .8s2.5-.8 4-.8c1.5 0 3 1 3 3v10a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V9z" fill="none" stroke="#FBBF24" filter="url(#glow-toast)" stroke-width="2"/>
-  <!-- Melting butter pat on toast -->
-  <rect x="9.5" y="11" width="5" height="4" rx="1" fill="#FBBF24" fill-opacity="0.14"/>
-  <path d="M12 15c0 1.5-1 2.5-1 2.5" stroke="#FBBF24" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Toast slice with curved top, waist indentation and melting pat of butter -->
+  <path d="M5 9 C4 6 7 4 12 4 C17 4 20 6 19 9 C18 12 19 14 19 19 C19 20 18 21 17 21 L7 21 C6 21 5 20 5 19 C5 14 6 12 5 9 Z" fill="#D97706" fill-opacity="0.18"/>
+  <path d="M5 9 C4 6 7 4 12 4 C17 4 20 6 19 9 C18 12 19 14 19 19 C19 20 18 21 17 21 L7 21 C6 21 5 20 5 19 C5 14 6 12 5 9 Z" fill="none" stroke="#D97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-toast)"/>
+  <!-- Melting pat of butter in center -->
+  <rect x="10" y="10" width="4" height="3" rx="0.8" fill="#FDE047" stroke="#FACC15" stroke-width="1.2"/>
+  <path d="M9.5 13 C10.5 14.5 13.5 14.5 14.5 13" fill="none" stroke="#FDE047" stroke-width="1.2" stroke-linecap="round"/>
+  <!-- Toasted golden-brown crust lines -->
+  <path d="M7 8 C10 9 14 9 17 8 M8 16 C11 17 13 17 16 16" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

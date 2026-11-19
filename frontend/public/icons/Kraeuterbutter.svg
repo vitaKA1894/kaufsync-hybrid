@@ -1,14 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
   <defs>
     <filter id="glow-kraeuterbutter" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FDE047" flood-opacity="0.75"/>
+      <feDropShadow dx="0" dy="0" stdDeviation="0.75" flood-color="#FACC15" flood-opacity="0.75"/>
     </filter>
   </defs>
-<!-- Cylinder roll of herb butter with sliced medallion -->
-  <rect x="5" y="8" width="10" height="9" rx="2" fill="#FDE047" fill-opacity="0.14" stroke="#FDE047" filter="url(#glow-kraeuterbutter)" stroke-width="1.8"/>
-  <!-- Cut round slice with herb specks -->
-  <circle cx="16.5" cy="12.5" r="4.5" fill="#FDE047" fill-opacity="0.14" stroke="#FDE047" stroke-width="2"/>
-  <circle cx="15" cy="11" r="0.7" fill="#FDE047" fill-opacity="0.35"/>
-  <circle cx="18" cy="11.5" r="0.7" fill="#FDE047" fill-opacity="0.35"/>
-  <circle cx="16.5" cy="14" r="0.7" fill="#FDE047" fill-opacity="0.35"/>
+  <!-- Herb butter foil roll with twisted ends & fresh sliced coin showing green herb flecks -->
+  <!-- Cylinder roll in foil -->
+  <path d="M6 7 L17 7 C18 7 18.5 8 18.5 11 C18.5 14 18 15 17 15 L6 15" fill="#FDE047" fill-opacity="0.2" stroke="#94A3B8" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Foil twisted ends -->
+  <path d="M6 11 L3 8 L3 14 Z M18.5 11 L21.5 8 L21.5 14 Z" fill="#94A3B8" stroke="#94A3B8" stroke-width="1.2" stroke-linejoin="round"/>
+  <!-- Sliced coin / disc in foreground -->
+  <ellipse cx="9" cy="15" rx="5" ry="4" fill="#FDE047" fill-opacity="0.35"/>
+  <ellipse cx="9" cy="15" rx="5" ry="4" fill="none" stroke="#FACC15" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow-kraeuterbutter)"/>
+  <!-- Scattered green herb flecks on coin -->
+  <rect x="7" y="13.5" width="1.2" height="0.8" rx="0.3" fill="#15803D"/>
+  <rect x="10" y="14" width="1.4" height="0.9" rx="0.3" fill="#15803D"/>
+  <rect x="8.5" y="16" width="1.2" height="0.8" rx="0.3" fill="#15803D"/>
 </svg>
