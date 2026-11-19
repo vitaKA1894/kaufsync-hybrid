@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Cream cheese tub with spreader knife -->
+  <rect x="4" y="9" width="16" height="10" rx="2" fill="currentColor" fill-opacity="0.22"/>
+  <rect x="4" y="9" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="2"/>
+  <rect x="3" y="7" width="18" height="2.5" rx="1" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.5"/>
+  <!-- Butter knife spreading fresh cream -->
+  <path d="M7 14c3-1.5 7-1.5 10 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <circle cx="9" cy="12" r="0.7" fill="currentColor"/>
+  <circle cx="14" cy="12" r="0.7" fill="currentColor"/>
+</svg>

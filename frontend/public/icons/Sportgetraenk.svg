@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Sports squeeze bottle with ergonomic waist and pull cap -->
+  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3l-.5 4c-.5 1-1 2-1 3s.5 2 1 3l.5 2a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 7.5 20l.5-2c.5-1 1-2 1-3s-.5-2-1-3L7.5 8h.5z" fill="currentColor" fill-opacity="0.22"/>
+  <path d="M8 8c0-1.5 1-2 1-3h6c0 1 1 1.5 1 3l-.5 4c-.5 1-1 2-1 3s.5 2 1 3l.5 2a1.5 1.5 0 0 1-1.5 1.5h-5A1.5 1.5 0 0 1 7.5 20l.5-2c.5-1 1-2 1-3s-.5-2-1-3L7.5 8h.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Push-pull sports cap -->
+  <rect x="10.5" y="2" width="3" height="3" rx="0.6" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <!-- Grip grooves -->
+  <line x1="10" y1="14" x2="14" y2="14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="10" y1="16" x2="14" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

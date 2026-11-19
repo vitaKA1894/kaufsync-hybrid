@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Fruit assortment: Apple, Banana, Grapes -->
+  <circle cx="8.5" cy="14" r="5" fill="currentColor" fill-opacity="0.25" stroke="currentColor" stroke-width="2"/>
+  <path d="M8.5 9V7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M13 18c3 2 6 1 7-2s0-5-2-7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <!-- Grapes -->
+  <circle cx="14" cy="15" r="1.5" fill="currentColor"/>
+  <circle cx="17" cy="14" r="1.5" fill="currentColor"/>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Crisp round apple with top indentation, stem and leaf -->
+  <path d="M12 6c-3-1.5-7 0-7 6s3.5 9 7 9 7-3 7-9-4-7.5-7-6z" fill="currentColor" fill-opacity="0.25"/>
+  <path d="M12 6c-3-1.5-7 0-7 6s3.5 9 7 9 7-3 7-9-4-7.5-7-6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Stem -->
+  <path d="M12 6V2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <!-- Leaf -->
+  <path d="M12 4c2-2 4-1 4 0s-2 2-4 0z" fill="currentColor"/>
+</svg>

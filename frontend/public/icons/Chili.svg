@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Hot chili pepper with flame curve and pointy tip -->
+  <path d="M16 6c-3 1-6 4-8 8s-3 6-4 7c3 0 7-3 10-6s4-6 3-8l-1-1z" fill="currentColor" fill-opacity="0.35"/>
+  <path d="M16 6c-3 1-6 4-8 8s-3 6-4 7c3 0 7-3 10-6s4-6 3-8l-1-1z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Stem & cap -->
+  <path d="M16 6c1-2 2-3 4-3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+</svg>

@@ -75,14 +75,29 @@ const getLetterPath = (name) => {
   return '';
 };
 
+
+const normalizeUmlauts = (str) => {
+  if (!str) return '';
+  return str
+    .replace(/ä/g, 'ae').replace(/Ä/g, 'Ae')
+    .replace(/ö/g, 'oe').replace(/Ö/g, 'Oe')
+    .replace(/ü/g, 'ue').replace(/Ü/g, 'Ue')
+    .replace(/ß/g, 'ss')
+    .replace(/é/g, 'e').replace(/è/g, 'e');
+};
+
 const iconSources = computed(() => {
   if (!props.name) return [];
 
   const lowerName = props.name.toLowerCase();
   const sources = [];
 
-  // Priority 1: Direct name match
+  // Priority 1: Direct name match (original & ASCII-normalized)
   sources.push(`/icons/${props.name}.svg`);
+  const normName = normalizeUmlauts(props.name);
+  if (normName !== props.name) {
+    sources.push(`/icons/${normName}.svg`);
+  }
 
   // Lookup taxonomy entry by alias or exact name match
   const taxEntry = taxonomyLookup.get(lowerName);
@@ -90,10 +105,18 @@ const iconSources = computed(() => {
     // Priority 2: Taxonomy Main Name
     if (taxEntry.name && taxEntry.name !== props.name) {
       sources.push(`/icons/${taxEntry.name}.svg`);
+      const normTaxName = normalizeUmlauts(taxEntry.name);
+      if (normTaxName !== taxEntry.name) {
+        sources.push(`/icons/${normTaxName}.svg`);
+      }
     }
     // Priority 3: Explicit icon field
     if (taxEntry.icon && taxEntry.icon !== props.name && taxEntry.icon !== taxEntry.name) {
       sources.push(`/icons/${taxEntry.icon}.svg`);
+      const normTaxIcon = normalizeUmlauts(taxEntry.icon);
+      if (normTaxIcon !== taxEntry.icon) {
+        sources.push(`/icons/${normTaxIcon}.svg`);
+      }
     }
   }
 

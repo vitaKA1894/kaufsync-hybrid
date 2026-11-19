@@ -1,13 +1,13 @@
 export const foodIcons = {
-  apfel: '/icons/Äpfel.svg',
+  apfel: '/icons/Aepfel.svg',
   banane: '/icons/Bananen.svg',
   brot: '/icons/Brot.svg',
   nutella: '/icons/Nougatcreme.svg',
   milch: '/icons/Milch.svg',
   shampoo: '/icons/Shampoo.svg',
   tomate: '/icons/Tomaten.svg',
-  kaese: '/icons/Käse.svg',
-  käse: '/icons/Käse.svg',
+  kaese: '/icons/Kaese.svg',
+  käse: '/icons/Kaese.svg',
   wurst: '/icons/Wurst.svg',
   fleisch: '/icons/Fleisch.svg',
   wasser: '/icons/Wasser.svg',
@@ -25,13 +25,13 @@ export const foodIcons = {
   karotte: '/icons/Karotten.svg',
   salat: '/icons/Salat.svg',
   zitrone: '/icons/Zitrone.svg',
-  paprika: '/icons/Peperoni.svg',
+  paprika: '/icons/Paprika.svg',
   zahncreme: '/icons/Zahnpasta.svg',
   klopapier: '/icons/Haushaltspapier.svg',
-  müllbeutel: '/icons/Abfallsäcke.svg',
+  müllbeutel: '/icons/Muellbeutel.svg',
   waschmittel: '/icons/Waschmittel.svg',
   honig: '/icons/Honig.svg',
-  marmelade: '/icons/Konfitüre.svg',
+  marmelade: '/icons/Marmelade.svg',
   pizza: '/icons/Pizza.svg'
 };
 

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Bowl of fluffy mashed potatoes (Kartoffelstock) with melting butter pat & steam -->
+  <path d="M4 13c0 4.5 3.5 7.5 8 7.5s8-3 8-7.5H4z" fill="currentColor" fill-opacity="0.25"/>
+  <path d="M4 13c0 4.5 3.5 7.5 8 7.5s8-3 8-7.5H4z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <!-- Fluffy potato swirl mound -->
+  <path d="M5 13c1-3 3.5-5 7-5s6 2 7 5" fill="currentColor" fill-opacity="0.45" stroke="currentColor" stroke-width="1.8"/>
+  <!-- Melting butter cube on top -->
+  <rect x="10" y="8" width="4" height="3" rx="0.5" fill="currentColor" stroke="currentColor" stroke-width="1.2"/>
+  <!-- Steam -->
+  <path d="M12 5V2m-3 3L8 3m7 2l1-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

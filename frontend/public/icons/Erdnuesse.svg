@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Double-lobed peanut shell with indented waist & netted texture -->
+  <path d="M12 3c-2.5 0-4.5 2-4.5 4.5 0 1.5.8 2.8 1.5 3.5-1 1-2 2-2 4 0 3 2.5 5 5 5s5-2 5-5c0-2-1-3-2-4 .8-.7 1.5-2 1.5-3.5C16.5 5 14.5 3 12 3z" fill="currentColor" fill-opacity="0.3"/>
+  <path d="M12 3c-2.5 0-4.5 2-4.5 4.5 0 1.5.8 2.8 1.5 3.5-1 1-2 2-2 4 0 3 2.5 5 5 5s5-2 5-5c0-2-1-3-2-4 .8-.7 1.5-2 1.5-3.5C16.5 5 14.5 3 12 3z" fill="none" stroke="currentColor" stroke-width="2"/>
+  <!-- Net pattern indentations -->
+  <path d="M10 6l4 2m-4 2l4-2m-5 7l6 2m-6 2l6-2" stroke="currentColor" stroke-width="1.3"/>
+</svg>

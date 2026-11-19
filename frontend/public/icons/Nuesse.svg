@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <!-- Nutcracker cracking a hazelnut -->
+  <circle cx="12" cy="14" r="5" fill="currentColor" fill-opacity="0.35" stroke="currentColor" stroke-width="2"/>
+  <!-- Nutcracker lever arms -->
+  <path d="M6 3l6 9 6-9" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+  <path d="M3 18l18 3V10L3 13v5z" fill="currentColor" fill-opacity="0.25"/>
+  <path d="M3 18l18 3V10L3 13v5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M3 13L13 4l8 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Mold spots & crumbles -->
+  <circle cx="9" cy="15" r="1" fill="currentColor"/>
+  <circle cx="13" cy="16" r="1.2" fill="currentColor"/>
+  <circle cx="16" cy="14" r="0.9" fill="currentColor"/>
+  <circle cx="15" cy="8" r="0.9" fill="currentColor"/>
+</svg>

@@ -1141,7 +1141,7 @@
       "Bleu d'Auvergne"
     ],
     "category": "Milchprodukte & Tiefkühlkost",
-    "icon": "Blauschimmelkäse",
+    "icon": "Blauschimmelkaese",
     "tags": {
       "quantities": [
         "1",
@@ -1278,7 +1278,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Blätterteig"
+    "icon": "Blaetterteig"
   },
   {
     "id": "fcd3c33e-e742-4181-849f-8f5236d165b4",
@@ -1408,7 +1408,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Süssigkeiten"
+    "icon": "Suessigkeiten"
   },
   {
     "id": "bcc9dd5a-5c64-4373-b923-b67a54d22baa",
@@ -1507,7 +1507,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "letters"
+    "icon": "Briefmarken"
   },
   {
     "id": "a95eecbf-e9a7-4d3d-aa87-bffa2071b3b7",
@@ -1652,7 +1652,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Brötchen"
+    "icon": "Broetchen"
   },
   {
     "id": "1d046468-8465-4d43-b475-2ae2cb2c3e19",
@@ -1840,7 +1840,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "id": "8326a88c-f514-408f-a723-5cf535859c47",
@@ -1879,7 +1879,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Nüsse"
+    "icon": "Nuesse"
   },
   {
     "id": "0bf480f3-b72f-496d-b408-164a5c42f2a3",
@@ -2062,7 +2062,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Peperoncini"
+    "icon": "Chili"
   },
   {
     "id": "6ddca136-5fc4-4ab4-a649-6ec0f8cabb80",
@@ -2091,7 +2091,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Peperoncini"
+    "icon": "Chili"
   },
   {
     "id": "44020f24-a088-4ce8-b9f6-56ee503f2f36",
@@ -2346,7 +2346,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Gipfeli"
+    "icon": "Croissant"
   },
   {
     "id": "17f700ca-48a5-49da-8f1e-9f87eb7b8453",
@@ -2626,7 +2626,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Kraeuter"
   },
   {
     "id": "9ac1e487-9697-4075-88b4-245a7faf9be4",
@@ -2793,7 +2793,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pelati"
+    "icon": "Dosentomaten"
   },
   {
     "id": "46540766-6300-46db-b616-ce34b090b706",
@@ -2867,7 +2867,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "id": "27dea475-4876-4b84-85b5-0319cc9edbb1",
@@ -3065,7 +3065,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "id": "e709b1ed-6d12-4c06-8133-2ba574ba95cc",
@@ -3129,7 +3129,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Poulet"
+    "icon": "Haehnchen"
   },
   {
     "id": "260a6b02-7ad9-4406-8f92-5c21c9d84f05",
@@ -3363,7 +3363,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Erdnüsse"
+    "icon": "Erdnuesse"
   },
   {
     "id": "c4cdad23-7589-4166-bd4f-89b600c93bcd",
@@ -3598,7 +3598,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Feuchttücher"
+    "icon": "Feuchttuecher"
   },
   {
     "id": "94c6c31c-7624-480e-82a3-63e4d8f31109",
@@ -3734,7 +3734,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Fischstäbli"
+    "icon": "Fischstaebchen"
   },
   {
     "id": "68e08829-3969-4325-9f22-1b562898e862",
@@ -4069,7 +4069,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Frischkäse"
+    "icon": "Frischkaese"
   },
   {
     "id": "721ca2f5-1f3a-4914-93be-9582748e50c7",
@@ -4117,7 +4117,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Süssigkeiten"
+    "icon": "Suessigkeiten"
   },
   {
     "id": "bd7c7ca9-e5cb-4f3f-8fd2-f61eb5235823",
@@ -4193,7 +4193,7 @@
       "Bundzwiebeln"
     ],
     "category": "Obst & Gemüse",
-    "icon": "Frühlingszwiebeln",
+    "icon": "Fruehlingszwiebeln",
     "tags": {
       "quantities": [
         "1",
@@ -4575,7 +4575,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Essiggurken"
+    "icon": "Gewuerzgurken"
   },
   {
     "name": "Gießkanne",
@@ -4711,7 +4711,7 @@
       "Glühlampe"
     ],
     "category": "Drogerie, Haushalt & Tierbedarf",
-    "icon": "Glühbirne",
+    "icon": "Gluehbirne",
     "tags": {
       "quantities": [
         "1",
@@ -4863,7 +4863,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "id": "066c2a80-9735-45ae-89b7-ccbea90dd8ee",
@@ -4895,7 +4895,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Äpfel"
+    "icon": "Aepfel"
   },
   {
     "id": "01d42916-2d1b-4424-b55a-085d57376554",
@@ -5408,7 +5408,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "name": "Haselnüsse",
@@ -5419,7 +5419,7 @@
       "Gehackte Haselnüsse"
     ],
     "category": "Vorratskammer",
-    "icon": "Haselnüsse",
+    "icon": "Haselnuesse",
     "tags": {
       "quantities": [
         "1",
@@ -5837,7 +5837,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Poulet"
+    "icon": "Haehnchen"
   },
   {
     "id": "a5a3cf5f-9fc0-4092-ab87-bba61512eba6",
@@ -5881,7 +5881,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pouletbrüstli"
+    "icon": "Haehnchenbrust"
   },
   {
     "id": "44b8a5e3-0f16-447b-986c-f2351b446f0b",
@@ -5974,7 +5974,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Hüttenkäse"
+    "icon": "Huettenkaese"
   },
   {
     "name": "Indisches Fertiggericht",
@@ -6401,7 +6401,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Rahm"
+    "icon": "Sahne"
   },
   {
     "id": "62acecf5-8b6e-4d29-8e75-26482d9842df",
@@ -6660,7 +6660,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kartoffelstock"
+    "icon": "Kartoffelpueree"
   },
   {
     "id": "ae483a30-c334-4081-aa36-3aff8b1407d8",
@@ -7229,7 +7229,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Knäckebrot"
+    "icon": "Knaeckebrot"
   },
   {
     "name": "Knödel",
@@ -7241,7 +7241,7 @@
       "Pfanni Knödel"
     ],
     "category": "Vorratskammer",
-    "icon": "Knödel",
+    "icon": "Knoedel",
     "tags": {
       "quantities": [
         "1",
@@ -7312,7 +7312,7 @@
       "Antihaftpfanne"
     ],
     "category": "Sonstiges",
-    "icon": "Töpfe",
+    "icon": "Toepfe",
     "tags": {
       "quantities": [
         "1"
@@ -7425,7 +7425,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Nüsse"
+    "icon": "Nuesse"
   },
   {
     "id": "ab087060-afbf-41b6-b04b-b2fe8841db2f",
@@ -7458,7 +7458,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Öl"
+    "icon": "Oel"
   },
   {
     "id": "e0445841-9504-4c65-b71c-c9c21255fa23",
@@ -7557,7 +7557,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Dörrobst"
+    "icon": "Trockenobst"
   },
   {
     "name": "Kontaktlinsenflüssigkeit",
@@ -7689,7 +7689,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kosmetiktücher"
+    "icon": "Kosmetiktuecher"
   },
   {
     "id": "a7848d3e-35ad-4256-85c7-fac5f393c2f3",
@@ -7747,7 +7747,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Kraeuter"
   },
   {
     "id": "a2a3063e-28f3-46d9-b9da-9fd45f1675c2",
@@ -7810,7 +7810,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuterbutter"
+    "icon": "Kraeuterbutter"
   },
   {
     "id": "f2b6d1c6-4dcd-48bd-9faa-76e90f5f2543",
@@ -7844,7 +7844,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Kraeuter"
   },
   {
     "id": "d57eae06-031a-4cc2-b1bf-4b1837d81279",
@@ -8035,7 +8035,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "name": "Käsefondue",
@@ -8170,7 +8170,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kürbis"
+    "icon": "Kuerbis"
   },
   {
     "id": "580252ad-3997-46f3-bd34-0782b973eae3",
@@ -8271,7 +8271,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Süssigkeiten"
+    "icon": "Suessigkeiten"
   },
   {
     "id": "32c616f8-2091-4f52-9f22-3165fb8b31e4",
@@ -8658,7 +8658,7 @@
       "Lippenpomade"
     ],
     "category": "Drogerie, Haushalt & Tierbedarf",
-    "icon": "Lippenpomade",
+    "icon": "Lippenbalsam",
     "tags": {
       "quantities": [
         "1",
@@ -8729,7 +8729,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Kraeuter"
   },
   {
     "id": "98721ba9-75a2-4403-9393-3df64258ee7e",
@@ -9099,7 +9099,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Konfitüre"
+    "icon": "Marmelade"
   },
   {
     "id": "204a033c-a04d-41ee-bf97-06e89fd9d27f",
@@ -9737,7 +9737,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Mundspülung"
+    "icon": "Mundspuelung"
   },
   {
     "id": "1cee61e1-313f-4b0d-b2a9-e2c3710903f2",
@@ -9799,7 +9799,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Nüsse"
+    "icon": "Nuesse"
   },
   {
     "id": "6bbae751-7de1-4489-b1ed-0acd5a125586",
@@ -9842,7 +9842,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Abfallsäcke"
+    "icon": "Muellbeutel"
   },
   {
     "id": "04aaf738-6e07-4f7c-913f-56719b357226",
@@ -9868,7 +9868,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Abfallsäcke"
+    "icon": "Muellbeutel"
   },
   {
     "id": "7d1a193f-a5b0-4834-a972-e6d671bf537d",
@@ -9913,7 +9913,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Müesli"
+    "icon": "Muesli"
   },
   {
     "id": "42d55b7e-cd7c-4645-b482-53f5fe9a0275",
@@ -10147,7 +10147,7 @@
       "Holznägel"
     ],
     "category": "Sonstiges",
-    "icon": "Nägel",
+    "icon": "Naegel",
     "tags": {
       "quantities": [
         "1",
@@ -10240,7 +10240,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Olivenöl"
+    "icon": "Olivenoel"
   },
   {
     "id": "d6896d9b-1773-44bb-90a1-9ab525c8d3e7",
@@ -10398,7 +10398,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Früchte"
+    "icon": "Fruechte"
   },
   {
     "id": "5e462805-30fa-4d1e-b34b-92754d7cdbbe",
@@ -10439,7 +10439,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Peperoni"
+    "icon": "Paprika"
   },
   {
     "id": "621b2001-cfd4-4594-ba0d-579bf102e04f",
@@ -10553,7 +10553,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pelati"
+    "icon": "Dosentomaten"
   },
   {
     "id": "8109a1f6-3dfb-4ee8-b7f8-47949336319d",
@@ -10754,7 +10754,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pfefferkörner"
+    "icon": "Pfefferkoerner"
   },
   {
     "id": "ea5b4a23-8b2b-4bb2-b741-c228cb79f177",
@@ -10830,7 +10830,7 @@
       "Dünger"
     ],
     "category": "Sonstiges",
-    "icon": "Dünger",
+    "icon": "Duenger",
     "tags": {
       "quantities": [
         "1",
@@ -11104,7 +11104,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Nüsse"
+    "icon": "Nuesse"
   },
   {
     "id": "f03e9b58-8145-4e8e-8fee-61ce86fd6217",
@@ -11182,7 +11182,7 @@
       "Weihnachtsplätzchen"
     ],
     "category": "Brot & Backwaren",
-    "icon": "Guetzli",
+    "icon": "Kekse",
     "tags": {
       "quantities": [
         "1",
@@ -11563,7 +11563,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pouletbrüstli"
+    "icon": "Haehnchenbrust"
   },
   {
     "id": "f3d62d66-ca14-452a-979d-759d1d3d7f73",
@@ -11768,7 +11768,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Öl"
+    "icon": "Oel"
   },
   {
     "name": "Rasenmäher-Zubehör",
@@ -11778,7 +11778,7 @@
       "Rasenmähermesser"
     ],
     "category": "Sonstiges",
-    "icon": "Rasenmäher",
+    "icon": "Rasenmaeher",
     "tags": {
       "quantities": [
         "1"
@@ -11902,7 +11902,7 @@
       "Streukäse"
     ],
     "category": "Milchprodukte & Tiefkühlkost",
-    "icon": "Reibkäse",
+    "icon": "Reibkaese",
     "tags": {
       "quantities": [
         "1",
@@ -12298,14 +12298,15 @@
     "icon": "Steak"
   },
   {
-    "name": "Rindsgeschnetzeltes",
+    "name": "Rindergeschnetzeltes",
     "aliases": [
       "Rindergeschnetzeltes",
       "Geschnetzeltes Rind",
-      "Boeuf Stroganoff"
+      "Boeuf Stroganoff",
+      "Rindsgeschnetzeltes"
     ],
     "category": "Fleisch & Fisch",
-    "icon": "Rindsgeschnetzeltes",
+    "icon": "Rindergeschnetzeltes",
     "tags": {
       "quantities": [
         "1",
@@ -12392,7 +12393,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Lattich"
+    "icon": "Roemersalat"
   },
   {
     "id": "6df21a1e-e838-4bdd-8b4f-287588047124",
@@ -12456,7 +12457,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Dörrobst"
+    "icon": "Trockenobst"
   },
   {
     "id": "ec25c316-c2cb-44a7-afdd-b7200cd03575",
@@ -13106,7 +13107,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Sauerrahm"
+    "icon": "Saure Sahne"
   },
   {
     "id": "86811feb-b3ac-4824-9beb-20e22e46abb1",
@@ -13203,7 +13204,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Rahm"
+    "icon": "Sahne"
   },
   {
     "id": "5a156b74-ed44-48f0-ac04-02871b736bb1",
@@ -13267,7 +13268,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Sauerrahm"
+    "icon": "Saure Sahne"
   },
   {
     "name": "Schmerzmittel",
@@ -14202,7 +14203,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Öl"
+    "icon": "Oel"
   },
   {
     "id": "2ca4a7bc-5f9f-4b97-981b-1affb59e9ffb",
@@ -14407,7 +14408,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Glacé"
+    "icon": "Eis"
   },
   {
     "id": "737bcb85-45a9-4c4d-bb9d-82d7c26af12e",
@@ -14439,7 +14440,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Speisestärke"
+    "icon": "Speisestaerke"
   },
   {
     "id": "d9a9848a-2712-4c4f-9c5a-aefd93d6d730",
@@ -14472,7 +14473,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Öl"
+    "icon": "Oel"
   },
   {
     "id": "f464ee53-54a1-4cb0-89e3-a5ff453489fc",
@@ -14548,7 +14549,7 @@
       "Isotonisches Getränk"
     ],
     "category": "Getränke & Genussmittel",
-    "icon": "Sportgetränk",
+    "icon": "Sportgetraenk",
     "tags": {
       "quantities": [
         "1",
@@ -14597,7 +14598,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Rahm"
+    "icon": "Sahne"
   },
   {
     "id": "b7c0eacc-80dc-45b8-bfe1-d3717c3dc04a",
@@ -14746,7 +14747,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Spülmittel"
+    "icon": "Spuelmittel"
   },
   {
     "id": "ed2d9434-872a-4e04-9118-8f9f17f73af7",
@@ -14776,7 +14777,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Abfallsäcke"
+    "icon": "Muellbeutel"
   },
   {
     "id": "fcdc5aa3-351c-43b3-b15b-d03be6e01aad",
@@ -14894,7 +14895,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Streichhölzer"
+    "icon": "Streichhoelzer"
   },
   {
     "id": "419f1ac2-41a8-4d5b-afb6-a7262f83af29",
@@ -14981,7 +14982,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Nüsse"
+    "icon": "Nuesse"
   },
   {
     "id": "edeb9222-632f-4b60-931b-dea0bbbd698e",
@@ -15010,7 +15011,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Pelati"
+    "icon": "Dosentomaten"
   },
   {
     "id": "9e022680-e729-49ce-841a-2ee039989e56",
@@ -15042,7 +15043,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Süsskartoffeln"
+    "icon": "Suesskartoffeln"
   },
   {
     "id": "da286c49-76b6-44ed-aee8-6145ea11e46e",
@@ -15207,7 +15208,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Taschentücher"
+    "icon": "Taschentuecher"
   },
   {
     "id": "a59139be-a7df-4153-991c-ccb414575da6",
@@ -15477,7 +15478,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Gemüse gefroren"
+    "icon": "Gemuese gefroren"
   },
   {
     "id": "61517e04-9b58-4b7b-a873-330efc06079c",
@@ -15508,7 +15509,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Kräuter"
+    "icon": "Kraeuter"
   },
   {
     "id": "42ce2d01-7c92-42d6-bb71-7fab3c973a97",
@@ -16440,7 +16441,7 @@
       "Walnusskerne"
     ],
     "category": "Vorratskammer",
-    "icon": "Baumnüsse",
+    "icon": "Walnuesse",
     "tags": {
       "quantities": [
         "1",
@@ -16541,7 +16542,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Glacé"
+    "icon": "Eis"
   },
   {
     "id": "6190fcce-0dea-4307-bf71-d8d5505d0484",
@@ -16608,7 +16609,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Watterondellen"
+    "icon": "Wattepads"
   },
   {
     "id": "812f155e-278e-4c6e-ba98-a54a1e0006d5",
@@ -16639,7 +16640,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Wattestäbchen"
+    "icon": "Wattestaebchen"
   },
   {
     "id": "e3a9fb85-9b0f-462f-98c3-71b431dddcbd",
@@ -16713,7 +16714,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Weichspüler"
+    "icon": "Weichspueler"
   },
   {
     "id": "c8a7f715-fc08-41f5-8a41-396b26959151",
@@ -17146,7 +17147,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Zahnbürsten"
+    "icon": "Zahnbuersten"
   },
   {
     "id": "6a38e91b-e157-4fe7-8bf0-17ca0e221c00",
@@ -17311,7 +17312,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Käse"
+    "icon": "Kaese"
   },
   {
     "name": "Zimmerpflanze",
@@ -17615,7 +17616,7 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Knäckebrot"
+    "icon": "Knaeckebrot"
   },
   {
     "id": "63de1a2f-f126-41d2-9980-5cf1a516bec5",
@@ -17720,6 +17721,6 @@
         "Wenn's passt"
       ]
     },
-    "icon": "Äpfel"
+    "icon": "Aepfel"
   }
 ]
