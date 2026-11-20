@@ -33,20 +33,34 @@ export async function scanBarcodeNative() {
       console.warn('Google Barcode Modul Check/Install:', installErr);
     }
 
-    // 2. Scan aufrufen
+    // 2. Scan aufrufen mit allen gängigen 1D- und 2D-Formaten (inkl. Aztec für REWE & Penny)
     const result = await BarcodeScanner.scan({
       formats: [
+        BarcodeFormat.Aztec,
+        BarcodeFormat.QrCode,
+        BarcodeFormat.DataMatrix,
+        BarcodeFormat.Pdf417,
         BarcodeFormat.Ean13,
         BarcodeFormat.Ean8,
         BarcodeFormat.UpcA,
         BarcodeFormat.UpcE,
-        BarcodeFormat.QrCode,
-        BarcodeFormat.Code128
+        BarcodeFormat.Code128,
+        BarcodeFormat.Code39,
+        BarcodeFormat.Itf,
+        BarcodeFormat.Codabar
       ]
     });
 
     if (result && result.barcodes && result.barcodes.length > 0) {
-      return result.barcodes[0].rawValue;
+      const b = result.barcodes[0];
+      const rawCode = b.rawValue || '';
+      return {
+        code: rawCode,
+        format: b.format || '',
+        toString() {
+          return rawCode;
+        }
+      };
     }
   } catch (error) {
     console.error('Fehler beim nativen Barcode-Scan:', error);

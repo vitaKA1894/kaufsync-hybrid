@@ -64,7 +64,7 @@ const closeScanner = () => {
     emit('close');
 };
 
-const processScannedCode = (code) => {
+const processScannedCode = (code, format = '') => {
     const now = Date.now();
 
     // Deduplication logic (prevent identical scans right after another)
@@ -85,7 +85,7 @@ const processScannedCode = (code) => {
         lastScanTime = now;
         potentialCode = null; // Reset for next scan
 
-        emit('scan', code);
+        emit('scan', code, format);
     }
 };
 
@@ -100,7 +100,13 @@ const startScanning = () => {
     let nativeDetector = null;
     if ('BarcodeDetector' in window) {
         try {
-            nativeDetector = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e'] });
+            nativeDetector = new window.BarcodeDetector({
+                formats: [
+                    'aztec', 'data_matrix', 'qr_code', 'pdf417',
+                    'ean_13', 'ean_8', 'upc_a', 'upc_e',
+                    'code_128', 'code_39', 'itf', 'codabar'
+                ]
+            });
         } catch (e) {
             console.warn("Native BarcodeDetector existiert, aber Formate nicht unterstützt:", e);
         }
@@ -125,7 +131,7 @@ const startScanning = () => {
                     const barcodes = await nativeDetector.detect(video);
                     if (barcodes.length > 0) {
                         codesFound++;
-                        processScannedCode(barcodes[0].rawValue);
+                        processScannedCode(barcodes[0].rawValue, barcodes[0].format || '');
                         animationFrameId = requestAnimationFrame(scanLoop);
                         return; // Found with native detector, skip fallback
                     }
@@ -147,7 +153,7 @@ const startScanning = () => {
                         const code = typeof results[0].decode === 'function' ? results[0].decode() : results[0].decode; // Get decoded string
                         if (code) {
                             codesFound++;
-                            processScannedCode(code);
+                            processScannedCode(code, results[0].typeName || 'CODE_128');
                         }
                     }
                 } catch (e) {

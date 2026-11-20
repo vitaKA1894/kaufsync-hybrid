@@ -2,8 +2,10 @@
 import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import StoreLogo from './StoreLogo.vue';
+import BarcodeRenderer from './BarcodeRenderer.vue';
 import { decodeBarcodeFromImage } from '../services/imageBarcodeDecoder.js';
 import { saveCard, maskCardCode } from '../services/loyaltyCardService.js';
+import { is2DFormat, getFriendlyFormatLabel } from '../utils/barcodeRenderer.js';
 import { db } from '../db/index.js';
 import { apiUrl } from '../config/api.js';
 import { isOnline } from '../services/syncService.js';
@@ -200,11 +202,21 @@ const handleClose = () => {
 
           <!-- Code Detected -> Pick Shopping List -->
           <div v-else-if="detectedCode" class="list-picker-container">
-            <!-- Detected Code Pill -->
-            <div class="detected-code-card">
-              <div class="code-info">
-                <span class="code-type-pill">{{ isQrCode ? 'QR-Code' : 'Strichcode' }}</span>
-                <span class="code-value">{{ detectedCode }}</span>
+            <!-- Compact Live Preview Card -->
+            <div class="ks-live-preview-box">
+              <div class="preview-header">
+                <span class="preview-badge is-detected">
+                  <span class="preview-check">✓</span>
+                  <span>Erkannt: {{ getFriendlyFormatLabel(detectedFormat) }}</span>
+                </span>
+                <span class="preview-code-snippet">{{ detectedCode }}</span>
+              </div>
+              <div class="preview-canvas-card">
+                <BarcodeRenderer
+                  :code="detectedCode"
+                  :format="detectedFormat"
+                  :compact="true"
+                />
               </div>
             </div>
 
@@ -352,40 +364,60 @@ const handleClose = () => {
   to { transform: rotate(360deg); }
 }
 
-.detected-code-card {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 12px 14px;
+/* LIVE PREVIEW BOX */
+.ks-live-preview-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin-bottom: 14px;
 }
 
-.code-info {
+.preview-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
 }
 
-.code-type-pill {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  padding: 3px 10px;
+  border-radius: 9999px;
   flex-shrink: 0;
 }
 
-.code-value {
+.preview-check {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.preview-code-snippet {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-weight: 600;
-  font-size: 14px;
-  color: #f8fafc;
+  font-size: 12px;
+  color: #94a3b8;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.preview-canvas-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  min-height: 70px;
+  overflow: hidden;
 }
 
 .picker-instructions {

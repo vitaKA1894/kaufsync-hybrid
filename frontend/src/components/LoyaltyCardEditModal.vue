@@ -1,9 +1,11 @@
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue';
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue';
 import StoreLogo from './StoreLogo.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
+import BarcodeRenderer from './BarcodeRenderer.vue';
 import { isNativeScannerAvailable, scanBarcodeNative } from '../utils/nativeBarcode.js';
-import { decodeBarcodeFromImage, resolveManualFormat } from '../services/imageBarcodeDecoder.js';
+import { decodeBarcodeFromImage, normalizeCodeFormat, resolveManualFormat } from '../services/imageBarcodeDecoder.js';
+import { is2DFormat, getFriendlyFormatLabel } from '../utils/barcodeRenderer.js';
 import { saveCard } from '../services/loyaltyCardService.js';
 
 const props = defineProps({
@@ -23,8 +25,12 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'saved']);
 
+// Form & Capture State
 const cardCode = ref('');
+const detectedExactFormat = ref(null);
+const captureSource = ref('manual'); // 'camera' | 'image' | 'manual' | 'saved'
 const manualType = ref('barcode'); // 'barcode' | 'qr'
+
 const isDecoding = ref(false);
 const decodeSuccess = ref(false);
 const decodeError = ref('');
@@ -44,13 +50,47 @@ watch(() => props.isOpen, (open) => {
 
     if (props.existingCard) {
       cardCode.value = props.existingCard.code_value || '';
-      manualType.value = props.existingCard.code_format === 'QR_CODE' || props.existingCard.code_format === 'QR' ? 'qr' : 'barcode';
+      detectedExactFormat.value = props.existingCard.code_format || null;
+      captureSource.value = 'saved';
+      manualType.value = is2DFormat(props.existingCard.code_format) ? 'qr' : 'barcode';
     } else {
       cardCode.value = '';
+      detectedExactFormat.value = null;
+      captureSource.value = 'manual';
       manualType.value = 'barcode';
     }
   }
 }, { immediate: true });
+
+// Active format calculation (critical to avoid overwrite bug)
+const currentFormat = computed(() => {
+  if ((captureSource.value === 'camera' || captureSource.value === 'image' || captureSource.value === 'saved') && detectedExactFormat.value) {
+    return detectedExactFormat.value;
+  }
+  return resolveManualFormat(cardCode.value, manualType.value);
+});
+
+// Non-technical status label for the live preview ("QR-Code" or "Barcode" only)
+const previewLabel = computed(() => {
+  const friendly = getFriendlyFormatLabel(currentFormat.value);
+  if (captureSource.value === 'camera' || captureSource.value === 'image') {
+    return `Erkannt: ${friendly}`;
+  }
+  return `Vorschau: ${friendly}`;
+});
+
+// Helper to record detection atomically
+const applyDetectedCode = (code, rawFormat, source) => {
+  const clean = String(code || '').trim();
+  cardCode.value = clean;
+  const canonical = normalizeCodeFormat(rawFormat, clean);
+  detectedExactFormat.value = canonical;
+  captureSource.value = source;
+  manualType.value = is2DFormat(canonical) ? 'qr' : 'barcode';
+  decodeSuccess.value = true;
+  decodeError.value = '';
+  errorMessage.value = '';
+};
 
 // 1. Live Camera Scan
 const handleStartCameraScan = async () => {
@@ -59,12 +99,11 @@ const handleStartCameraScan = async () => {
   try {
     const nativeAvail = await isNativeScannerAvailable();
     if (nativeAvail) {
-      const scannedCode = await scanBarcodeNative();
-      if (scannedCode) {
-        cardCode.value = scannedCode.trim();
-        // Detect if QR or Barcode
-        manualType.value = /^https?:\/\//i.test(cardCode.value) || cardCode.value.length > 40 ? 'qr' : 'barcode';
-        decodeSuccess.value = true;
+      const scanRes = await scanBarcodeNative();
+      if (scanRes) {
+        const rawCode = typeof scanRes === 'object' && scanRes !== null ? scanRes.code : scanRes;
+        const rawFmt = typeof scanRes === 'object' && scanRes !== null ? scanRes.format : '';
+        applyDetectedCode(rawCode, rawFmt, 'camera');
       }
     } else {
       showWebScanner.value = true;
@@ -77,12 +116,10 @@ const handleStartCameraScan = async () => {
   }
 };
 
-const handleWebCameraScan = (code) => {
+const handleWebCameraScan = (code, rawFormat) => {
   showWebScanner.value = false;
   if (code) {
-    cardCode.value = String(code).trim();
-    manualType.value = /^https?:\/\//i.test(cardCode.value) || cardCode.value.length > 40 ? 'qr' : 'barcode';
-    decodeSuccess.value = true;
+    applyDetectedCode(code, rawFormat, 'camera');
   }
 };
 
@@ -106,9 +143,7 @@ const handleImageFileSelected = async (event) => {
   try {
     const result = await decodeBarcodeFromImage(file);
     if (result.success && result.code) {
-      cardCode.value = result.code;
-      manualType.value = result.isQr ? 'qr' : 'barcode';
-      decodeSuccess.value = true;
+      applyDetectedCode(result.code, result.format, 'image');
     } else {
       decodeError.value = result.error || 'Kein Code im Bild erkannt – bitte näher heranzoomen oder Nummer manuell eingeben.';
     }
@@ -120,7 +155,22 @@ const handleImageFileSelected = async (event) => {
   }
 };
 
-// 3. Save
+// 3. Manual Input & Toggles
+const handleManualInput = () => {
+  captureSource.value = 'manual';
+  detectedExactFormat.value = null;
+  decodeSuccess.value = false;
+  decodeError.value = '';
+  errorMessage.value = '';
+};
+
+const setManualType = (type) => {
+  manualType.value = type;
+  captureSource.value = 'manual';
+  detectedExactFormat.value = null;
+};
+
+// 4. Save
 const handleSave = async () => {
   if (!cardCode.value.trim() || !props.list?.id) {
     errorMessage.value = 'Bitte gib eine Kartennummer oder einen Code ein.';
@@ -132,8 +182,8 @@ const handleSave = async () => {
 
   try {
     const token = localStorage.getItem('token');
-    const resolvedFormat = resolveManualFormat(cardCode.value, manualType.value);
-    const saved = await saveCard(props.list.id, cardCode.value.trim(), resolvedFormat, token);
+    const finalFormat = currentFormat.value;
+    const saved = await saveCard(props.list.id, cardCode.value.trim(), finalFormat, token);
     emit('saved', saved);
     emit('close');
   } catch (err) {
@@ -250,25 +300,25 @@ onUnmounted(() => {
               <span class="divider-line"></span>
             </div>
 
-            <!-- Simple 2-Button Choice: Strichcode vs. QR-Code -->
+            <!-- Simple 2-Button Choice: Barcode vs. QR-Code -->
             <div class="code-type-segmented-control">
               <button
                 type="button"
                 class="type-btn"
                 :class="{ active: manualType === 'barcode' }"
-                @click="manualType = 'barcode'"
+                @click="setManualType('barcode')"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                   <path d="M3 4h4v2H5v2H3V4zm2 16H3v-4h2v2h2v2zm16-4h-2v2h-2v2h4v-4zm-2-12h-2V2h4v4h-2V4zM7 6h2v12H7V6zm3 0h1v12h-1V6zm2 0h3v12h-3V6zm4 0h1v12h-1V6zm2 0h1v12h-1V6z"/>
                 </svg>
-                <span>Strichcode</span>
+                <span>Barcode</span>
               </button>
 
               <button
                 type="button"
                 class="type-btn"
                 :class="{ active: manualType === 'qr' }"
-                @click="manualType = 'qr'"
+                @click="setManualType('qr')"
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
                   <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v3h-3v-3zm-5 0h3v3h-3v-3zm2 3h3v3h-3v-3zm3 0h3v3h-3v-3zm-5 2h3v3h-3v-3z"/>
@@ -287,8 +337,29 @@ onUnmounted(() => {
                 autocapitalize="off"
                 autocomplete="off"
                 spellcheck="false"
+                @input="handleManualInput"
               />
               <label for="loyalty-card-input">Kartennummer / Code</label>
+            </div>
+
+            <!-- Compact Live Preview Card (Hidden when empty) -->
+            <div v-if="cardCode.trim()" class="ks-live-preview-box">
+              <div class="preview-header">
+                <span
+                  class="preview-badge"
+                  :class="{ 'is-detected': captureSource === 'camera' || captureSource === 'image' }"
+                >
+                  <span v-if="captureSource === 'camera' || captureSource === 'image'" class="preview-check">✓</span>
+                  <span>{{ previewLabel }}</span>
+                </span>
+              </div>
+              <div class="preview-canvas-card">
+                <BarcodeRenderer
+                  :code="cardCode"
+                  :format="currentFormat"
+                  :compact="true"
+                />
+              </div>
             </div>
 
           </div>
@@ -329,47 +400,43 @@ onUnmounted(() => {
 .ks-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.75);
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 9999;
   padding: 16px;
+  animation: ksFadeIn 0.2s ease-out;
 }
 
 .ks-modal-card {
   width: 100%;
   max-width: 440px;
-  background: #0f172a;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: modalPop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalPop {
-  0% { transform: scale(0.95); opacity: 0; }
-  100% { transform: scale(1); opacity: 1; }
+  animation: ksSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  max-height: 90vh;
 }
 
 .ks-modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-width: 0;
 }
 
 .modal-title {
@@ -377,9 +444,6 @@ onUnmounted(() => {
   font-size: 17px;
   font-weight: 700;
   color: #f8fafc;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .modal-subtitle {
@@ -389,33 +453,31 @@ onUnmounted(() => {
 }
 
 .modal-close-btn {
-  background: rgba(255, 255, 255, 0.06);
+  background: transparent;
   border: none;
   color: #94a3b8;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
+  cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  border-radius: 8px;
   transition: all 0.15s ease;
-  flex-shrink: 0;
 }
 
 .modal-close-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
 }
 
 .ks-modal-body {
-  padding: 20px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+  overflow-y: auto;
 }
 
-/* Capture actions */
 .capture-actions-row {
   display: flex;
   gap: 10px;
@@ -427,8 +489,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 10px;
-  border-radius: 14px;
+  padding: 11px 12px;
+  border-radius: 12px;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -437,55 +499,30 @@ onUnmounted(() => {
 }
 
 .camera-btn {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border-color: rgba(245, 158, 11, 0.35);
+}
+
+.camera-btn:hover:not(:disabled) {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+.gallery-btn {
   background: rgba(56, 189, 248, 0.12);
   color: #38bdf8;
   border-color: rgba(56, 189, 248, 0.3);
 }
 
-.camera-btn:hover {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: #38bdf8;
+.gallery-btn:hover:not(:disabled) {
+  background: rgba(56, 189, 248, 0.22);
+  border-color: rgba(56, 189, 248, 0.45);
 }
 
-.gallery-btn {
-  background: rgba(245, 158, 11, 0.12);
-  color: #fbbf24;
-  border-color: rgba(245, 158, 11, 0.3);
-}
-
-.gallery-btn:hover {
-  background: rgba(245, 158, 11, 0.2);
-  border-color: #f59e0b;
-}
-
-/* Feedback banners */
-.ks-alert-banner {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 12px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1.4;
-}
-
-.ks-alert-danger {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.4);
-  color: #fca5a5;
-}
-
-.ks-alert-success {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.4);
-  color: #34d399;
-}
-
-.ks-alert-warning {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  color: #fde68a;
+.capture-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .decoding-state {
@@ -493,55 +530,50 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  padding: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 12px;
+  padding: 10px;
   font-size: 13px;
-  color: #cbd5e1;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
 }
 
 .ks-spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(56, 189, 248, 0.3);
   border-top-color: #38bdf8;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: ksSpin 0.8s linear infinite;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Divider */
 .modal-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   margin: 2px 0;
 }
 
 .divider-line {
   flex: 1;
   height: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .divider-text {
   font-size: 11px;
   font-weight: 600;
-  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  color: #64748b;
 }
 
-/* 2-Button Toggle */
 .code-type-segmented-control {
   display: flex;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.6);
   padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   gap: 4px;
 }
 
@@ -550,42 +582,209 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 10px;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
   border: none;
   background: transparent;
   color: #94a3b8;
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
+}
+
+.type-btn:hover:not(.active) {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .type-btn.active {
-  background: #1e293b;
-  color: #38bdf8;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: #334155;
+  color: #f8fafc;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.ks-field {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.ks-field input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 14px 14px 10px;
+  font-size: 14px;
+  color: #f8fafc;
+  outline: none;
+  transition: all 0.15s ease;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+.ks-field input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+}
+
+.ks-field label {
+  position: absolute;
+  left: 14px;
+  top: 13px;
+  font-size: 13px;
+  color: #64748b;
+  pointer-events: none;
+  transition: all 0.15s ease;
+}
+
+.ks-field input:focus ~ label,
+.ks-field input:not(:placeholder-shown) ~ label {
+  top: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #f59e0b;
+}
+
+/* LIVE PREVIEW BOX */
+.ks-live-preview-box {
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 3px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.preview-badge.is-detected {
+  color: #34d399;
+  background: rgba(16, 185, 129, 0.12);
+  border-color: rgba(16, 185, 129, 0.25);
+}
+
+.preview-check {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.preview-canvas-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  min-height: 70px;
+  overflow: hidden;
+}
+
+/* Alert Banners */
+.ks-alert-banner {
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ks-alert-success {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.ks-alert-warning {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.ks-alert-danger {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .ks-modal-footer {
-  display: flex;
-  gap: 10px;
   padding: 14px 20px 18px;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  gap: 10px;
 }
 
-.ks-modal-footer button {
+.ks-btn-pill-secondary {
   flex: 1;
+  padding: 11px 16px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-/* Animations */
-.modal-fade-enter-active,
-.modal-fade-leave-active {
-  transition: opacity 0.2s ease;
+.ks-btn-pill-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
 }
-.modal-fade-enter-from,
-.modal-fade-leave-to {
-  opacity: 0;
+
+.ks-btn-pill-primary {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: 9999px;
+  background: #f59e0b;
+  border: none;
+  color: #0f172a;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
+}
+
+.ks-btn-pill-primary:hover:not(:disabled) {
+  background: #fbbf24;
+  transform: translateY(-1px);
+}
+
+.ks-btn-pill-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@keyframes ksFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ksSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes ksSpin {
+  to { transform: rotate(360deg); }
 }
 </style>

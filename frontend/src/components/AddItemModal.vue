@@ -93,7 +93,8 @@ const deleteItem = () => {
 const triggerScan = async () => {
     if (Capacitor.isNativePlatform()) {
         try {
-            const code = await scanBarcodeNative();
+            const scanResult = await scanBarcodeNative();
+            const code = typeof scanResult === 'object' && scanResult !== null ? scanResult.code : scanResult;
             if (code) {
                 await handleScan(code);
             } else {

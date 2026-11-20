@@ -1,9 +1,8 @@
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, watch, onMounted, onBeforeUnmount } from 'vue';
 import { Capacitor } from '@capacitor/core';
 import { ScreenBrightness } from '@capacitor-community/screen-brightness';
-import JsBarcode from 'jsbarcode';
-import QrcodeVue from 'qrcode.vue';
+import BarcodeRenderer from './BarcodeRenderer.vue';
 
 const props = defineProps({
   isOpen: {
@@ -21,10 +20,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(['close']);
-
-const barcodeSvgRef = ref(null);
 let previousBrightness = null;
-const renderError = ref('');
 
 const formatCardCodeDisplay = (code) => {
   if (!code) return '';
@@ -38,73 +34,6 @@ const formatCardCodeDisplay = (code) => {
     return `${s.slice(0, 4)} ${s.slice(4, 8)} ${s.slice(8, 12)} ${s.slice(12)}`;
   }
   return s;
-};
-
-const mapToJsBarcodeFormat = (format) => {
-  const f = (format || '').toUpperCase();
-  switch (f) {
-    case 'EAN_13':
-    case 'EAN13':
-      return 'EAN13';
-    case 'EAN_8':
-    case 'EAN8':
-      return 'EAN8';
-    case 'UPC_A':
-    case 'UPCA':
-      return 'UPC';
-    case 'CODE_39':
-    case 'CODE39':
-      return 'CODE39';
-    case 'ITF':
-      return 'ITF';
-    case 'CODE_128':
-    case 'CODE128':
-    default:
-      return 'CODE128';
-  }
-};
-
-const renderBarcode = () => {
-  renderError.value = '';
-  if (!props.card || !props.card.code_value) return;
-
-  const isQr = props.card.code_format === 'QR_CODE' || props.card.code_format === 'QR';
-  if (isQr) return; // QR code rendered by qrcode.vue
-
-  nextTick(() => {
-    if (!barcodeSvgRef.value) return;
-
-    const requestedFormat = mapToJsBarcodeFormat(props.card.code_format);
-    const code = String(props.card.code_value).trim();
-
-    try {
-      JsBarcode(barcodeSvgRef.value, code, {
-        format: requestedFormat,
-        displayValue: false,
-        margin: 10,
-        background: '#ffffff',
-        lineColor: '#000000',
-        width: 2.2,
-        height: 110
-      });
-    } catch (err) {
-      console.warn(`JsBarcode failed with format ${requestedFormat}, falling back to CODE128:`, err);
-      try {
-        JsBarcode(barcodeSvgRef.value, code, {
-          format: 'CODE128',
-          displayValue: false,
-          margin: 10,
-          background: '#ffffff',
-          lineColor: '#000000',
-          width: 2.2,
-          height: 110
-        });
-      } catch (fallbackErr) {
-        console.error('JsBarcode failed completely:', fallbackErr);
-        renderError.value = 'Barcode konnte nicht grafisch dargestellt werden.';
-      }
-    }
-  });
 };
 
 const applyMaxBrightness = async () => {
@@ -138,22 +67,14 @@ const handleClose = () => {
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     applyMaxBrightness();
-    renderBarcode();
   } else {
     restoreBrightness();
   }
 });
 
-watch(() => props.card, () => {
-  if (props.isOpen) {
-    renderBarcode();
-  }
-}, { deep: true });
-
 onMounted(() => {
   if (props.isOpen) {
     applyMaxBrightness();
-    renderBarcode();
   }
 });
 
@@ -180,23 +101,13 @@ onBeforeUnmount(() => {
           <div class="ks-loyalty-scan-surface">
             <div class="ks-loyalty-quiet-zone">
               
-              <!-- 2D QR Code -->
-              <div v-if="card?.code_format === 'QR_CODE' || card?.code_format === 'QR'" class="ks-qr-container">
-                <qrcode-vue
-                  :value="card.code_value"
-                  :size="240"
-                  level="H"
-                  render-as="svg"
-                  class="ks-qr-svg"
+              <!-- Vector Offline Code Renderer (Aztec, QR, Barcode, etc.) -->
+              <div v-if="card?.code_value" class="ks-code-render-wrap">
+                <BarcodeRenderer
+                  :code="card.code_value"
+                  :format="card.code_format"
+                  :compact="false"
                 />
-              </div>
-
-              <!-- 1D Barcode (SVG) -->
-              <div v-else class="ks-barcode-container">
-                <svg ref="barcodeSvgRef" class="ks-barcode-svg"></svg>
-                <div v-if="renderError" class="ks-render-error">
-                  {{ renderError }}
-                </div>
               </div>
 
               <!-- Legible Card Number below code -->
@@ -248,17 +159,15 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(245, 158, 11, 0.4);
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.8), 0 0 25px rgba(245, 158, 11, 0.2);
   border-radius: 24px;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ks-loyalty-modal-header {
-  padding: 18px 20px 14px;
+  padding: 20px 20px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .ks-loyalty-title-wrap {
@@ -302,33 +211,13 @@ onBeforeUnmount(() => {
   padding: 10px 4px;
 }
 
-.ks-qr-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-}
-
-.ks-barcode-container {
+.ks-code-render-wrap {
   width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-}
-
-.ks-barcode-svg {
-  max-width: 100%;
-  height: auto;
-  display: block;
-}
-
-.ks-render-error {
-  color: #b91c1c;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 8px;
+  min-height: 100px;
 }
 
 .ks-card-number-display {
@@ -337,6 +226,7 @@ onBeforeUnmount(() => {
   flex-direction: column;
   align-items: center;
   gap: 2px;
+  width: 100%;
 }
 
 .ks-card-number-label {
@@ -348,11 +238,16 @@ onBeforeUnmount(() => {
 }
 
 .ks-card-number-value {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.05em;
   color: #0f172a;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  word-break: break-all;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-align: center;
+  max-width: 100%;
 }
 
 .ks-loyalty-modal-footer {
@@ -392,5 +287,10 @@ onBeforeUnmount(() => {
 @keyframes fadeIn {
   from { opacity: 0; }
   to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 </style>

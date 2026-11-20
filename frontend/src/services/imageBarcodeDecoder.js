@@ -2,6 +2,7 @@ import { Capacitor } from '@capacitor/core';
 import { BarcodeScanner, BarcodeFormat } from '@capacitor-mlkit/barcode-scanning';
 import { scanImageData } from '@undecaf/zbar-wasm';
 import { validateEan13 } from '../utils/barcodeValidation.js';
+import { is2DFormat } from '../utils/barcodeRenderer.js';
 
 /**
  * Maps raw format strings from ML Kit, BarcodeDetector, or ZBar into canonical backend format names.
@@ -9,8 +10,17 @@ import { validateEan13 } from '../utils/barcodeValidation.js';
 export function normalizeCodeFormat(rawFormat, codeValue = '') {
   const f = String(rawFormat || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
   
+  if (f.includes('AZTEC')) {
+    return 'AZTEC';
+  }
   if (f.includes('QR')) {
     return 'QR_CODE';
+  }
+  if (f.includes('DATAMATRIX')) {
+    return 'DATA_MATRIX';
+  }
+  if (f.includes('PDF417')) {
+    return 'PDF_417';
   }
   if (f.includes('EAN13')) {
     return 'EAN_13';
@@ -21,16 +31,31 @@ export function normalizeCodeFormat(rawFormat, codeValue = '') {
   if (f.includes('UPCA')) {
     return 'UPC_A';
   }
+  if (f.includes('UPCE')) {
+    return 'UPC_E';
+  }
   if (f.includes('CODE39')) {
     return 'CODE_39';
+  }
+  if (f.includes('CODE93')) {
+    return 'CODE_128';
   }
   if (f.includes('CODE128')) {
     return 'CODE_128';
   }
+  if (f.includes('ITF') || f.includes('I25')) {
+    return 'ITF';
+  }
+  if (f.includes('CODABAR')) {
+    return 'CODABAR';
+  }
 
   // Fallback: heuristic based on payload if format is generic/unknown
   const clean = String(codeValue).trim();
-  if (/^https?:\/\//i.test(clean) || clean.length > 40) {
+  if (clean.startsWith('REWEDTP#') || clean.includes('privileges:') || clean.startsWith('PENNY#')) {
+    return 'AZTEC';
+  }
+  if (/^https?:\/\//i.test(clean) || clean.length > 40 || /[#:?=&/]/.test(clean)) {
     return 'QR_CODE';
   }
   if (/^\d{13}$/.test(clean) && validateEan13(clean)) {
@@ -49,17 +74,21 @@ export function normalizeCodeFormat(rawFormat, codeValue = '') {
  * Resolves format for manual entry based on the user's simple 2-button choice ('barcode' | 'qr').
  */
 export function resolveManualFormat(codeValue, manualType = 'barcode') {
-  if (manualType === 'qr') {
+  const clean = String(codeValue || '').trim();
+  if (manualType === 'qr' || manualType === 'qrcode') {
+    if (clean.startsWith('REWEDTP#') || clean.includes('privileges:') || clean.startsWith('PENNY#')) {
+      return 'AZTEC';
+    }
     return 'QR_CODE';
   }
-  const clean = String(codeValue || '').replace(/\s+/g, '');
-  if (/^\d{13}$/.test(clean) && validateEan13(clean)) {
+  const cleanDigits = clean.replace(/\s+/g, '');
+  if (/^\d{13}$/.test(cleanDigits) && validateEan13(cleanDigits)) {
     return 'EAN_13';
   }
-  if (/^\d{8}$/.test(clean)) {
+  if (/^\d{8}$/.test(cleanDigits)) {
     return 'EAN_8';
   }
-  if (/^\d{12}$/.test(clean)) {
+  if (/^\d{12}$/.test(cleanDigits)) {
     return 'UPC_A';
   }
   return 'CODE_128';
@@ -103,7 +132,11 @@ async function scanCanvasImageData(canvas, ctx) {
   if ('BarcodeDetector' in window) {
     try {
       const detector = new window.BarcodeDetector({
-        formats: ['qr_code', 'ean_13', 'ean_8', 'upc_a', 'code_128', 'code_39']
+        formats: [
+          'aztec', 'data_matrix', 'qr_code', 'pdf417',
+          'ean_13', 'ean_8', 'upc_a', 'upc_e',
+          'code_128', 'code_39', 'itf', 'codabar'
+        ]
       });
       const barcodes = await detector.detect(canvas);
       if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
@@ -155,13 +188,18 @@ export async function decodeBarcodeFromImage(imageSource, nativePath = null) {
       const mlkitResult = await BarcodeScanner.readBarcodesFromImage({
         path: filePath,
         formats: [
+          BarcodeFormat.Aztec,
           BarcodeFormat.QrCode,
+          BarcodeFormat.DataMatrix,
+          BarcodeFormat.Pdf417,
           BarcodeFormat.Ean13,
           BarcodeFormat.Ean8,
           BarcodeFormat.UpcA,
           BarcodeFormat.UpcE,
           BarcodeFormat.Code128,
-          BarcodeFormat.Code39
+          BarcodeFormat.Code39,
+          BarcodeFormat.Itf,
+          BarcodeFormat.Codabar
         ]
       });
 
@@ -172,7 +210,7 @@ export async function decodeBarcodeFromImage(imageSource, nativePath = null) {
           success: true,
           code: found.rawValue.trim(),
           format: canonicalFormat,
-          isQr: canonicalFormat === 'QR_CODE'
+          isQr: is2DFormat(canonicalFormat)
         };
       }
     } catch (nativeErr) {
@@ -213,7 +251,7 @@ export async function decodeBarcodeFromImage(imageSource, nativePath = null) {
         success: true,
         code: scanResult.code,
         format: canonicalFormat,
-        isQr: canonicalFormat === 'QR_CODE'
+        isQr: is2DFormat(canonicalFormat)
       };
     }
 
@@ -236,7 +274,7 @@ export async function decodeBarcodeFromImage(imageSource, nativePath = null) {
         success: true,
         code: scanResult.code,
         format: canonicalFormat,
-        isQr: canonicalFormat === 'QR_CODE'
+        isQr: is2DFormat(canonicalFormat)
       };
     }
 
@@ -256,7 +294,7 @@ export async function decodeBarcodeFromImage(imageSource, nativePath = null) {
         success: true,
         code: scanResult.code,
         format: canonicalFormat,
-        isQr: canonicalFormat === 'QR_CODE'
+        isQr: is2DFormat(canonicalFormat)
       };
     }
 
