@@ -104,6 +104,18 @@ class ActivityLog(Base):
     list = relationship("List")
     user = relationship("User", foreign_keys=[user_id])
 
+    @property
+    def user_name(self) -> str:
+        if hasattr(self, '_user_name') and self._user_name is not None:
+            return self._user_name
+        if self.user and self.user.display_name:
+            return self.user.display_name
+        return "Ehemaliges Mitglied" if self.user_id else "Unbekannt"
+
+    @user_name.setter
+    def user_name(self, value: str):
+        self._user_name = value
+
 class Item(Base):
     __tablename__ = "items"
     id = Column(String, primary_key=True, default=generate_uuid)

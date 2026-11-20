@@ -1,6 +1,6 @@
 <script setup>
 import { computed } from 'vue';
-import { isOnline, syncStatus, pendingCount, triggerSync } from '../services/syncService';
+import { isOnline } from '../services/syncService';
 
 const props = defineProps({
   compact: {
@@ -10,67 +10,33 @@ const props = defineProps({
 });
 
 const labelText = computed(() => {
-  if (!isOnline.value) {
-    return pendingCount.value > 0 ? `Offline (${pendingCount.value})` : 'Offline';
-  }
-  if (syncStatus.value === 'syncing') {
-    return 'Sync...';
-  }
-  if (pendingCount.value > 0) {
-    return `${pendingCount.value} warten`;
-  }
-  return 'Synchron';
+  return isOnline.value ? 'Online' : 'Offline';
 });
-
-const handleBadgeClick = () => {
-  if (isOnline.value) {
-    triggerSync(0);
-  }
-};
 </script>
 
 <template>
-  <button
-    type="button"
+  <div
     class="sync-status-badge"
     :class="{
-      'is-offline': !isOnline || syncStatus === 'offline',
-      'is-syncing': syncStatus === 'syncing',
-      'is-pending': isOnline && pendingCount > 0,
-      'is-synced': isOnline && syncStatus === 'synced' && pendingCount === 0
+      'is-offline': !isOnline,
+      'is-online': isOnline
     }"
-    @click="handleBadgeClick"
-    :title="isOnline ? 'Klicken, um jetzt zu synchronisieren' : 'Offline-Modus aktiv: Änderungen werden lokal gespeichert und später übertragen'"
+    :title="isOnline ? 'Online: Verbunden' : 'Offline: Keine Internetverbindung'"
   >
-    <!-- Syncing Spinner -->
-    <svg
-      v-if="syncStatus === 'syncing'"
-      class="sync-icon animate-spin text-sky-400"
-      viewBox="0 0 24 24"
-      width="14"
-      height="14"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2.5"
-    >
-      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"></circle>
-      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-    </svg>
-
-    <!-- Offline / Pending Dot -->
+    <!-- Offline Dot (Amber) -->
     <span
-      v-else-if="!isOnline || pendingCount > 0"
+      v-if="!isOnline"
       class="status-dot dot-amber"
     ></span>
 
-    <!-- Synced Dot -->
+    <!-- Online Dot (Emerald) -->
     <span
       v-else
       class="status-dot dot-emerald"
     ></span>
 
     <span v-if="!compact" class="badge-text">{{ labelText }}</span>
-  </button>
+  </div>
 </template>
 
 <style scoped>
@@ -87,20 +53,9 @@ const handleBadgeClick = () => {
   font-size: 11px;
   font-weight: 600;
   color: #94a3b8;
-  cursor: pointer;
   user-select: none;
   transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-.sync-status-badge:hover {
-  background: rgba(30, 41, 59, 0.85);
-  border-color: rgba(100, 116, 139, 0.7);
-  transform: translateY(-1px);
-}
-
-.sync-status-badge:active {
-  transform: scale(0.96);
 }
 
 .status-dot {
@@ -126,16 +81,11 @@ const handleBadgeClick = () => {
   50% { opacity: 0.6; transform: scale(1.15); }
 }
 
-.is-synced {
+.is-online {
   color: #cbd5e1;
 }
 
-.is-syncing {
-  color: #38bdf8;
-  border-color: rgba(56, 189, 248, 0.35);
-}
-
-.is-offline, .is-pending {
+.is-offline {
   color: #fbbf24;
   border-color: rgba(245, 158, 11, 0.35);
 }

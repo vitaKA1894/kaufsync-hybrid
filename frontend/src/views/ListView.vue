@@ -544,7 +544,8 @@ const loadChangelog = async () => {
   const cached = localStorage.getItem(`cached_changelog_${listId}`);
   if (cached && changelog.value.length === 0) {
     try {
-      changelog.value = JSON.parse(cached);
+      const parsed = JSON.parse(cached);
+      changelog.value = Array.isArray(parsed) ? parsed.filter(l => l.action_type !== 'started' && l.action_type !== 'shopping') : [];
     } catch (e) {}
   }
 
@@ -559,8 +560,9 @@ const loadChangelog = async () => {
     });
     if (response.ok) {
       const data = await response.json();
-      changelog.value = data;
-      localStorage.setItem(`cached_changelog_${listId}`, JSON.stringify(data));
+      const sanitized = Array.isArray(data) ? data.filter(l => l.action_type !== 'started' && l.action_type !== 'shopping') : [];
+      changelog.value = sanitized;
+      localStorage.setItem(`cached_changelog_${listId}`, JSON.stringify(sanitized));
     }
   } catch (error) {
     console.error("Fehler beim Laden des Changelogs", error);
@@ -610,18 +612,26 @@ const filteredChangelog = computed(() => {
   const grouped = [];
 
   logs.forEach(log => {
-      const d = new Date(log.created_at + 'Z');
+      let dateStr = log.created_at;
+      if (typeof dateStr === 'string' && !dateStr.endsWith('Z') && !dateStr.includes('+')) {
+          dateStr += 'Z';
+      }
+      const d = new Date(dateStr);
       const today = new Date();
       const yesterday = new Date(today);
       yesterday.setDate(yesterday.getDate() - 1);
 
       let dayKey = '';
-      if (d.toDateString() === today.toDateString()) {
-          dayKey = `Heute, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
-      } else if (d.toDateString() === yesterday.toDateString()) {
-          dayKey = `Gestern, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
+      if (!isNaN(d.getTime())) {
+          if (d.toDateString() === today.toDateString()) {
+              dayKey = `Heute, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
+          } else if (d.toDateString() === yesterday.toDateString()) {
+              dayKey = `Gestern, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
+          } else {
+              dayKey = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+          }
       } else {
-          dayKey = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
+          dayKey = 'Kürzlich';
       }
 
       let dayGroup = grouped.find(g => g.day === dayKey);
@@ -634,8 +644,12 @@ const filteredChangelog = computed(() => {
       const actionType = log.action_type;
       const timeStr = isNaN(d.getTime()) ? '' : d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
-      let actionGroup = dayGroup.actions.find(a => a.userName === userName && a.actionType === actionType);
-      if (!actionGroup) {
+      // Konsekutive Aktionen desselben Nutzers mit demselben Aktionstyp zusammenfassen
+      const lastAction = dayGroup.actions[dayGroup.actions.length - 1];
+      let actionGroup = null;
+      if (lastAction && lastAction.userName === userName && lastAction.actionType === actionType) {
+          actionGroup = lastAction;
+      } else {
           actionGroup = { userName, actionType, time: timeStr, items: [] };
           dayGroup.actions.push(actionGroup);
       }

@@ -556,8 +556,11 @@ def update_user_profile(
     return current_user
 
 @app.get("/api/notifications", response_model=list[schemas.NotificationResponse])
-def get_notifications(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
-    return db.query(models.Notification).filter(models.Notification.user_id == current_user.id).order_by(models.Notification.created_at.desc()).all()
+def get_notifications(unread_only: bool = False, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    q = db.query(models.Notification).filter(models.Notification.user_id == current_user.id)
+    if unread_only:
+        q = q.filter(models.Notification.is_read == False)
+    return q.order_by(models.Notification.created_at.desc()).limit(50).all()
 
 @app.patch("/api/notifications/{notification_id}/read")
 def read_notification(notification_id: str, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
@@ -565,6 +568,12 @@ def read_notification(notification_id: str, db: Session = Depends(get_db), curre
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
     notification.is_read = True
+    db.commit()
+    return {"status": "ok"}
+
+@app.post("/api/notifications/mark-all-read")
+def mark_all_notifications_read(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    db.query(models.Notification).filter(models.Notification.user_id == current_user.id, models.Notification.is_read == False).update({"is_read": True})
     db.commit()
     return {"status": "ok"}
 
@@ -1389,7 +1398,7 @@ async def start_shopping(
 
     user_display = current_user.display_name or "Ein Gruppenmitglied"
 
-    # Push Notification für Einkaufsstart an alle anderen Listenmitglieder
+    # Push Notification & WebSocket Alert für Einkaufsstart an alle anderen Listenmitglieder
     for member in members_dict.values():
         if member.id != current_user.id:
             notif = models.Notification(
@@ -1407,6 +1416,17 @@ async def start_shopping(
                         {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
                         {"title": notif.title, "body": notif.body, "url": notif.action_url}
                     )
+            # Zusätzlich an den persönlichen WebSocket-Kanal des Mitglieds senden
+            await manager.broadcast_user(str(member.id), {
+                "event": "NEW_NOTIFICATION",
+                "payload": {
+                    "id": notif.id,
+                    "title": notif.title,
+                    "body": notif.body,
+                    "url": notif.action_url,
+                    "list_id": list_id
+                }
+            })
     db.commit()
 
     # Live WebSocket Broadcast an alle aktiven Teilnehmer der Liste
@@ -1415,7 +1435,10 @@ async def start_shopping(
         "payload": {
             "list_id": list_id,
             "user_id": current_user.id,
-            "user_name": user_display
+            "user_name": user_display,
+            "title": "🛒 Ich gehe einkaufen!",
+            "body": f"{user_display} ist jetzt für '{db_list.name}' einkaufen. Brauchst du noch etwas?",
+            "url": f"/list/{db_list.id}"
         }
     })
 
@@ -1589,6 +1612,7 @@ async def delete_item(
 async def sync_list(
     list_id: str,
     sync_data: schemas.ListSyncRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
@@ -1601,6 +1625,9 @@ async def sync_list(
 
     processed = 0
     now = datetime.now(timezone.utc)
+    activity_logs_to_add = []
+    new_item_names = []
+    completed_item_names = []
 
     for mut in sync_data.mutations:
         action = mut.action
@@ -1613,6 +1640,7 @@ async def sync_list(
                 target_id = item_id or payload.get("id")
                 existing = db.query(models.Item).filter(models.Item.id == target_id).first() if target_id else None
                 if existing:
+                    was_deleted = existing.is_deleted
                     existing.is_deleted = False
                     existing.name = name
                     existing.category = payload.get("category", existing.category or "Sonstiges")
@@ -1621,6 +1649,16 @@ async def sync_list(
                     existing.note = payload.get("note", existing.note)
                     existing.status = payload.get("status", "active")
                     existing.updated_at = now
+                    existing.last_modified_by = current_user.id
+                    log_action = "reactivated" if was_deleted else "added"
+                    activity_logs_to_add.append(models.ActivityLog(
+                        list_id=list_id,
+                        user_id=current_user.id,
+                        action_type=log_action,
+                        item_name=name
+                    ))
+                    if log_action == "added":
+                        new_item_names.append(name)
                 else:
                     new_item = models.Item(
                         id=target_id or models.generate_uuid(),
@@ -1637,26 +1675,55 @@ async def sync_list(
                         is_deleted=False
                     )
                     db.add(new_item)
+                    activity_logs_to_add.append(models.ActivityLog(
+                        list_id=list_id,
+                        user_id=current_user.id,
+                        action_type="added",
+                        item_name=name
+                    ))
+                    new_item_names.append(name)
                 processed += 1
 
         elif action == "UPDATE_ITEM":
             if item_id:
                 item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
                 if item:
+                    old_status = item.status
                     for field in ["name", "category", "quantity", "unit", "note", "status", "tags"]:
                         if field in payload and payload[field] is not None:
                             setattr(item, field, payload[field])
                     item.updated_at = now
                     item.last_modified_by = current_user.id
+                    if "status" in payload and payload["status"] != old_status:
+                        log_action = "completed" if payload["status"] == "completed" else "reactivated"
+                        activity_logs_to_add.append(models.ActivityLog(
+                            list_id=list_id,
+                            user_id=current_user.id,
+                            action_type=log_action,
+                            item_name=item.name
+                        ))
+                        if log_action == "completed":
+                            completed_item_names.append(item.name)
                     processed += 1
 
         elif action == "TOGGLE_STATUS":
             if item_id:
                 item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
                 if item:
-                    item.status = payload.get("status", "completed" if item.status == "active" else "active")
+                    old_status = item.status
+                    new_status = payload.get("status", "completed" if old_status == "active" else "active")
+                    item.status = new_status
                     item.updated_at = now
                     item.last_modified_by = current_user.id
+                    log_action = "completed" if new_status == "completed" else "reactivated"
+                    activity_logs_to_add.append(models.ActivityLog(
+                        list_id=list_id,
+                        user_id=current_user.id,
+                        action_type=log_action,
+                        item_name=item.name
+                    ))
+                    if log_action == "completed":
+                        completed_item_names.append(item.name)
                     processed += 1
 
         elif action == "DELETE_ITEM":
@@ -1665,6 +1732,12 @@ async def sync_list(
                 if item:
                     item.is_deleted = True
                     item.updated_at = now
+                    activity_logs_to_add.append(models.ActivityLog(
+                        list_id=list_id,
+                        user_id=current_user.id,
+                        action_type="deleted",
+                        item_name=item.name
+                    ))
                     processed += 1
 
         elif action == "CLEAR_COMPLETED":
@@ -1676,7 +1749,17 @@ async def sync_list(
             for it in completed_items:
                 it.is_deleted = True
                 it.updated_at = now
+                activity_logs_to_add.append(models.ActivityLog(
+                    list_id=list_id,
+                    user_id=current_user.id,
+                    action_type="deleted",
+                    item_name=it.name
+                ))
                 processed += 1
+
+    # Alle erfassten Aktivitäten in die Datenbank schreiben
+    for log_entry in activity_logs_to_add:
+        db.add(log_entry)
 
     db.commit()
 
@@ -1685,6 +1768,84 @@ async def sync_list(
             "event": "LIST_SYNCED",
             "payload": { "list_id": list_id }
         })
+        if activity_logs_to_add:
+            await manager.broadcast(list_id, {
+                "event": "CHANGELOG_UPDATED",
+                "payload": {}
+            })
+
+    # Listenmitglieder für Benachrichtigungen ermitteln
+    members_dict = {m.id: m for m in (db_list.members or []) if m}
+    if db_list.created_by and db_list.created_by not in members_dict:
+        creator_user = db.query(models.User).filter(models.User.id == db_list.created_by).first()
+        if creator_user:
+            members_dict[creator_user.id] = creator_user
+
+    user_display = current_user.display_name or "Ein Gruppenmitglied"
+
+    # Push & WebSocket Notifications für neue Artikel
+    if new_item_names:
+        title = "Neuer Artikel" if len(new_item_names) == 1 else "Neue Artikel hinzugefügt"
+        body = f"{user_display} hat {new_item_names[0]} zu '{db_list.name}' hinzugefügt." if len(new_item_names) == 1 else f"{user_display} hat {len(new_item_names)} Artikel zu '{db_list.name}' hinzugefügt."
+        for member in members_dict.values():
+            if member.id != current_user.id and is_user_push_enabled(member, 'settings_push_new_items'):
+                notif = models.Notification(
+                    user_id=member.id,
+                    title=title,
+                    body=body,
+                    action_url=f"/list/{db_list.id}"
+                )
+                db.add(notif)
+                subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+                for sub in subs:
+                    background_tasks.add_task(
+                        send_push_notification,
+                        {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                        {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                    )
+                await manager.broadcast_user(str(member.id), {
+                    "event": "NEW_NOTIFICATION",
+                    "payload": {
+                        "id": notif.id,
+                        "title": notif.title,
+                        "body": notif.body,
+                        "url": notif.action_url,
+                        "list_id": db_list.id
+                    }
+                })
+        db.commit()
+
+    # Push & WebSocket Notifications für abgehakte Artikel
+    if completed_item_names:
+        title = "Artikel erledigt"
+        body = f"{user_display} hat '{completed_item_names[0]}' in '{db_list.name}' abgehakt." if len(completed_item_names) == 1 else f"{user_display} hat {len(completed_item_names)} Artikel in '{db_list.name}' abgehakt."
+        for member in members_dict.values():
+            if member.id != current_user.id and is_user_push_enabled(member, 'settings_push_completed_items'):
+                notif = models.Notification(
+                    user_id=member.id,
+                    title=title,
+                    body=body,
+                    action_url=f"/list/{db_list.id}"
+                )
+                db.add(notif)
+                subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+                for sub in subs:
+                    background_tasks.add_task(
+                        send_push_notification,
+                        {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                        {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                    )
+                await manager.broadcast_user(str(member.id), {
+                    "event": "NEW_NOTIFICATION",
+                    "payload": {
+                        "id": notif.id,
+                        "title": notif.title,
+                        "body": notif.body,
+                        "url": notif.action_url,
+                        "list_id": db_list.id
+                    }
+                })
+        db.commit()
 
     active_items = db.query(models.Item).filter(
         models.Item.list_id == list_id,

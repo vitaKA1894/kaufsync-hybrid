@@ -142,6 +142,107 @@ export async function registerWebPushSubscription() {
 }
 
 /**
+ * Display an incoming push / event notification across Native and Web.
+ */
+export async function showIncomingNotification({ title = 'KaufSync', body = '', url = '/' } = {}) {
+  // 1. Native Android / iOS via Capacitor
+  if (Capacitor.isNativePlatform()) {
+    try {
+      await setupNotificationChannels();
+      const notifId = Math.floor(Math.random() * 2147483647);
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            id: notifId,
+            title,
+            body,
+            channelId: 'kaufsync_channel',
+            smallIcon: 'ic_launcher',
+            isExactNotification: false,
+            isExactMandatory: false,
+            extra: {
+              url
+            }
+          }
+        ]
+      });
+      return true;
+    } catch (e) {
+      console.warn('Could not schedule native local notification:', e);
+    }
+  }
+
+  // 2. Browser / PWA: System Notification if permission is granted
+  if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification(title, {
+          body,
+          icon: '/android-chrome-192x192.png',
+          badge: '/android-chrome-192x192.png',
+          data: { url }
+        });
+        return true;
+      } else {
+        const n = new Notification(title, {
+          body,
+          icon: '/android-chrome-192x192.png'
+        });
+        if (url) {
+          n.onclick = () => {
+            window.focus();
+            if (window.location.pathname !== url) {
+              window.location.href = url;
+            }
+          };
+        }
+        return true;
+      }
+    } catch (e) {
+      console.warn('Could not show web notification:', e);
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Ensure push notification subscription is registered with backend.
+ */
+export async function ensurePushSubscription() {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+
+  try {
+    const status = await getNotificationPermissionStatus();
+    if (status === 'granted') {
+      await registerWebPushSubscription();
+    }
+  } catch (err) {
+    console.warn('ensurePushSubscription error:', err);
+  }
+}
+
+/**
+ * Setup global notification listeners (e.g. click handling).
+ */
+export function setupNotificationListeners(router) {
+  if (Capacitor.isNativePlatform()) {
+    try {
+      LocalNotifications.addListener('localNotificationActionPerformed', (action) => {
+        const url = action.notification?.extra?.url;
+        if (url && router) {
+          router.push(url);
+        }
+      });
+    } catch (err) {
+      console.warn('Error setting up LocalNotifications listener:', err);
+    }
+  }
+}
+
+/**
  * Send an immediate test notification.
  */
 export async function triggerTestNotification({ title = 'KaufSync', body = 'Benachrichtigungen funktionieren einwandfrei! 🎉' } = {}) {
