@@ -326,7 +326,7 @@
       "constellations": [
         "Klassische Schorle",
         "Naturtrübe",
-        "Toastfrischung",
+        "Erfrischung",
         "Fruchtig",
         "Kiste",
         "Durstlöscher"
@@ -421,7 +421,7 @@
       "constellations": [
         "Süß-Sauer Sauce",
         "Chili Sauce scharf",
-        "Toastdnusssauce Wok",
+        "Erdnusssauce Wok",
         "Teriyaki-Sauce",
         "Glas",
         "Wok",
@@ -519,7 +519,7 @@
       "constellations": [
         "Natur",
         "Minze",
-        "Toastfrischungsgetränk",
+        "Erfrischungsgetränk",
         "Gekühlt",
         "Joghurt"
       ],
@@ -1779,11 +1779,11 @@
       ],
       "constellations": [
         "Natur",
-        "Frucht (Toastdbeer, Zitrone)",
+        "Frucht (Erdbeer, Zitrone)",
         "Bio",
         "Reine",
         "Frucht Zitrone",
-        "Frucht Toastdbeere",
+        "Frucht Erdbeere",
         "Frucht Pfirsich",
         "Frisch",
         "Gekühlt",
@@ -2151,7 +2151,7 @@
         "Zuckerfrei",
         "Klassisch",
         "Koffeinfrei",
-        "Toastfrischung",
+        "Erfrischung",
         "Süß",
         "Koffein",
         "PET",
@@ -2995,7 +2995,7 @@
         "Grüntee- Limette",
         "Zuckerfrei",
         "Süß",
-        "Toastfrischung",
+        "Erfrischung",
         "Sommer",
         "Flasche",
         "5l (Tetrapak)"
@@ -3278,7 +3278,7 @@
       "constellations": [
         "Creamy",
         "Crunchy",
-        "Toastdnussmus rein",
+        "Erdnussmus rein",
         "Nussig",
         "Protein",
         "Streichcreme",
@@ -3549,7 +3549,7 @@
         "Griechisch",
         "Schafskäse original",
         "Hirtenkäse (Kuhmilch)",
-        "Veganer -Toastsatz",
+        "Veganer Ersatz",
         "Salzlake",
         "200 g",
         "250 g"
@@ -4136,7 +4136,7 @@
         "4"
       ],
       "constellations": [
-        "Toastdbeer",
+        "Erdbeer",
         "Kirsch",
         "Pfirsich",
         "Stracciatella",
@@ -5930,7 +5930,7 @@
         "Pulver",
         "Hühner-Bouillon Würfel",
         "Kochen",
-        "Toastkältung",
+        "Erkältung",
         "Suppe"
       ],
       "global_meta": [
@@ -6154,7 +6154,7 @@
         "Natur 3,5%",
         "Natur mild 1,5%",
         "Griechischer  10%",
-        "Frucht Toastdbeere",
+        "Frucht Erdbeere",
         "Hafer",
         "Soja",
         "Vegan",
@@ -8594,7 +8594,7 @@
         "Cola-Mix",
         "Kräuter Bio",
         "Süß",
-        "Toastfrischung",
+        "Erfrischung",
         "Fruchtig",
         "Flasche",
         "6er Träger",
@@ -9077,7 +9077,7 @@
         "5"
       ],
       "constellations": [
-        "Toastdbeer",
+        "Erdbeer",
         "Himbeer",
         "Aprikose",
         "Bio",
@@ -9121,7 +9121,7 @@
         "Bio",
         "Italienisch",
         "Klassisch",
-        "Veganer -Toastsatz",
+        "Veganer Ersatz",
         "Tiramisu",
         "Doppelrahm",
         "Dessert",
@@ -9552,7 +9552,7 @@
         "Bio",
         "Classic",
         "Still",
-        "Toastfrischung",
+        "Erfrischung",
         "Flasche",
         "Kiste",
         "Wasser",
@@ -9661,7 +9661,7 @@
         "Klassisch in Lake",
         "Büffel",
         "Mini",
-        "Veganer -Toastsatz",
+        "Veganer Ersatz",
         "Gerieben",
         "Italienisch",
         "Salat",
@@ -9935,7 +9935,7 @@
       "constellations": [
         "Schoko",
         "Zuckerfrei",
-        "Toastdbeere-Joghurt",
+        "Erdbeere-Joghurt",
         "Haselnuss",
         "Hafer-Kraftriegel",
         "Snack",
@@ -13462,7 +13462,7 @@
         "5"
       ],
       "constellations": [
-        "Milchschokolade-Toastdnuss",
+        "Milchschokolade-Erdnuss",
         "Keks-Karamell-Riegel",
         "Kokos",
         "Schokoraspel-Waffel",
@@ -15369,7 +15369,7 @@
         "Im eigenen Saft",
         "MSC",
         "Steak frisch",
-        "Veganer -Toastsatz",
+        "Veganer Ersatz",
         "Konserve",
         "Protein",
         "Salat",
@@ -16531,7 +16531,7 @@
         "Frucht-Mix Riegel",
         "Cola-Eis Riegel",
         "Quetsch-Eis",
-        "Toastfrischend",
+        "Erfrischend",
         "Kinder",
         "Sommer",
         "Günstig"

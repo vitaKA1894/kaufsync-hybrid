@@ -33,6 +33,10 @@ const toggleMode = () => {
 
 // Check if user is already logged in and there is a pending join code
 onMounted(async () => {
+    if (router.currentRoute.value.query.deleted === '1') {
+      successMessage.value = 'Dein Konto wurde erfolgreich und dauerhaft gelöscht.';
+    }
+
     const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
     const pendingJoinCode = localStorage.getItem('pending_join_code');
 

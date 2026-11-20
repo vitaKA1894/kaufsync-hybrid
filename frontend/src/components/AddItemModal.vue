@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 import { searchTaxonomy, debounce } from '../utils/search';
+import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
@@ -213,7 +214,9 @@ const handleScan = async (barcode) => {
             // Barcode nicht in OpenFoodFacts gefunden: Kein sinnloses Barcode-Item anlegen, sondern Fehler melden & manuelle Eingabe erlauben!
             selectedItem.value = null;
             query.value = '';
-            barcodeError.value = `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
+            barcodeError.value = !isOnline.value
+                ? 'Du bist offline – Online-Produktsuche nicht verfügbar. Du kannst den Artikel direkt manuell eingeben.'
+                : `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
             nextTick(() => {
                 inputRef.value?.focus({ preventScroll: true });
             });
@@ -222,7 +225,9 @@ const handleScan = async (barcode) => {
         console.error("Error fetching barcode info:", e);
         selectedItem.value = null;
         query.value = '';
-        barcodeError.value = `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
+        barcodeError.value = !isOnline.value
+            ? 'Du bist offline – Online-Produktsuche nicht verfügbar. Du kannst den Artikel direkt manuell eingeben.'
+            : `Kein Artikel zum Barcode ${barcode} gefunden. Du kannst ihn jetzt manuell eingeben.`;
         nextTick(() => {
             inputRef.value?.focus({ preventScroll: true });
         });

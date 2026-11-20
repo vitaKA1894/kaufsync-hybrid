@@ -8,8 +8,18 @@ import PendingView from './views/PendingView.vue';
 import LockedView from './views/LockedView.vue';
 import ResetPassword from './views/ResetPassword.vue';
 import PublicListView from './views/PublicListView.vue';
+import DeleteAccount from './views/DeleteAccount.vue';
 
 const routes = [
+  {
+    path: '/delete-account',
+    name: 'DeleteAccount',
+    component: DeleteAccount
+  },
+  {
+    path: '/konto-loeschen',
+    redirect: '/delete-account'
+  },
   {
     path: '/login',
     name: 'Login',

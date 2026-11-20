@@ -309,6 +309,11 @@ const respondToInvitation = async (inviteId, action) => {
 };
 
 const createNewList = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = "Du bist offline. Das Erstellen neuer Listen erfordert eine Internetverbindung.";
+    setTimeout(() => errorMessage.value = '', 4000);
+    return;
+  }
   if (!newListName.value.trim()) return;
   errorMessage.value = '';
   try {
@@ -359,6 +364,11 @@ const getInitial = (name) => {
 
 const deleteList = async () => {
   if (!selectedListForOptions.value) return;
+  if (!isOnline.value) {
+    errorMessage.value = "Du bist offline. Das Löschen von Listen erfordert eine Internetverbindung.";
+    setTimeout(() => errorMessage.value = '', 4000);
+    return;
+  }
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl(`/api/lists/${selectedListForOptions.value.id}`), {
@@ -576,8 +586,14 @@ onUnmounted(() => {
           <h3 style="margin: 0; font-size: 18px; font-weight: 700; color: var(--ks-text);">{{ selectedListForOptions?.name }}</h3>
           <p style="margin: 4px 0 0; font-size: 13px; color: #94a3b8;">Wähle eine Aktion für diese Liste</p>
         </div>
+
+        <div v-if="!isOnline" class="ks-offline-notice">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Du bist offline. Das Löschen von Listen erfordert eine aktive Internetverbindung.</span>
+        </div>
+
         <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 8px;">
-          <button class="ks-btn-pill-danger full-width" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="deleteList">
+          <button class="ks-btn-pill-danger full-width" :disabled="!isOnline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="deleteList">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
             Liste löschen / verlassen
           </button>
@@ -607,6 +623,11 @@ onUnmounted(() => {
             </svg>
           </button>
         </div>
+
+        <div v-if="!isOnline" class="ks-offline-notice">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Du bist offline. Das Erstellen neuer Listen erfordert eine aktive Internetverbindung.</span>
+        </div>
         
         <div class="preset-grid" style="margin-bottom: 20px;">
           <button 
@@ -614,6 +635,7 @@ onUnmounted(() => {
             :key="store.name"
             class="preset-btn"
             :class="{ 'active': newListName.toLowerCase() === store.name.toLowerCase() }"
+            :disabled="!isOnline"
             @click="selectPreset(store)"
           >
             <div class="store-svg-container">
@@ -624,12 +646,12 @@ onUnmounted(() => {
         </div>
 
         <div class="ks-field" style="margin-bottom: 24px;">
-          <input v-model="newListName" type="text" placeholder=" " @keyup.enter="createNewList" />
+          <input v-model="newListName" type="text" placeholder=" " :disabled="!isOnline" @keyup.enter="createNewList" />
           <label>Name der Einkaufsliste</label>
         </div>
         <div style="display: flex; gap: 12px; margin-top: auto; padding-top: 8px;">
           <button class="ks-btn-pill-secondary" style="flex: 1;" @click="closeModal">Abbrechen</button>
-          <button class="ks-btn-pill-primary" style="flex: 1;" :disabled="!newListName.trim()" @click="createNewList">Liste erstellen</button>
+          <button class="ks-btn-pill-primary" style="flex: 1;" :disabled="!newListName.trim() || !isOnline" @click="createNewList">Liste erstellen</button>
         </div>
       </div>
     </transition>

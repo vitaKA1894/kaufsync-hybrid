@@ -535,16 +535,56 @@ const deleteItem = async (itemId) => {
 };
 
 const loadChangelog = async () => {
+  const cached = localStorage.getItem(`cached_changelog_${listId}`);
+  if (cached && changelog.value.length === 0) {
+    try {
+      changelog.value = JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  if (!isOnline.value) {
+    return;
+  }
+
   try {
     const token = localStorage.getItem('token');
     const response = await fetch(apiUrl(`/api/lists/${listId}/changelog`), {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (response.ok) {
-      changelog.value = await response.json();
+      const data = await response.json();
+      changelog.value = data;
+      localStorage.setItem(`cached_changelog_${listId}`, JSON.stringify(data));
     }
   } catch (error) {
     console.error("Fehler beim Laden des Changelogs", error);
+  }
+};
+
+const notifyShoppingStarted = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Live-Benachrichtigungen an Gruppenmitglieder können derzeit nicht gesendet werden.';
+    setTimeout(() => errorMessage.value = '', 4000);
+    return;
+  }
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(apiUrl(`/api/lists/${listId}/start-shopping`), {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (response.ok) {
+      successMessage.value = 'Gruppenmitglieder benachrichtigt: Du gehst einkaufen! 🛒';
+      setTimeout(() => successMessage.value = '', 3500);
+      showSettingsSheet.value = false;
+    } else {
+      const err = await response.json().catch(() => ({}));
+      errorMessage.value = err.detail || 'Fehler beim Senden der Benachrichtigung.';
+      setTimeout(() => errorMessage.value = '', 4000);
+    }
+  } catch (e) {
+    errorMessage.value = 'Verbindungsfehler beim Senden der Benachrichtigung.';
+    setTimeout(() => errorMessage.value = '', 4000);
   }
 };
 
@@ -655,6 +695,11 @@ const loadJoinRequests = async () => {
 };
 
 const approveJoinRequest = async (requestId) => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Beitrittsanfragen können derzeit nicht bearbeitet werden.';
+    setTimeout(() => errorMessage.value = '', 3500);
+    return;
+  }
   try {
     const token = localStorage.getItem('token');
     const res = await fetch(apiUrl(`/api/lists/${listId}/join-requests/${requestId}/approve`), {
@@ -678,6 +723,11 @@ const approveJoinRequest = async (requestId) => {
 };
 
 const rejectJoinRequest = async (requestId) => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Beitrittsanfragen können derzeit nicht bearbeitet werden.';
+    setTimeout(() => errorMessage.value = '', 3500);
+    return;
+  }
   try {
     const token = localStorage.getItem('token');
     const res = await fetch(apiUrl(`/api/lists/${listId}/join-requests/${requestId}/reject`), {
@@ -709,6 +759,11 @@ const getShareBaseUrl = () => {
 
 const shareOrCopyLink = async () => {
   if (!currentList.value) return;
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Das Teilen von Listen erfordert eine Internetverbindung.';
+    setTimeout(() => errorMessage.value = '', 3500);
+    return;
+  }
   const joinLink = `${getShareBaseUrl()}/join?code=${currentList.value.share_code}`;
   if (navigator.share) {
     try {
@@ -735,6 +790,14 @@ const isTogglingReadonly = ref(false);
 
 const toggleReadonlyLink = async (event) => {
   if (!currentList.value || isTogglingReadonly.value) return;
+  if (!isOnline.value) {
+    if (event && event.target) {
+      event.target.checked = !!currentList.value.readonly_enabled;
+    }
+    errorMessage.value = 'Du bist offline. Änderungen am Nur-Lesen Link erfordern eine Internetverbindung.';
+    setTimeout(() => errorMessage.value = '', 3500);
+    return;
+  }
   isTogglingReadonly.value = true;
   const previousState = !!currentList.value.readonly_enabled;
   try {
@@ -786,6 +849,11 @@ const toggleReadonlyLink = async (event) => {
 
 const shareOrCopyReadonlyLink = async () => {
   if (!currentList.value || !currentList.value.readonly_token) return;
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Das Teilen des Links erfordert eine Internetverbindung.';
+    setTimeout(() => errorMessage.value = '', 3500);
+    return;
+  }
   const publicLink = `${getShareBaseUrl()}/s/${currentList.value.readonly_token}`;
 
   if (navigator.share) {
@@ -911,8 +979,51 @@ const getUrgencyTags = (tagsStr) => {
 const formatTags = (tagsStr) => {
   const regular = getRegularTags(tagsStr);
   if (regular.length === 0) return '';
-  if (regular.length <= 2) return regular.join(', ');
-  return regular.slice(0, 2).join(', ') + '...';
+  return regular.join(', ');
+};
+
+const vMarquee = {
+  mounted(el) {
+    const checkOverflow = () => {
+      const textEl = el.firstElementChild;
+      if (!textEl) return;
+      if (el.classList.contains('invisible') || !textEl.textContent.trim()) {
+        el.classList.remove('has-marquee');
+        el.style.removeProperty('--marquee-dist');
+        return;
+      }
+      const containerWidth = el.clientWidth;
+      const contentWidth = textEl.scrollWidth;
+      if (contentWidth > containerWidth + 2) {
+        const overflowDist = contentWidth - containerWidth + 8;
+        el.style.setProperty('--marquee-dist', `${overflowDist}px`);
+        el.classList.add('has-marquee');
+      } else {
+        el.classList.remove('has-marquee');
+        el.style.removeProperty('--marquee-dist');
+      }
+    };
+
+    const ro = new ResizeObserver(() => {
+      requestAnimationFrame(checkOverflow);
+    });
+    ro.observe(el);
+    el._marqueeRo = ro;
+    el._checkMarquee = checkOverflow;
+    requestAnimationFrame(checkOverflow);
+  },
+  updated(el) {
+    if (el._checkMarquee) {
+      requestAnimationFrame(el._checkMarquee);
+    }
+  },
+  unmounted(el) {
+    if (el._marqueeRo) {
+      el._marqueeRo.disconnect();
+      delete el._marqueeRo;
+      delete el._checkMarquee;
+    }
+  }
 };
 
 
@@ -1000,7 +1111,21 @@ onUnmounted(() => {
         </div>
 
         <div class="settings-menu-list">
-          <!-- 1. TEILEN -->
+          <!-- 1. EINKAUF STARTEN (GROUP NOTIFICATION) -->
+          <button class="settings-menu-item" @click="notifyShoppingStarted">
+            <div class="settings-menu-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M17.21 9l-4.38-6.56c-.19-.28-.51-.42-.83-.42-.32 0-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1h-4.79zM9 9l3-4.4L15 9H9zm3 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">„Ich gehe einkaufen!“</div>
+              <div class="settings-menu-desc">Benachrichtige die Gruppe, dass du jetzt einkaufst</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
+
+          <!-- 2. TEILEN -->
           <button class="settings-menu-item" @click="showSettingsSheet = false; showShareSheet = true;">
             <div class="settings-menu-icon share-icon-bg">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -1014,7 +1139,7 @@ onUnmounted(() => {
             <div class="settings-menu-arrow">›</div>
           </button>
 
-          <!-- 2. HISTORIE -->
+          <!-- 3. HISTORIE -->
           <button class="settings-menu-item" @click="showSettingsSheet = false; openChangelog();">
             <div class="settings-menu-icon history-icon-bg">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -1070,12 +1195,17 @@ onUnmounted(() => {
           <h3 class="sheet-heading">Liste teilen</h3>
         </div>
 
+        <div v-if="!isOnline" class="ks-offline-notice">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Du bist offline. Das Teilen von Listen und Verwalten von Mitgliedern erfordert eine aktive Internetverbindung.</span>
+        </div>
+
         <div class="share-section" style="display: flex; flex-direction: column; gap: 14px;">
           <p class="sheet-support" style="margin: 0; font-size: 13px; line-height: 1.4;">
             Über diesen Link kann jeder eine Beitrittsanfrage stellen. Du als Besitzer musst neue Mitglieder erst freigeben.
           </p>
 
-          <button class="ks-btn-pill-primary full-width" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="shareOrCopyLink">
+          <button class="ks-btn-pill-primary full-width" :disabled="!isOnline" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;" @click="shareOrCopyLink">
              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92 1.61 0 2.92-1.31 2.92-2.92s-1.31-2.92-2.92-2.92z"/></svg>
              Einladungs-Link teilen / kopieren
           </button>
@@ -1095,7 +1225,7 @@ onUnmounted(() => {
               <input
                 type="checkbox"
                 :checked="currentList?.readonly_enabled"
-                :disabled="isTogglingReadonly"
+                :disabled="isTogglingReadonly || !isOnline"
                 @change="toggleReadonlyLink($event)"
               />
               <span class="ks-switch-slider"></span>
@@ -1111,6 +1241,7 @@ onUnmounted(() => {
           <div v-if="currentList?.readonly_enabled" style="display: flex; flex-direction: column; gap: 8px;">
             <button
               class="ks-btn-pill-secondary full-width"
+              :disabled="!isOnline"
               style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;"
               @click="shareOrCopyReadonlyLink"
             >
@@ -1145,13 +1276,15 @@ onUnmounted(() => {
               </div>
               <div class="flex items-center gap-1.5 flex-shrink-0">
                 <button
-                  class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition-all"
+                  class="px-3 py-1.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-sm active:scale-95 transition-all disabled:opacity-50"
+                  :disabled="!isOnline"
                   @click="approveJoinRequest(req.id)"
                 >
                   Zulassen
                 </button>
                 <button
-                  class="px-2.5 py-1.5 rounded-full bg-slate-700 hover:bg-rose-500/30 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-all"
+                  class="px-2.5 py-1.5 rounded-full bg-slate-700 hover:bg-rose-500/30 hover:text-rose-300 text-slate-300 font-semibold text-xs transition-all disabled:opacity-50"
+                  :disabled="!isOnline"
                   @click="rejectJoinRequest(req.id)"
                 >
                   Ablehnen
@@ -1190,6 +1323,11 @@ onUnmounted(() => {
           </div>
         </div>
 
+        <div v-if="!isOnline" class="ks-offline-notice" style="margin-bottom: 12px;">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span>Offline – Stand möglicherweise nicht aktuell</span>
+        </div>
+
         <div class="tag-group" style="margin-bottom: 16px;">
             <button class="ks-chip tag-chip" :class="{ active: changelogFilter === 'all' }" @click="changelogFilter = 'all'">Alle</button>
             <button class="ks-chip tag-chip" :class="{ active: changelogFilter === 'added' }" @click="changelogFilter = 'added'">Hinzugefügt</button>
@@ -1215,7 +1353,7 @@ onUnmounted(() => {
                 </div>
             </div>
             <div v-if="filteredChangelog.length === 0" class="empty-state">
-                Keine Aktivitäten gefunden.
+                {{ !isOnline ? 'Offline: Keine gespeicherten Aktivitäten für diese Liste verfügbar.' : 'Keine Aktivitäten gefunden.' }}
             </div>
         </div>
       </div>
@@ -1305,10 +1443,10 @@ onUnmounted(() => {
                 </span>
               </div>
               <div class="card-text-area mb-2">
-                <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
+                <span v-marquee class="item-name">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length, 'has-marquee': formatTags(item.tags).length > 13 }">
+                <span v-marquee class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
                   <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
@@ -1348,10 +1486,10 @@ onUnmounted(() => {
                 </span>
               </div>
               <div class="card-text-area mb-2">
-                <span class="item-name" :class="{ 'has-marquee': item.name.length > 11 }">
+                <span v-marquee class="item-name">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length, 'has-marquee': formatTags(item.tags).length > 13 }">
+                <span v-marquee class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
                   <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
@@ -1665,7 +1803,7 @@ onUnmounted(() => {
 
 @keyframes marquee-pingpong {
   0%, 25% { transform: translateX(0); }
-  75%, 100% { transform: translateX(calc(-100% + 75px)); }
+  75%, 100% { transform: translateX(calc(-1 * var(--marquee-dist, calc(100% - 75px)))); }
 }
 
 .item-icon-container {
@@ -1722,7 +1860,7 @@ onUnmounted(() => {
 
 @keyframes marquee-pingpong-tags {
   0%, 25% { transform: translateX(0); }
-  75%, 100% { transform: translateX(calc(-100% + 75px)); }
+  75%, 100% { transform: translateX(calc(-1 * var(--marquee-dist, calc(100% - 75px)))); }
 }
 
 .quantity-controls {

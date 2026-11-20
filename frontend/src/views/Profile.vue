@@ -2,6 +2,8 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl } from '../config/api';
+import { clearAllLocalData } from '../db/index';
+import { isOnline } from '../services/syncService';
 import {
   getNotificationPermissionStatus,
   requestNotificationPermission,
@@ -80,6 +82,12 @@ const loadUserProfile = async () => {
 };
 
 const updateProfile = async (silent = false) => {
+  if (!isOnline.value) {
+    if (!silent) {
+      errorMessage.value = 'Du bist offline. Profiländerungen können derzeit nicht gespeichert werden.';
+    }
+    return;
+  }
   if (!silent) {
     errorMessage.value = '';
     successMessage.value = '';
@@ -120,6 +128,10 @@ const updateProfile = async (silent = false) => {
 };
 
 const enableNotifications = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Benachrichtigungen erfordern eine aktive Verbindung.';
+    return;
+  }
   isPermissionLoading.value = true;
   errorMessage.value = '';
   successMessage.value = '';
@@ -145,6 +157,10 @@ const enableNotifications = async () => {
 };
 
 const sendTest = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Test-Benachrichtigungen können nicht gesendet werden.';
+    return;
+  }
   isTestingNotification.value = true;
   try {
     await triggerTestNotification({
@@ -161,6 +177,10 @@ const sendTest = async () => {
 };
 
 const changePassword = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Passwortänderungen erfordern eine aktive Internetverbindung.';
+    return;
+  }
   errorMessage.value = '';
   successMessage.value = '';
 
@@ -203,9 +223,60 @@ const changePassword = async () => {
   }
 };
 
-const logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('isLoggedIn');
+const showDeleteAccountModal = ref(false);
+const deleteAccountPassword = ref('');
+const deleteAccountError = ref('');
+const isDeletingAccount = ref(false);
+
+const openDeleteAccountModal = () => {
+  if (!isOnline.value) return;
+  deleteAccountPassword.value = '';
+  deleteAccountError.value = '';
+  showDeleteAccountModal.value = true;
+};
+
+const closeDeleteAccountModal = () => {
+  if (isDeletingAccount.value) return;
+  showDeleteAccountModal.value = false;
+  deleteAccountPassword.value = '';
+  deleteAccountError.value = '';
+};
+
+const confirmDeleteAccount = async () => {
+  if (!deleteAccountPassword.value || isDeletingAccount.value) return;
+  if (!isOnline.value) {
+    deleteAccountError.value = 'Du bist offline. Das Löschen des Kontos erfordert eine aktive Internetverbindung.';
+    return;
+  }
+  isDeletingAccount.value = true;
+  deleteAccountError.value = '';
+  try {
+    const token = localStorage.getItem('token');
+    const response = await fetch(apiUrl('/api/users/me'), {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({ current_password: deleteAccountPassword.value })
+    });
+    const resData = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      deleteAccountError.value = resData.detail || 'Fehler beim Löschen des Kontos.';
+      return;
+    }
+    showDeleteAccountModal.value = false;
+    await clearAllLocalData();
+    router.push('/login?deleted=1');
+  } catch (err) {
+    deleteAccountError.value = 'Verbindungsfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.';
+  } finally {
+    isDeletingAccount.value = false;
+  }
+};
+
+const logout = async () => {
+  await clearAllLocalData();
   router.push('/login');
 };
 
@@ -307,19 +378,26 @@ onMounted(async () => {
             <p class="settings-subtext">Verwalte deinen Anzeigenamen und deine Kontoinformationen.</p>
           </div>
 
+          <div v-if="!isOnline" class="ks-offline-notice">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>Du bist offline. Profiländerungen können derzeit nicht gespeichert werden.</span>
+          </div>
+
           <div class="ks-field" style="margin-bottom: 20px;">
             <input type="email" v-model="user.email" disabled placeholder=" " />
             <label>E-Mail-Adresse (nicht änderbar)</label>
           </div>
 
           <div class="ks-field" style="margin-bottom: 24px;">
-            <input type="text" v-model="user.display_name" placeholder=" " />
+            <input type="text" v-model="user.display_name" placeholder=" " :disabled="!isOnline" />
             <label>Anzeigename</label>
           </div>
 
           <button
             @click="() => updateProfile(false)"
-            :disabled="isLoading"
+            :disabled="!isOnline || isLoading"
             class="ks-btn-pill-primary full-width"
           >
             Profil speichern
@@ -347,6 +425,13 @@ onMounted(async () => {
             <span v-else class="status-badge status-badge--pending">
               ⚠️ Nicht aktiv
             </span>
+          </div>
+
+          <div v-if="!isOnline" class="ks-offline-notice" style="margin-top: 14px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>Du bist offline. Benachrichtigungseinstellungen können derzeit nicht geändert werden.</span>
           </div>
 
           <!-- HAUPTSCHALTER (MASTER TOGGLE) -->
@@ -405,7 +490,7 @@ onMounted(async () => {
               <button
                 type="button"
                 class="ks-btn-pill-secondary test-btn"
-                :disabled="isTestingNotification"
+                :disabled="isTestingNotification || !isOnline"
                 @click="sendTest"
               >
                 <span v-if="isTestingNotification" class="spinner-small"></span>
@@ -517,24 +602,31 @@ onMounted(async () => {
             <p class="settings-subtext">Wähle ein sicheres Passwort mit mindestens 6 Zeichen.</p>
           </div>
 
+          <div v-if="!isOnline" class="ks-offline-notice">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>Du bist offline. Passwortänderungen erfordern eine aktive Internetverbindung.</span>
+          </div>
+
           <div class="ks-field" style="margin-bottom: 20px;">
-            <input type="password" v-model="passwordData.oldPassword" placeholder=" " />
+            <input type="password" v-model="passwordData.oldPassword" placeholder=" " :disabled="!isOnline" />
             <label>Aktuelles Passwort</label>
           </div>
 
           <div class="ks-field" style="margin-bottom: 20px;">
-            <input type="password" v-model="passwordData.newPassword" placeholder=" " />
+            <input type="password" v-model="passwordData.newPassword" placeholder=" " :disabled="!isOnline" />
             <label>Neues Passwort</label>
           </div>
 
           <div class="ks-field" style="margin-bottom: 24px;">
-            <input type="password" v-model="passwordData.confirmPassword" placeholder=" " />
+            <input type="password" v-model="passwordData.confirmPassword" placeholder=" " :disabled="!isOnline" />
             <label>Passwort bestätigen</label>
           </div>
 
           <button
             @click="changePassword"
-            :disabled="isLoading"
+            :disabled="!isOnline || isLoading"
             class="ks-btn-pill-primary full-width"
           >
             Passwort ändern
@@ -555,7 +647,7 @@ onMounted(async () => {
           </button>
         </section>
 
-        <section class="page-panel settings-card">
+        <section class="page-panel settings-card" style="margin-bottom: 20px;">
           <div class="card-head">
             <h3>Sitzung beenden</h3>
             <p class="settings-subtext">Du wirst von deinem aktuellen Konto auf diesem Gerät abgemeldet.</p>
@@ -563,11 +655,95 @@ onMounted(async () => {
 
           <button
             @click="logout"
-            class="ks-btn-pill-danger full-width"
+            class="ks-btn-pill-secondary full-width"
           >
             Abmelden
           </button>
         </section>
+
+        <!-- DANGER ZONE: KONTO LÖSCHEN -->
+        <section class="page-panel settings-card settings-card--danger" style="border-color: rgba(239, 68, 68, 0.35);">
+          <div class="card-head">
+            <h3 style="color: var(--ks-error, #ef4444);">Konto dauerhaft löschen</h3>
+            <p class="settings-subtext">Dein Benutzerkonto, deine persönlichen Listen und Profildaten werden unwiderruflich gelöscht.</p>
+          </div>
+
+          <div v-if="!isOnline" class="ks-offline-notice">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            <span>Du bist offline. Das Löschen deines Kontos erfordert eine aktive Internetverbindung.</span>
+          </div>
+
+          <button
+            @click="openDeleteAccountModal"
+            :disabled="!isOnline"
+            class="ks-btn-pill-danger full-width"
+            style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4);"
+          >
+            Konto dauerhaft löschen
+          </button>
+        </section>
+      </div>
+    </div>
+
+    <!-- MODAL: KONTO LÖSCHEN BESTÄTIGEN -->
+    <div v-if="showDeleteAccountModal" class="ks-sheet-scrim" @click="closeDeleteAccountModal" style="display: flex; align-items: center; justify-content: center; z-index: 100;">
+      <div class="ks-modal-card" @click.stop style="max-width: 480px; width: 90%; padding: 24px; background: var(--ks-surface, #1e293b); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 20px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+          <div style="width: 42px; height: 42px; border-radius: 12px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;">
+            ⚠️
+          </div>
+          <div>
+            <h2 style="font-size: 18px; font-weight: 700; color: #f8fafc; margin: 0;">Konto dauerhaft löschen?</h2>
+            <p style="font-size: 12px; color: var(--ks-text-muted, #94a3b8); margin: 2px 0 0;">Diese Aktion ist unwiderruflich.</p>
+          </div>
+        </div>
+
+        <p style="font-size: 13px; line-height: 1.5; color: #cbd5e1; margin-bottom: 12px;">
+          Folgende Daten werden dauerhaft und ohne Wiederherstellungsmöglichkeit entfernt:
+        </p>
+        <ul style="font-size: 13px; line-height: 1.6; color: #94a3b8; margin: 0 0 16px 18px; padding: 0;">
+          <li>Dein Benutzerkonto und deine Profilinformationen</li>
+          <li>Alle persönlichen Einkaufslisten und deren Einträge</li>
+          <li>Deine Mitgliedschaften in geteilten Listen (geteilte Listen bleiben für verbleibende Mitglieder erhalten)</li>
+          <li>Alle Push-Benachrichtigungsregistrierungen und Sitzungsdaten</li>
+        </ul>
+
+        <div v-if="deleteAccountError" class="ks-error-banner" style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 10px 14px; color: #fca5a5; font-size: 13px; margin-bottom: 16px;">
+          {{ deleteAccountError }}
+        </div>
+
+        <div class="ks-field" style="margin-bottom: 24px;">
+          <input
+            type="password"
+            v-model="deleteAccountPassword"
+            placeholder=" "
+            @keyup.enter="confirmDeleteAccount"
+            :disabled="isDeletingAccount"
+          />
+          <label>Aktuelles Passwort zur Bestätigung</label>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+          <button
+            class="ks-btn-pill-secondary"
+            @click="closeDeleteAccountModal"
+            :disabled="isDeletingAccount"
+            style="flex: 1;"
+          >
+            Abbrechen
+          </button>
+          <button
+            class="ks-btn-pill-danger"
+            @click="confirmDeleteAccount"
+            :disabled="!deleteAccountPassword || isDeletingAccount || !isOnline"
+            style="flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;"
+          >
+            <span v-if="isDeletingAccount" class="spinner"></span>
+            <span>{{ isDeletingAccount ? 'Wird gelöscht...' : 'Endgültig löschen' }}</span>
+          </button>
+        </div>
       </div>
     </div>
   </div>

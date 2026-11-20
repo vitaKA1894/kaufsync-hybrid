@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl } from '../config/api';
+import { isOnline } from '../services/syncService';
 
 const router = useRouter();
 
@@ -32,6 +33,11 @@ const loadAdminData = async () => {
 };
 
 const promoteUser = async (userId, isAdmin) => {
+    if (!isOnline.value) {
+        errorMessage.value = 'Du bist offline. Admin-Aktionen erfordern eine aktive Internetverbindung.';
+        setTimeout(() => errorMessage.value = '', 3500);
+        return;
+    }
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(apiUrl(`/api/admin/users/${userId}/role`), {
@@ -52,6 +58,11 @@ const promoteUser = async (userId, isAdmin) => {
 };
 
 const changeStatus = async (userId, status) => {
+    if (!isOnline.value) {
+        errorMessage.value = 'Du bist offline. Statusänderungen erfordern eine aktive Internetverbindung.';
+        setTimeout(() => errorMessage.value = '', 3500);
+        return;
+    }
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(apiUrl(`/api/admin/users/${userId}/status`), {
@@ -74,6 +85,11 @@ const changeStatus = async (userId, status) => {
 const resetPasswordLink = ref('');
 
 const resetPassword = async (userId) => {
+    if (!isOnline.value) {
+        errorMessage.value = 'Du bist offline. Passwort-Resets erfordern eine aktive Internetverbindung.';
+        setTimeout(() => errorMessage.value = '', 3500);
+        return;
+    }
     try {
         const token = localStorage.getItem('token');
         const response = await fetch(apiUrl(`/api/admin/users/${userId}/reset-password`), {
@@ -131,6 +147,11 @@ onMounted(() => {
       <section class="users-section">
         <h2 class="section-title">Benutzerverwaltung</h2>
 
+        <div v-if="!isOnline" class="ks-offline-notice">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <span>Du bist offline. Admin-Aktionen und Statusänderungen erfordern eine aktive Internetverbindung.</span>
+        </div>
+
         <div v-if="resetPasswordLink" class="success-card" style="margin-bottom: 16px; word-break: break-all;">
             <strong>Reset-Link:</strong> <a :href="resetPasswordLink" target="_blank">{{ resetPasswordLink }}</a>
             <button @click="resetPasswordLink = ''" class="ks-btn-text" style="padding: 4px; margin-left: 8px;">Schließen</button>
@@ -150,14 +171,14 @@ onMounted(() => {
                 </div>
 
                 <div class="user-actions" style="display: flex; flex-wrap: wrap; gap: 8px;">
-                    <button v-if="user.status === 'pending'" class="ks-btn-chip ks-btn-chip--success" @click="changeStatus(user.id, 'active')">✓ Aktivieren</button>
-                    <button v-if="user.status === 'active'" class="ks-btn-chip ks-btn-chip--danger" @click="changeStatus(user.id, 'locked')">🔒 Sperren</button>
-                    <button v-if="user.status === 'locked'" class="ks-btn-chip ks-btn-chip--success" @click="changeStatus(user.id, 'active')">🔓 Entsperren</button>
+                    <button v-if="user.status === 'pending'" class="ks-btn-chip ks-btn-chip--success" :disabled="!isOnline" @click="changeStatus(user.id, 'active')">✓ Aktivieren</button>
+                    <button v-if="user.status === 'active'" class="ks-btn-chip ks-btn-chip--danger" :disabled="!isOnline" @click="changeStatus(user.id, 'locked')">🔒 Sperren</button>
+                    <button v-if="user.status === 'locked'" class="ks-btn-chip ks-btn-chip--success" :disabled="!isOnline" @click="changeStatus(user.id, 'active')">🔓 Entsperren</button>
 
-                    <button v-if="user.is_admin" class="ks-btn-chip ks-btn-chip--danger" @click="promoteUser(user.id, false)">⚡ Admin entziehen</button>
-                    <button v-else class="ks-btn-chip ks-btn-chip--accent" @click="promoteUser(user.id, true)">⚡ Zum Admin machen</button>
+                    <button v-if="user.is_admin" class="ks-btn-chip ks-btn-chip--danger" :disabled="!isOnline" @click="promoteUser(user.id, false)">⚡ Admin entziehen</button>
+                    <button v-else class="ks-btn-chip ks-btn-chip--accent" :disabled="!isOnline" @click="promoteUser(user.id, true)">⚡ Zum Admin machen</button>
 
-                    <button class="ks-btn-chip" @click="resetPassword(user.id)">🔑 Passwort Reset</button>
+                    <button class="ks-btn-chip" :disabled="!isOnline" @click="resetPassword(user.id)">🔑 Passwort Reset</button>
                 </div>
             </div>
         </div>

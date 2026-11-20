@@ -610,6 +610,70 @@ def change_password(
     current_user.password_hash = auth.get_password_hash(password_data.new_password)
     db.commit()
     return {"status": "ok", "message": "Passwort erfolgreich geändert"}
+
+@app.delete("/api/users/me")
+def delete_account(
+    req: schemas.DeleteAccountRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Löscht das Benutzerkonto dauerhaft und unwiderruflich nach Passwortprüfung."""
+    # 1. Passwort prüfen
+    if not auth.verify_password(req.current_password, current_user.password_hash):
+        raise HTTPException(status_code=400, detail="Das eingegebene Passwort ist nicht korrekt.")
+
+    # 2. Schutz vor Löschung des einzigen Administrators
+    if current_user.is_admin:
+        admin_count = db.query(models.User).filter(models.User.is_admin == True).count()
+        if admin_count <= 1:
+            raise HTTPException(
+                status_code=400,
+                detail="Du bist der einzige Administrator. Bitte ernenne zuerst einen anderen Administrator, bevor du dein Konto löschst."
+            )
+
+    user_id = current_user.id
+
+    # 3. Eigene Listen behandeln (Übertragen oder Löschen)
+    created_lists = db.query(models.List).filter(models.List.created_by == user_id).all()
+    for l in created_lists:
+        remaining_members = [m for m in l.members if m.id != user_id]
+        if remaining_members:
+            # An das dienstälteste verbleibende Mitglied übertragen
+            longest_standing = min(remaining_members, key=lambda u: u.created_at or datetime.max)
+            l.created_by = longest_standing.id
+        else:
+            # Keine weiteren Mitglieder: Liste komplett löschen
+            db.query(models.Item).filter(models.Item.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.ActivityLog).filter(models.ActivityLog.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.ListInvitation).filter(models.ListInvitation.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.ListJoinRequest).filter(models.ListJoinRequest.list_id == l.id).delete(synchronize_session=False)
+            db.delete(l)
+
+    # 4. Nutzer aus allen Mitgliedschaften austragen
+    db.execute(models.list_members.delete().where(models.list_members.c.user_id == user_id))
+
+    # 5. Nutzer in verbleibenden Aktivitäts-Logs und Items anonymisieren
+    db.query(models.ActivityLog).filter(models.ActivityLog.user_id == user_id).update(
+        {models.ActivityLog.user_id: None}, synchronize_session=False
+    )
+    db.query(models.Item).filter(models.Item.last_modified_by == user_id).update(
+        {models.Item.last_modified_by: None}, synchronize_session=False
+    )
+
+    # 6. Verknüpfte Einträge des Nutzers löschen
+    db.query(models.ListInvitation).filter(
+        (models.ListInvitation.inviter_id == user_id) | (models.ListInvitation.invitee_id == user_id)
+    ).delete(synchronize_session=False)
+    db.query(models.ListJoinRequest).filter(models.ListJoinRequest.user_id == user_id).delete(synchronize_session=False)
+    db.query(models.PasswordResetToken).filter(models.PasswordResetToken.user_id == user_id).delete(synchronize_session=False)
+    db.query(models.Notification).filter(models.Notification.user_id == user_id).delete(synchronize_session=False)
+    db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).delete(synchronize_session=False)
+
+    # 7. Nutzer löschen
+    db.delete(current_user)
+    db.commit()
+
+    return {"status": "ok", "message": "Konto wurde dauerhaft gelöscht."}
     
 # --- GESCHÜTZTE DATEN-ENDPUNKTE ---
 
@@ -1355,9 +1419,11 @@ async def get_list_changelog(
 
     # Add user_name
     for log in logs:
-        user = db.query(models.User).filter(models.User.id == log.user_id).first()
+        user = db.query(models.User).filter(models.User.id == log.user_id).first() if log.user_id else None
         if user:
             log.user_name = user.display_name
+        else:
+            log.user_name = "Ehemaliges Mitglied"
 
     return logs
 

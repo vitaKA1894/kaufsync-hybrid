@@ -30,6 +30,9 @@ class PasswordUpdate(BaseModel):
     old_password: str
     new_password: str
 
+class DeleteAccountRequest(BaseModel):
+    current_password: str
+
 class UserResponse(BaseModel):
     id: str
     email: str
@@ -191,7 +194,7 @@ class JoinListRequest(BaseModel):
 class ActivityLogResponse(BaseModel):
     id: str
     list_id: str
-    user_id: str
+    user_id: Optional[str] = None
     action_type: str
     item_name: str
     created_at: datetime

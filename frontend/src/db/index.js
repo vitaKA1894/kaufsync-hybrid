@@ -10,4 +10,23 @@ db.version(1).stores({
   metadata: 'key'
 });
 
+export async function clearAllLocalData() {
+  try {
+    await Promise.all([
+      db.lists.clear(),
+      db.items.clear(),
+      db.syncQueue.clear(),
+      db.metadata.clear()
+    ]);
+  } catch (e) {
+    console.error('Error clearing Dexie tables:', e);
+  }
+  if (typeof localStorage !== 'undefined') {
+    localStorage.clear();
+  }
+  if (typeof sessionStorage !== 'undefined') {
+    sessionStorage.clear();
+  }
+}
+
 export default db;

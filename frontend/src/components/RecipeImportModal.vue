@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed, watch, nextTick } from 'vue';
 import { apiUrl } from '../config/api';
+import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
 import StoreLogo from './StoreLogo.vue';
 import { parseRecipeClientSide } from '../utils/clientRecipeParser';
@@ -155,7 +156,11 @@ watch(() => props.isOpen, async (newVal) => {
     await loadAvailableLists();
     if (props.initialUrl) {
       url.value = props.initialUrl;
-      fetchRecipe();
+      if (isOnline.value) {
+        fetchRecipe();
+      } else {
+        errorMessage.value = 'Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.';
+      }
     } else {
       nextTick(() => {
         if (inputRef.value) inputRef.value.focus();
@@ -187,6 +192,10 @@ const pasteFromClipboard = async () => {
 
 // Fetch & parse recipe
 const fetchRecipe = async () => {
+  if (!isOnline.value) {
+    errorMessage.value = 'Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.';
+    return;
+  }
   const targetUrl = url.value.trim();
   if (!targetUrl) {
     errorMessage.value = 'Bitte gib eine Rezept-URL ein.';
@@ -519,6 +528,12 @@ const getHostname = (link) => {
         <span>{{ errorMessage }}</span>
       </div>
 
+      <!-- OFFLINE NOTICE -->
+      <div v-if="!isOnline" class="ks-offline-notice" style="margin-bottom: 12px;">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+        <span>Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.</span>
+      </div>
+
       <!-- PHASE 1: URL INPUT (IF NO RECIPE LOADED YET) -->
       <div v-if="!recipeData" class="url-input-section">
         <div class="input-wrapper">
@@ -528,10 +543,10 @@ const getHostname = (link) => {
             v-model="url"
             class="url-input"
             placeholder="Rezept-Link einfügen (z. B. Mealie, Chefkoch...)"
-            :disabled="isLoading"
+            :disabled="isLoading || !isOnline"
             @keyup.enter="fetchRecipe"
           />
-          <button v-if="!url" type="button" class="paste-btn" @click="pasteFromClipboard" title="Aus Zwischenablage einfügen">
+          <button v-if="!url" type="button" class="paste-btn" @click="pasteFromClipboard" title="Aus Zwischenablage einfügen" :disabled="!isOnline">
             <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
             Einfügen
           </button>
@@ -540,7 +555,7 @@ const getHostname = (link) => {
           </button>
         </div>
 
-        <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim()" @click="fetchRecipe" style="width: 100%; margin-top: 14px;">
+        <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim() || !isOnline" @click="fetchRecipe" style="width: 100%; margin-top: 14px;">
           <span v-if="isLoading" class="spinner"></span>
           <span v-else>Rezept laden</span>
         </button>
