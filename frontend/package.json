@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "prebuild": "node ../scripts/build_icon_resolver.js",
     "build": "vite build",
     "preview": "vite preview",
     "cap:sync": "npx cap sync android",

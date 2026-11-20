@@ -61,6 +61,12 @@ def ensure_columns():
                 if col_name not in existing_list_cols:
                     conn.exec_driver_sql(f"ALTER TABLE lists ADD COLUMN {col_name} {col_type}")
             
+            # Altlasten: Einkaufsstart-Einträge aus activity_logs entfernen (gehören nicht in Artikel-Historie)
+            try:
+                conn.exec_driver_sql("DELETE FROM activity_logs WHERE action_type = 'started'")
+            except Exception:
+                pass
+
             conn.commit()
     except Exception as e:
         print(f"ensure_columns error (ignored): {e}")
@@ -131,6 +137,18 @@ def is_in_quiet_hours(user: models.User) -> bool:
             return current_time >= start_time or current_time <= end_time
     except Exception:
         return False
+
+def is_user_push_enabled(user: models.User, setting_name: str) -> bool:
+    """Prüft, ob Push für einen Nutzer und ein bestimmtes Event aktiv ist. None/Default wird als True gewertet."""
+    if not user:
+        return False
+    if getattr(user, 'settings_push_async_events', True) is False:
+        return False
+    if getattr(user, setting_name, True) is False:
+        return False
+    if is_in_quiet_hours(user):
+        return False
+    return True
 
 def send_push_notification(subscription_info: dict, payload: dict):
     if not VAPID_PRIVATE_KEY:
@@ -1207,7 +1225,7 @@ async def create_item(
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
+            if is_user_push_enabled(member, 'settings_push_new_items'):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -1293,7 +1311,7 @@ async def create_items_bulk(
                     action_url=f"/list/{db_list.id}"
                 )
                 db.add(notif)
-                if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_new_items', True) and not is_in_quiet_hours(member):
+                if is_user_push_enabled(member, 'settings_push_new_items'):
                     subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                     for sub in subs:
                         background_tasks.add_task(
@@ -1358,34 +1376,30 @@ async def start_shopping(
     if not db_list:
         raise HTTPException(status_code=404, detail="Liste nicht gefunden")
 
-    # Berechtigung prüfen: Nur Ersteller oder Mitglieder dürfen Items anlegen
+    # Berechtigung prüfen: Nur Ersteller oder Mitglieder dürfen Aktion ausführen
     if db_list.created_by != current_user.id and current_user not in db_list.members:
         raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
 
-    # LOG ACTIVITY
-    log_entry = models.ActivityLog(
-        list_id=list_id,
-        user_id=current_user.id,
-        action_type="started",
-        item_name="Einkauf gestartet" # Placeholder
-    )
-    db.add(log_entry)
-    db.commit()
+    # Mitglieder der Liste vollständig sammeln (inklusive Ersteller)
+    members_dict = {m.id: m for m in (db_list.members or []) if m}
+    if db_list.created_by and db_list.created_by not in members_dict:
+        creator_user = db.query(models.User).filter(models.User.id == db_list.created_by).first()
+        if creator_user:
+            members_dict[creator_user.id] = creator_user
 
-    # Push Notification für Einkaufsstart an Listenmitglieder (nicht den der startet)
-    # Deduplicate members to prevent sending duplicate notifications to the creator
-    members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
-    members = {member.id: member for member in members_list}.values()
-    for member in members:
+    user_display = current_user.display_name or "Ein Gruppenmitglied"
+
+    # Push Notification für Einkaufsstart an alle anderen Listenmitglieder
+    for member in members_dict.values():
         if member.id != current_user.id:
             notif = models.Notification(
                 user_id=member.id,
                 title="🛒 Ich gehe einkaufen!",
-                body=f"{current_user.display_name} ist jetzt für '{db_list.name}' einkaufen. Brauchst du noch etwas?",
+                body=f"{user_display} ist jetzt für '{db_list.name}' einkaufen. Brauchst du noch etwas?",
                 action_url=f"/list/{db_list.id}"
             )
             db.add(notif)
-            if getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_shopping_started', True) and not is_in_quiet_hours(member):
+            if is_user_push_enabled(member, 'settings_push_shopping_started'):
                 subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
                 for sub in subs:
                     background_tasks.add_task(
@@ -1394,6 +1408,17 @@ async def start_shopping(
                         {"title": notif.title, "body": notif.body, "url": notif.action_url}
                     )
     db.commit()
+
+    # Live WebSocket Broadcast an alle aktiven Teilnehmer der Liste
+    await manager.broadcast(list_id, {
+        "event": "SHOPPING_STARTED",
+        "payload": {
+            "list_id": list_id,
+            "user_id": current_user.id,
+            "user_name": user_display
+        }
+    })
+
     return {"status": "ok"}
 
 @app.get("/api/lists/{list_id}/changelog", response_model=List[schemas.ActivityLogResponse])
@@ -1412,7 +1437,8 @@ async def get_list_changelog(
         raise HTTPException(status_code=403, detail="Kein Zugriff auf diese Liste")
 
     logs = db.query(models.ActivityLog).filter(
-        models.ActivityLog.list_id == list_id
+        models.ActivityLog.list_id == list_id,
+        models.ActivityLog.action_type != "started"
     ).order_by(
         models.ActivityLog.created_at.desc()
     ).limit(50).all()
@@ -1476,7 +1502,7 @@ async def update_item(
             members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
             members = {member.id: member for member in members_list if member}.values()
             for member in members:
-                if member.id != current_user.id and getattr(member, 'settings_push_async_events', True) and getattr(member, 'settings_push_completed_items', True) and not is_in_quiet_hours(member):
+                if member.id != current_user.id and is_user_push_enabled(member, 'settings_push_completed_items'):
                     notif = models.Notification(
                         user_id=member.id,
                         title="Artikel erledigt",

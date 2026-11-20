@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue';
-import taxonomy from '../assets/taxonomy.json' with { type: 'json' };
+import { resolveItemIcon, isLetterIcon } from '../utils/iconResolver.js';
 
 const props = defineProps({
   name: {
@@ -25,29 +25,11 @@ const props = defineProps({
   }
 });
 
-// Build taxonomy lookup map for faster resolution
-const taxonomyLookup = new Map();
-taxonomy.forEach(entry => {
-  if (entry.name) {
-    taxonomyLookup.set(entry.name.toLowerCase(), entry);
-  }
-  if (entry.aliases && Array.isArray(entry.aliases)) {
-    entry.aliases.forEach(alias => {
-      taxonomyLookup.set(alias.toLowerCase(), entry);
-    });
-  }
+const hasError = ref(false);
+
+watch([() => props.name, () => props.category], () => {
+  hasError.value = false;
 });
-
-const errorLevel = ref(0);
-const showSvg = ref(false);
-
-const resetState = () => {
-  errorLevel.value = 0;
-  showSvg.value = false;
-};
-
-watch(() => props.name, resetState);
-watch(() => props.category, resetState);
 
 const categoryClass = computed(() => {
   if (!props.category) return '';
@@ -62,99 +44,26 @@ const categoryClass = computed(() => {
   return 'cat-sonstiges';
 });
 
-const getLetterPath = (name) => {
-  if (!name) return '';
-  let firstLetter = name.charAt(0).toLowerCase();
-  const umlautMap = { 'ä': 'a', 'ö': 'o', 'ü': 'u' };
-  if (umlautMap[firstLetter]) {
-    firstLetter = umlautMap[firstLetter];
-  }
-  if (/^[a-z]$/.test(firstLetter)) {
-    return `/icons/letters/${firstLetter}.svg`;
-  }
-  return '';
-};
-
-
-const normalizeUmlauts = (str) => {
-  if (!str) return '';
-  return str
-    .replace(/ä/g, 'ae').replace(/Ä/g, 'Ae')
-    .replace(/ö/g, 'oe').replace(/Ö/g, 'Oe')
-    .replace(/ü/g, 'ue').replace(/Ü/g, 'Ue')
-    .replace(/ß/g, 'ss')
-    .replace(/é/g, 'e').replace(/è/g, 'e');
-};
+// Synchronous resolution to guaranteed existing SVG file
+const currentImageSrc = computed(() => {
+  if (hasError.value) return '';
+  return resolveItemIcon(props.name, props.category);
+});
 
 const isLetterFallback = computed(() => {
-  return currentImageSrc.value && currentImageSrc.value.includes('/icons/letters/');
+  return isLetterIcon(currentImageSrc.value);
 });
 
-const iconSources = computed(() => {
-  if (!props.name) return [];
-
-  const lowerName = props.name.toLowerCase();
-  const sources = [];
-
-  // Priority 1: Direct name match (original & ASCII-normalized)
-  sources.push(`/icons/${props.name}.svg`);
-  const normName = normalizeUmlauts(props.name);
-  if (normName !== props.name) {
-    sources.push(`/icons/${normName}.svg`);
-  }
-
-  // Lookup taxonomy entry by alias or exact name match
-  const taxEntry = taxonomyLookup.get(lowerName);
-  if (taxEntry) {
-    // Priority 2: Taxonomy Main Name
-    if (taxEntry.name && taxEntry.name !== props.name) {
-      sources.push(`/icons/${taxEntry.name}.svg`);
-      const normTaxName = normalizeUmlauts(taxEntry.name);
-      if (normTaxName !== taxEntry.name) {
-        sources.push(`/icons/${normTaxName}.svg`);
-      }
-    }
-    // Priority 3: Explicit icon field
-    if (taxEntry.icon && taxEntry.icon !== props.name && taxEntry.icon !== taxEntry.name) {
-      sources.push(`/icons/${taxEntry.icon}.svg`);
-      const normTaxIcon = normalizeUmlauts(taxEntry.icon);
-      if (normTaxIcon !== taxEntry.icon) {
-        sources.push(`/icons/${normTaxIcon}.svg`);
-      }
-    }
-  }
-
-  // Priority 4: Global Letter Fallback
-  const letterPath = getLetterPath(props.name);
-  if (letterPath) {
-    sources.push(letterPath);
-  }
-
-  return sources;
-});
-
-const currentImageSrc = computed(() => {
-  if (errorLevel.value < iconSources.value.length) {
-    return iconSources.value[errorLevel.value];
-  }
-  showSvg.value = true;
-  return '';
-});
-
-const onImageError = (event) => {
-  if (errorLevel.value < iconSources.value.length - 1) {
-    errorLevel.value += 1;
-  } else {
-    showSvg.value = true;
-  }
+const onImageError = () => {
+  hasError.value = true;
 };
-
 </script>
 
 <template>
   <div class="icon-wrapper flex items-center justify-center shrink-0">
+    <!-- Initial circle fallback if icon failed to load or has no icon -->
     <div
-      v-if="showSvg && name"
+      v-if="(!currentImageSrc || hasError) && name"
       class="fallback-initial-icon"
       :class="categoryClass"
       :style="{
@@ -174,7 +83,8 @@ const onImageError = (event) => {
     >
       {{ name.charAt(0).toUpperCase() }}
     </div>
-    <!-- Fallback for generic letter initial SVGs -->
+
+    <!-- Letter initial SVG fallback (/icons/letters/{letter}.svg) -->
     <div
       v-else-if="name && isLetterFallback"
       class="item-icon-svg"
@@ -191,12 +101,13 @@ const onImageError = (event) => {
         :src="currentImageSrc"
         @error="onImageError"
         style="display: none;"
-        :alt="name"
+        alt=""
       />
     </div>
+
     <!-- Standard: All food & grocery items render full-color vector glow SVGs -->
     <img
-      v-else-if="name"
+      v-else-if="name && currentImageSrc"
       class="item-icon-natural"
       :src="currentImageSrc"
       :style="{
@@ -204,8 +115,11 @@ const onImageError = (event) => {
         height: !isNaN(size) ? `${size}px` : size
       }"
       @error="onImageError"
-      :alt="name"
+      alt=""
       :title="name"
+      loading="eager"
+      decoding="async"
+      draggable="false"
     />
   </div>
 </template>
@@ -216,6 +130,7 @@ const onImageError = (event) => {
   object-fit: contain;
   filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35));
   transition: transform 0.15s ease;
+  user-select: none;
 }
 
 .item-icon-svg {

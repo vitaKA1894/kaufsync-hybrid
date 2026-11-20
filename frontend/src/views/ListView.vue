@@ -397,6 +397,12 @@ const setupWebSocket = () => {
         if (showShareSheet.value) loadJoinRequests();
       } else if (data.event === 'JOIN_REQUEST_RECEIVED') {
         if (showShareSheet.value) loadJoinRequests();
+      } else if (data.event === 'SHOPPING_STARTED') {
+        const p = data.payload;
+        if (p && p.user_id !== currentUser.value?.id) {
+          successMessage.value = `🛒 ${p.user_name || 'Ein Mitglied'} geht jetzt für diese Liste einkaufen!`;
+          setTimeout(() => { successMessage.value = ''; }, 4500);
+        }
       }
     };
   } catch (err) {
@@ -594,7 +600,10 @@ const openChangelog = () => {
 };
 
 const filteredChangelog = computed(() => {
-  let logs = changelog.value;
+  let logs = changelog.value || [];
+  // Einkaufsstart-Ereignisse und Nicht-Artikel-Aktivitäten aus der Historie filtern
+  logs = logs.filter(log => log.action_type !== 'started' && log.action_type !== 'shopping');
+
   if (changelogFilter.value === 'added') logs = logs.filter(log => log.action_type === 'added');
   if (changelogFilter.value === 'completed') logs = logs.filter(log => log.action_type === 'completed');
 
@@ -608,9 +617,9 @@ const filteredChangelog = computed(() => {
 
       let dayKey = '';
       if (d.toDateString() === today.toDateString()) {
-          dayKey = `Heute – ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
+          dayKey = `Heute, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
       } else if (d.toDateString() === yesterday.toDateString()) {
-          dayKey = `Gestern – ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
+          dayKey = `Gestern, ${d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
       } else {
           dayKey = d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: '2-digit' });
       }
@@ -623,10 +632,11 @@ const filteredChangelog = computed(() => {
 
       const userName = log.user_name || 'Unbekannt';
       const actionType = log.action_type;
+      const timeStr = isNaN(d.getTime()) ? '' : d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 
       let actionGroup = dayGroup.actions.find(a => a.userName === userName && a.actionType === actionType);
       if (!actionGroup) {
-          actionGroup = { userName, actionType, items: [] };
+          actionGroup = { userName, actionType, time: timeStr, items: [] };
           dayGroup.actions.push(actionGroup);
       }
 
@@ -636,15 +646,57 @@ const filteredChangelog = computed(() => {
   return grouped;
 });
 
-const formatChangelogActionText = (userName, actionType, count) => {
-  const map = {
-    'added': 'hinzugefügt',
-    'completed': 'abgehakt',
-    'deleted': 'entfernt',
-    'reactivated': 'wiederhergestellt'
+const getUserAvatarStyle = (name) => {
+  const gradients = [
+    { bg: 'linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)', shadow: 'rgba(56, 189, 248, 0.4)' },
+    { bg: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 100%)', shadow: 'rgba(168, 85, 247, 0.4)' },
+    { bg: 'linear-gradient(135deg, #059669 0%, #34d399 100%)', shadow: 'rgba(52, 211, 153, 0.4)' },
+    { bg: 'linear-gradient(135deg, #ea580c 0%, #fb923c 100%)', shadow: 'rgba(251, 146, 60, 0.4)' },
+    { bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)', shadow: 'rgba(244, 63, 94, 0.4)' },
+    { bg: 'linear-gradient(135deg, #0d9488 0%, #2dd4bf 100%)', shadow: 'rgba(45, 212, 191, 0.4)' }
+  ];
+  let hash = 0;
+  const str = name || 'U';
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % gradients.length;
+  const g = gradients[index];
+  return {
+    background: g.bg,
+    boxShadow: `0 0 10px ${g.shadow}`,
+    border: '1.5px solid rgba(255, 255, 255, 0.25)'
   };
-  const actionWord = map[actionType] || actionType;
-  return `${userName} hat ${count} Artikel ${actionWord}`;
+};
+
+const getActionBadgeInfo = (actionType, count) => {
+  switch (actionType) {
+    case 'added':
+      return {
+        label: `${count} hinzugefügt`,
+        cssClass: 'ks-badge-added'
+      };
+    case 'completed':
+      return {
+        label: `${count} abgehakt`,
+        cssClass: 'ks-badge-completed'
+      };
+    case 'reactivated':
+      return {
+        label: `${count} wiederhergestellt`,
+        cssClass: 'ks-badge-reactivated'
+      };
+    case 'deleted':
+      return {
+        label: `${count} entfernt`,
+        cssClass: 'ks-badge-deleted'
+      };
+    default:
+      return {
+        label: `${count} bearbeitet`,
+        cssClass: 'ks-badge-default'
+      };
+  }
 };
 
 const getInitial = (name) => {
@@ -1328,32 +1380,53 @@ onUnmounted(() => {
           <span>Offline – Stand möglicherweise nicht aktuell</span>
         </div>
 
-        <div class="tag-group" style="margin-bottom: 16px;">
-            <button class="ks-chip tag-chip" :class="{ active: changelogFilter === 'all' }" @click="changelogFilter = 'all'">Alle</button>
-            <button class="ks-chip tag-chip" :class="{ active: changelogFilter === 'added' }" @click="changelogFilter = 'added'">Hinzugefügt</button>
-            <button class="ks-chip tag-chip" :class="{ active: changelogFilter === 'completed' }" @click="changelogFilter = 'completed'">Abgehakt</button>
+        <div class="ks-activity-filter-bar" style="margin-bottom: 16px;">
+            <button class="ks-activity-chip" :class="{ active: changelogFilter === 'all' }" @click="changelogFilter = 'all'">Alle</button>
+            <button class="ks-activity-chip" :class="{ active: changelogFilter === 'added' }" @click="changelogFilter = 'added'">Hinzugefügt</button>
+            <button class="ks-activity-chip" :class="{ active: changelogFilter === 'completed' }" @click="changelogFilter = 'completed'">Abgehakt</button>
         </div>
 
-        <div class="changelog-list" style="max-height: 50vh; overflow-y: auto; padding-right: 8px;">
-            <div v-for="dayGroup in filteredChangelog" :key="dayGroup.day" class="changelog-day-group">
-                <div v-for="(actionGroup, index) in dayGroup.actions" :key="index" class="changelog-action-group">
-                    <div class="changelog-group-header">
-                        <div class="changelog-avatar">{{ getInitial(actionGroup.userName) }}</div>
-                        <div class="changelog-group-title">
-                            <span class="changelog-day">{{ dayGroup.day }}</span>
-                            <span class="changelog-action-text">{{ formatChangelogActionText(actionGroup.userName, actionGroup.actionType, actionGroup.items.length) }}</span>
+        <div class="changelog-list" style="max-height: 52vh; overflow-y: auto; padding-right: 4px;">
+            <div v-for="dayGroup in filteredChangelog" :key="dayGroup.day" class="ks-activity-day-section">
+                <div class="ks-activity-date-pill">
+                  <span>{{ dayGroup.day }}</span>
+                </div>
+
+                <div v-for="(actionGroup, index) in dayGroup.actions" :key="index" class="ks-activity-card">
+                    <div class="ks-activity-card-header">
+                        <div class="ks-activity-user-info">
+                            <div class="ks-activity-avatar" :style="getUserAvatarStyle(actionGroup.userName)">
+                              {{ getInitial(actionGroup.userName) }}
+                            </div>
+                            <div class="ks-activity-user-text">
+                              <span class="ks-activity-username">{{ actionGroup.userName }}</span>
+                              <span v-if="actionGroup.time" class="ks-activity-time">{{ actionGroup.time }} Uhr</span>
+                            </div>
                         </div>
+
+                        <span class="ks-activity-badge" :class="getActionBadgeInfo(actionGroup.actionType, actionGroup.items.length).cssClass">
+                          <svg v-if="actionGroup.actionType === 'added'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                          <svg v-else-if="actionGroup.actionType === 'completed'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                          <svg v-else-if="actionGroup.actionType === 'reactivated'" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                          <svg v-else class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12z"/></svg>
+                          {{ getActionBadgeInfo(actionGroup.actionType, actionGroup.items.length).label }}
+                        </span>
                     </div>
-                    <div class="changelog-items-list">
-                        <div v-for="(itemName, idx) in actionGroup.items" :key="idx" class="changelog-item-row">
-                            <CategoryIcon class="changelog-item-icon" :name="itemName" size="24" color="var(--ks-text-muted)" />
-                            <span class="changelog-item-name">{{ itemName }}</span>
+
+                    <div class="ks-activity-items-grid">
+                        <div v-for="(itemName, idx) in actionGroup.items" :key="idx" class="ks-activity-item-chip">
+                            <CategoryIcon class="ks-activity-item-icon" :name="itemName" size="24" />
+                            <span class="ks-activity-item-name">{{ itemName }}</span>
                         </div>
                     </div>
                 </div>
             </div>
-            <div v-if="filteredChangelog.length === 0" class="empty-state">
-                {{ !isOnline ? 'Offline: Keine gespeicherten Aktivitäten für diese Liste verfügbar.' : 'Keine Aktivitäten gefunden.' }}
+
+            <div v-if="filteredChangelog.length === 0" class="ks-activity-empty">
+                <div class="ks-activity-empty-icon">📝</div>
+                <p class="ks-activity-empty-text">
+                  {{ !isOnline ? 'Offline: Keine gespeicherten Aktivitäten für diese Liste verfügbar.' : 'Noch keine Aktivitäten in dieser Liste.' }}
+                </p>
             </div>
         </div>
       </div>
@@ -1969,19 +2042,202 @@ onUnmounted(() => {
 .code-box .code { font-size: 24px; font-family: monospace; font-weight: 700; letter-spacing: 4px; }
 .code-box svg { width: 24px; height: 24px; fill: currentColor; opacity: 0.6; }
 
-/* Changelog */
-.changelog-list { display: flex; flex-direction: column; gap: 24px; padding-bottom: 24px; }
-.changelog-day-group { display: flex; flex-direction: column; gap: 20px; }
-.changelog-action-group { display: flex; flex-direction: column; gap: 12px; background: var(--ks-surface-2); padding: 16px; border-radius: 12px; }
-.changelog-group-header { display: flex; align-items: center; gap: 12px; }
-.changelog-avatar { width: 40px; height: 40px; border-radius: 50%; background: #a58f84; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 18px; flex-shrink: 0; }
-.changelog-group-title { display: flex; flex-direction: column; gap: 2px; }
-.changelog-day { font-size: 13px; color: var(--ks-text-muted); }
-.changelog-action-text { font-size: 15px; font-weight: 600; color: var(--ks-text); }
-.changelog-items-list { display: flex; flex-direction: column; gap: 8px; margin-left: 12px; border-left: 2px solid var(--ks-primary); padding-left: 12px; padding-top: 4px; padding-bottom: 4px; }
-.changelog-item-row { display: flex; align-items: center; gap: 12px; }
-.changelog-item-icon { width: 24px; height: 24px; color: var(--ks-text); }
-.changelog-item-name { font-size: 15px; font-weight: 600; color: var(--ks-text); }
+/* Modern KaufSync Activities (Changelog) */
+.ks-activity-filter-bar {
+  display: flex;
+  gap: 8px;
+}
+.ks-activity-chip {
+  padding: 6px 14px;
+  border-radius: 9999px;
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--ks-text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.ks-activity-chip:hover {
+  color: var(--ks-text);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+.ks-activity-chip.active {
+  background: var(--ks-primary);
+  color: #ffffff;
+  border-color: var(--ks-primary);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
+.changelog-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 20px;
+}
+.ks-activity-day-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ks-activity-date-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 2px;
+}
+.ks-activity-date-pill span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ks-text-muted);
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px 12px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ks-activity-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.ks-activity-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.ks-activity-user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.ks-activity-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+.ks-activity-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ks-activity-username {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ks-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ks-activity-time {
+  font-size: 11px;
+  color: var(--ks-text-muted);
+}
+
+.ks-activity-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.ks-badge-added {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+.ks-badge-completed {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+.ks-badge-reactivated {
+  background: rgba(251, 146, 60, 0.15);
+  color: #fb923c;
+  border: 1px solid rgba(251, 146, 60, 0.3);
+}
+.ks-badge-deleted {
+  background: rgba(244, 63, 94, 0.15);
+  color: #f43f5e;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+}
+.ks-badge-default {
+  background: rgba(148, 163, 184, 0.15);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+
+.ks-activity-items-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-top: 2px;
+}
+.ks-activity-item-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 5px 10px 5px 6px;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.ks-activity-item-chip:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+.ks-activity-item-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.ks-activity-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #e2e8f0;
+}
+
+.ks-activity-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 36px 16px;
+  text-align: center;
+  color: var(--ks-text-muted);
+}
+.ks-activity-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+  opacity: 0.8;
+}
+.ks-activity-empty-text {
+  font-size: 14px;
+  margin: 0;
+  max-width: 280px;
+  line-height: 1.4;
+}
 
 /* Tags/Chips (reused from AddItemModal) */
 .tag-group { display: flex; flex-wrap: wrap; gap: 8px; }
