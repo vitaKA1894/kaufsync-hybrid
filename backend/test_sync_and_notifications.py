@@ -175,7 +175,23 @@ def test_sync_activity_logging_and_shopping_notifications():
 
         print("✓ Verified: Activity logging captures added, completed, and deleted items with correct author name.")
 
-        # 6. Test Mark All Notifications Read
+        # 6. Test Finish Shopping
+        finish_resp = client.post(
+            f"/api/lists/{list_id}/finish-shopping",
+            headers={"Authorization": f"Bearer {token_karo}"}
+        )
+        assert finish_resp.status_code == 200, f"Finish shopping failed: {finish_resp.text}"
+        assert finish_resp.json() == {"status": "ok"}
+        
+        # Check that finish shopping did NOT create activity_logs either
+        logs_after_finish = client.get(
+            f"/api/lists/{list_id}/changelog",
+            headers={"Authorization": f"Bearer {token_vita}"}
+        ).json()
+        assert len(logs_after_finish) == len(logs), "finish-shopping should not pollute changelog"
+        print("✓ Verified: Shopping finish does NOT generate activity_logs.")
+
+        # 7. Test Mark All Notifications Read
         mark_resp = client.post(
             "/api/notifications/mark-all-read",
             headers={"Authorization": f"Bearer {token_vita}"}

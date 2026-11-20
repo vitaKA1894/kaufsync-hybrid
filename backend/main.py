@@ -1444,6 +1444,67 @@ async def start_shopping(
 
     return {"status": "ok"}
 
+@app.post("/api/lists/{list_id}/finish-shopping")
+async def finish_shopping(
+    list_id: str,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
+
+    members_dict = {m.id: m for m in (db_list.members or []) if m}
+    if db_list.created_by and db_list.created_by not in members_dict:
+        creator_user = db.query(models.User).filter(models.User.id == db_list.created_by).first()
+        if creator_user:
+            members_dict[creator_user.id] = creator_user
+
+    user_display = current_user.display_name or "Ein Gruppenmitglied"
+
+    for member in members_dict.values():
+        if member.id != current_user.id and is_user_push_enabled(member, 'settings_push_shopping_done'):
+            notif = models.Notification(
+                user_id=member.id,
+                title="✅ Einkauf abgeschlossen",
+                body=f"{user_display} hat den Einkauf für '{db_list.name}' beendet.",
+                action_url=f"/list/{db_list.id}"
+            )
+            db.add(notif)
+            subs = db.query(models.PushSubscription).filter(models.PushSubscription.user_id == member.id).all()
+            for sub in subs:
+                background_tasks.add_task(
+                    send_push_notification,
+                    {"endpoint": sub.endpoint, "keys": {"p256dh": sub.p256dh, "auth": sub.auth}},
+                    {"title": notif.title, "body": notif.body, "url": notif.action_url}
+                )
+            await manager.broadcast_user(str(member.id), {
+                "event": "NEW_NOTIFICATION",
+                "payload": {
+                    "id": notif.id,
+                    "title": notif.title,
+                    "body": notif.body,
+                    "url": notif.action_url,
+                    "list_id": list_id
+                }
+            })
+    db.commit()
+
+    await manager.broadcast(list_id, {
+        "event": "SHOPPING_FINISHED",
+        "payload": {
+            "list_id": list_id,
+            "user_id": current_user.id,
+            "user_name": user_display
+        }
+    })
+
+    return {"status": "ok"}
+
 @app.get("/api/lists/{list_id}/changelog", response_model=List[schemas.ActivityLogResponse])
 async def get_list_changelog(
     list_id: str,

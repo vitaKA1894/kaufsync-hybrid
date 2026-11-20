@@ -10,6 +10,13 @@ import Sortable from 'sortablejs';
 import QrcodeVue from 'qrcode.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import SyncStatusBadge from '../components/SyncStatusBadge.vue';
+import { App as CapApp } from '@capacitor/app';
+import {
+  isWakeLockSupported,
+  requestScreenWakeLock,
+  releaseScreenWakeLock,
+  isScreenWakeLockActive
+} from '../utils/wakeLockService';
 import {
   isOnline,
   syncStatus,
@@ -71,6 +78,16 @@ const showConfirmModal = ref(false);
 const confirmMessage = ref('');
 const confirmAction = ref(null);
 const successMessage = ref('');
+const infoToastMessage = ref('');
+const isKeepAwakeSupported = ref(isWakeLockSupported());
+const keepAwakeEnabled = ref(false); // User intent
+const keepAwakeActive = ref(false);  // Actual system lock
+const isShoppingSessionActive = ref(false);
+
+const activeMetaFilter = ref('all'); // 'all', 'urgent', 'offer', 'optional'
+const filterNotice = ref(null);
+let filterNoticeTimer = null;
+
 const showShareSheet = ref(false);
 const showSortSheet = ref(false);
 const showChangelogSheet = ref(false);
@@ -180,11 +197,121 @@ const formatQuantity = (item) => {
 const parseTags = (tagsStr) => {
   if (!tagsStr) return [];
   try {
-    return typeof tagsStr === 'string' ? JSON.parse(tagsStr) : tagsStr;
+    const res = typeof tagsStr === 'string' ? JSON.parse(tagsStr) : tagsStr;
+    if (Array.isArray(res)) return res;
+    if (typeof tagsStr === 'string') return tagsStr.split(',').map(s => s.trim()).filter(Boolean);
+    return [];
   } catch (e) {
+    if (typeof tagsStr === 'string') return tagsStr.split(',').map(s => s.trim()).filter(Boolean);
     return [];
   }
 };
+
+const getRegularTags = (tagsStr) => {
+  const tags = parseTags(tagsStr);
+  return tags.filter(t => !['dringend', 'angebot', "wenn's passt"].includes(t.toLowerCase()));
+};
+
+const getUrgencyTags = (tagsStr) => {
+  const tags = parseTags(tagsStr);
+  return tags.filter(t => ['dringend', 'angebot', "wenn's passt"].includes(t.toLowerCase()));
+};
+
+const formatTags = (tagsStr) => {
+  const regular = getRegularTags(tagsStr);
+  if (regular.length === 0) return '';
+  return regular.join(', ');
+};
+
+// --- META-TAG FILTER LOGIK ---
+const getFilterLabel = (key) => {
+  switch (key) {
+    case 'urgent': return 'Dringend';
+    case 'offer': return 'Angebot';
+    case 'optional': return "Wenn's passt";
+    default: return 'Alle';
+  }
+};
+
+const itemUrgencyTags = (item) => {
+  return getUrgencyTags(item.tags).map(t => t.toLowerCase());
+};
+
+const itemHasMetaTag = (item, filterKey) => {
+  if (filterKey === 'all') return true;
+  const uTags = itemUrgencyTags(item);
+  if (filterKey === 'urgent') return uTags.includes('dringend');
+  if (filterKey === 'offer') return uTags.includes('angebot');
+  if (filterKey === 'optional') return uTags.includes("wenn's passt");
+  return true;
+};
+
+const openActiveItems = computed(() => {
+  return items.value.filter(i => i.status === 'active');
+});
+
+const totalOpenCount = computed(() => openActiveItems.value.length);
+
+const metaTagCounts = computed(() => {
+  const counts = { urgent: 0, offer: 0, optional: 0 };
+  for (const item of openActiveItems.value) {
+    const uTags = itemUrgencyTags(item);
+    if (uTags.includes('dringend')) counts.urgent++;
+    if (uTags.includes('angebot')) counts.offer++;
+    if (uTags.includes("wenn's passt")) counts.optional++;
+  }
+  return counts;
+});
+
+const hasAnyMetaTags = computed(() => {
+  return metaTagCounts.value.urgent > 0 || metaTagCounts.value.offer > 0 || metaTagCounts.value.optional > 0;
+});
+
+const filteredActiveItems = computed(() => {
+  const active = openActiveItems.value;
+  if (activeMetaFilter.value === 'all') {
+    return active;
+  }
+  return active.filter(item => itemHasMetaTag(item, activeMetaFilter.value));
+});
+
+const setMetaFilter = (key) => {
+  activeMetaFilter.value = key;
+};
+
+const toggleMetaFilter = (key) => {
+  if (activeMetaFilter.value === key) {
+    activeMetaFilter.value = 'all';
+  } else {
+    activeMetaFilter.value = key;
+  }
+};
+
+const clearMetaFilter = () => {
+  activeMetaFilter.value = 'all';
+  filterNotice.value = null;
+  if (filterNoticeTimer) {
+    clearTimeout(filterNoticeTimer);
+    filterNoticeTimer = null;
+  }
+};
+
+// Automatischer Reset, wenn die gefilterten Artikel erledigt werden (Count -> 0)
+watch(metaTagCounts, (newCounts) => {
+  if (activeMetaFilter.value !== 'all') {
+    const count = newCounts[activeMetaFilter.value] || 0;
+    if (count === 0) {
+      const label = getFilterLabel(activeMetaFilter.value);
+      activeMetaFilter.value = 'all';
+      successMessage.value = `Alle als „${label}“ markierten Artikel erledigt – alle Artikel werden angezeigt`;
+      setTimeout(() => {
+        if (successMessage.value && successMessage.value.includes('erledigt')) {
+          successMessage.value = '';
+        }
+      }, 3800);
+    }
+  }
+}, { deep: true });
 
 // --- MARKT SPEZIFISCHE DEFAULTS (JSON-Konfiguration) ---
 const chainsConfig = {
@@ -403,6 +530,12 @@ const setupWebSocket = () => {
           successMessage.value = `🛒 ${p.user_name || 'Ein Mitglied'} geht jetzt für diese Liste einkaufen!`;
           setTimeout(() => { successMessage.value = ''; }, 4500);
         }
+      } else if (data.event === 'SHOPPING_FINISHED') {
+        const p = data.payload;
+        if (p && p.user_id !== currentUser.value?.id) {
+          infoToastMessage.value = `✅ ${p.user_name || 'Ein Mitglied'} hat den Einkauf beendet.`;
+          setTimeout(() => { infoToastMessage.value = ''; }, 4500);
+        }
       }
     };
   } catch (err) {
@@ -440,6 +573,18 @@ const handleAddItem = async (itemPayload) => {
   };
   
   items.value.push(newItem);
+
+  // Hinweismeldung, falls Artikel durch einen aktiven Filter ausgeblendet wird
+  if (activeMetaFilter.value !== 'all' && !itemHasMetaTag(newItem, activeMetaFilter.value)) {
+    if (filterNoticeTimer) clearTimeout(filterNoticeTimer);
+    filterNotice.value = {
+      text: 'Artikel hinzugefügt – durch aktiven Filter ausgeblendet',
+      action: 'Alle anzeigen'
+    };
+    filterNoticeTimer = setTimeout(() => {
+      filterNotice.value = null;
+    }, 5500);
+  }
 
   await queueMutation({
     listId,
@@ -569,6 +714,82 @@ const loadChangelog = async () => {
   }
 };
 
+// --- KEEP SCREEN AWAKE (IN-STORE FOCUS) ---
+const enableKeepAwake = async (silent = false) => {
+  if (!isKeepAwakeSupported.value) {
+    if (!silent) {
+      infoToastMessage.value = 'Bildschirm wachhalten wird von diesem Gerät oder Browser nicht unterstützt.';
+      setTimeout(() => { infoToastMessage.value = ''; }, 3500);
+    }
+    return false;
+  }
+
+  keepAwakeEnabled.value = true;
+  const res = await requestScreenWakeLock({
+    onRelease: () => {
+      keepAwakeActive.value = false;
+    }
+  });
+
+  if (res.success) {
+    keepAwakeActive.value = true;
+    if (!silent) {
+      infoToastMessage.value = 'Bildschirm bleibt während des Einkaufs aktiv';
+      setTimeout(() => {
+        if (infoToastMessage.value && infoToastMessage.value.includes('aktiv')) {
+          infoToastMessage.value = '';
+        }
+      }, 3000);
+    }
+    return true;
+  } else {
+    keepAwakeActive.value = false;
+    keepAwakeEnabled.value = false;
+    if (!silent) {
+      infoToastMessage.value = res.reason === 'denied'
+        ? 'Bildschirm wachhalten wurde verweigert (z. B. Energiesparmodus aktiv).'
+        : 'Bildschirm wachhalten konnte nicht aktiviert werden.';
+      setTimeout(() => { infoToastMessage.value = ''; }, 3500);
+    }
+    return false;
+  }
+};
+
+const disableKeepAwake = async (silent = false) => {
+  keepAwakeEnabled.value = false;
+  await releaseScreenWakeLock();
+  keepAwakeActive.value = false;
+  if (!silent) {
+    infoToastMessage.value = 'Automatische Bildschirmsperre wieder aktiv';
+    setTimeout(() => {
+      if (infoToastMessage.value && infoToastMessage.value.includes('Sperre')) {
+        infoToastMessage.value = '';
+      }
+    }, 3000);
+  }
+};
+
+const toggleKeepAwake = async () => {
+  if (keepAwakeActive.value) {
+    await disableKeepAwake();
+  } else {
+    await enableKeepAwake();
+  }
+};
+
+const handleWakeLockVisibility = async () => {
+  if (document.visibilityState === 'visible' && keepAwakeEnabled.value && !isScreenWakeLockActive()) {
+    const res = await requestScreenWakeLock({
+      onRelease: () => {
+        keepAwakeActive.value = false;
+      }
+    });
+    if (res.success) {
+      keepAwakeActive.value = true;
+    }
+  }
+};
+
 const notifyShoppingStarted = async () => {
   if (!isOnline.value) {
     errorMessage.value = 'Du bist offline. Live-Benachrichtigungen an Gruppenmitglieder können derzeit nicht gesendet werden.';
@@ -582,9 +803,15 @@ const notifyShoppingStarted = async () => {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     if (response.ok) {
+      isShoppingSessionActive.value = true;
       successMessage.value = 'Gruppenmitglieder benachrichtigt: Du gehst einkaufen! 🛒';
       setTimeout(() => successMessage.value = '', 3500);
       showSettingsSheet.value = false;
+
+      // Automatically enable keep awake along with shopping action
+      if (isKeepAwakeSupported.value && !keepAwakeActive.value) {
+        await enableKeepAwake(true);
+      }
     } else {
       const err = await response.json().catch(() => ({}));
       errorMessage.value = err.detail || 'Fehler beim Senden der Benachrichtigung.';
@@ -594,6 +821,31 @@ const notifyShoppingStarted = async () => {
     errorMessage.value = 'Verbindungsfehler beim Senden der Benachrichtigung.';
     setTimeout(() => errorMessage.value = '', 4000);
   }
+};
+
+const finishShopping = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    if (isOnline.value && token) {
+      await fetch(apiUrl(`/api/lists/${listId}/finish-shopping`), {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      }).catch(() => {});
+    }
+  } catch (e) {}
+
+  isShoppingSessionActive.value = false;
+  // Automatically disable keep awake
+  if (keepAwakeActive.value) {
+    await disableKeepAwake(true);
+  }
+  showSettingsSheet.value = false;
+  successMessage.value = 'Einkauf abgeschlossen! ✅ Bildschirm-Wachhaltefunktion beendet.';
+  setTimeout(() => {
+    if (successMessage.value && successMessage.value.includes('Einkauf abgeschlossen')) {
+      successMessage.value = '';
+    }
+  }, 3500);
 };
 
 const openChangelog = () => {
@@ -977,7 +1229,7 @@ const mapLegacyCategory = (catName) => {
 
 // Berechnete Eigenschaften für Gruppierung der Listenansicht
 const groupedActiveItems = computed(() => {
-  const activeItems = items.value.filter(i => i.status === 'active');
+  const activeItems = filteredActiveItems.value;
   const groups = {};
   
   activeItems.forEach(item => {
@@ -1032,22 +1284,6 @@ const completedItems = computed(() => {
   return list.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
 });
 
-const getRegularTags = (tagsStr) => {
-  const tags = parseTags(tagsStr);
-  return tags.filter(t => !['dringend', 'angebot', "wenn's passt"].includes(t.toLowerCase()));
-};
-
-const getUrgencyTags = (tagsStr) => {
-  const tags = parseTags(tagsStr);
-  return tags.filter(t => ['dringend', 'angebot', "wenn's passt"].includes(t.toLowerCase()));
-};
-
-const formatTags = (tagsStr) => {
-  const regular = getRegularTags(tagsStr);
-  if (regular.length === 0) return '';
-  return regular.join(', ');
-};
-
 const vMarquee = {
   mounted(el) {
     const checkOverflow = () => {
@@ -1094,12 +1330,19 @@ const vMarquee = {
 
 
 onMounted(() => {
+  activeMetaFilter.value = 'all';
   loadItems(); // loadItems ruft am Ende loadCategoryOrder() auf
   loadCurrentUser();
   setupWebSocket();
   processOfflineQueue();
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
+  document.addEventListener('visibilitychange', handleWakeLockVisibility);
+  try {
+    CapApp.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) handleWakeLockVisibility();
+    });
+  } catch (e) {}
 
   setTimeout(() => {
     isInitialLoad.value = false;
@@ -1124,6 +1367,14 @@ onMounted(() => {
 
 onUnmounted(() => {
   isViewUnmounted = true;
+  document.removeEventListener('visibilitychange', handleWakeLockVisibility);
+  keepAwakeEnabled.value = false;
+  releaseScreenWakeLock();
+  keepAwakeActive.value = false;
+  if (filterNoticeTimer) {
+    clearTimeout(filterNoticeTimer);
+    filterNoticeTimer = null;
+  }
   if (wsReconnectTimer) {
     clearTimeout(wsReconnectTimer);
     wsReconnectTimer = null;
@@ -1138,7 +1389,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="page-shell list-view-layout" :class="{ 'modal-open': isAddModalOpen }" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false; showSettingsSheet = false;">
+  <div class="page-shell list-view-layout" :class="{ 'modal-open': isAddModalOpen, 'has-meta-filters': hasAnyMetaTags }" @click="showShareSheet = false; showSortSheet = false; showChangelogSheet = false; showSettingsSheet = false;">
 
     <header class="page-topbar" style="justify-content: space-between;">
       <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
@@ -1149,6 +1400,18 @@ onUnmounted(() => {
         <h1 class="list-title">{{ currentList ? currentList.name : 'Laden...' }}</h1>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
+        <button
+          v-if="isKeepAwakeSupported"
+          class="ks-icon-btn keep-awake-btn"
+          :class="{ 'is-active': keepAwakeActive }"
+          @click.stop="toggleKeepAwake"
+          :title="keepAwakeActive ? 'Bildschirm wachhalten: Aktiv' : 'Bildschirm wachhalten: Inaktiv'"
+          :aria-label="keepAwakeActive ? 'Bildschirm wachhalten: Aktiv' : 'Bildschirm wachhalten: Inaktiv'"
+        >
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+          </svg>
+        </button>
         <SyncStatusBadge />
         <button class="ks-icon-btn" @click.stop="showSettingsSheet = !showSettingsSheet" aria-label="Listen-Optionen">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -1177,8 +1440,8 @@ onUnmounted(() => {
         </div>
 
         <div class="settings-menu-list">
-          <!-- 1. EINKAUF STARTEN (GROUP NOTIFICATION) -->
-          <button class="settings-menu-item" @click="notifyShoppingStarted">
+          <!-- 1. EINKAUF STARTEN / BEENDEN -->
+          <button v-if="!isShoppingSessionActive" class="settings-menu-item" @click="notifyShoppingStarted">
             <div class="settings-menu-icon" style="background: rgba(16, 185, 129, 0.15); color: #10b981;">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                 <path d="M17.21 9l-4.38-6.56c-.19-.28-.51-.42-.83-.42-.32 0-.64.14-.83.43L6.79 9H2c-.55 0-1 .45-1 1 0 .09.01.18.04.27l2.54 9.27c.23.84 1 1.46 1.92 1.46h13c.92 0 1.69-.62 1.93-1.46l2.54-9.27L23 10c0-.55-.45-1-1-1h-4.79zM9 9l3-4.4L15 9H9zm3 8c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
@@ -1186,10 +1449,39 @@ onUnmounted(() => {
             </div>
             <div class="settings-menu-content">
               <div class="settings-menu-title">„Ich gehe einkaufen!“</div>
-              <div class="settings-menu-desc">Benachrichtige die Gruppe, dass du jetzt einkaufst</div>
+              <div class="settings-menu-desc">Benachrichtige die Gruppe & schalte Bildschirm auf aktiv</div>
             </div>
             <div class="settings-menu-arrow">›</div>
           </button>
+          <button v-else class="settings-menu-item" @click="finishShopping">
+            <div class="settings-menu-icon" style="background: rgba(56, 189, 248, 0.15); color: #38bdf8;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Einkauf abgeschlossen</div>
+              <div class="settings-menu-desc">Einkauf beenden & Bildschirmsperre freigeben</div>
+            </div>
+            <span class="settings-menu-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">Aktiv</span>
+          </button>
+
+          <!-- BILDSCHIRM WACHHALTEN TOGGLE -->
+          <div class="settings-menu-item" style="cursor: pointer;" @click="toggleKeepAwake">
+            <div class="settings-menu-icon" :style="{ background: keepAwakeActive ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.05)', color: keepAwakeActive ? '#fbbf24' : 'var(--ks-text-muted)' }">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Bildschirm wachhalten</div>
+              <div class="settings-menu-desc">Verhindert die automatische Bildschirmsperre im Markt</div>
+            </div>
+            <div v-if="isKeepAwakeSupported" class="ks-switch-pill" :class="{ 'is-on': keepAwakeActive }">
+              <div class="ks-switch-thumb"></div>
+            </div>
+            <span v-else class="settings-menu-badge" style="opacity: 0.6;">Nicht verfügbar</span>
+          </div>
 
           <!-- 2. TEILEN -->
           <button class="settings-menu-item" @click="showSettingsSheet = false; showShareSheet = true;">
@@ -1491,6 +1783,13 @@ onUnmounted(() => {
       <transition-group name="toast">
         <div v-if="errorMessage" key="err" class="ks-snackbar ks-snackbar--error">{{ errorMessage }}</div>
         <div v-if="successMessage" key="succ" class="ks-snackbar ks-snackbar--success">{{ successMessage }}</div>
+        <div v-if="infoToastMessage" key="info" class="ks-snackbar ks-snackbar--info">{{ infoToastMessage }}</div>
+        <div v-if="filterNotice" key="filt" class="ks-snackbar ks-snackbar--filter">
+          <span>{{ filterNotice.message }}</span>
+          <button v-if="filterNotice.action" class="ks-filter-notice-btn" @click.stop="filterNotice.action">
+            {{ filterNotice.actionLabel || 'Alle anzeigen' }}
+          </button>
+        </div>
       </transition-group>
     </div>
 
@@ -1590,6 +1889,14 @@ onUnmounted(() => {
         </template>
       </template>
 
+      <!-- Empty state when active items exist in list, but current meta-filter yields 0 items -->
+      <div v-if="groupedActiveItems.length === 0 && openActiveItems.length > 0" class="empty-filter-state">
+        <div class="empty-filter-icon">🔍</div>
+        <p class="empty-filter-title">Keine Artikel mit „{{ getFilterLabel(activeMetaFilter) }}“</p>
+        <p class="empty-filter-desc">In dieser Liste gibt es keine offenen Artikel mit diesem Tag.</p>
+        <button class="ks-btn-pill-secondary" @click="clearMetaFilter">Alle Artikel anzeigen ({{ totalOpenCount }})</button>
+      </div>
+
       <div v-if="groupedActiveItems.length === 0 && completedItems.length === 0" class="empty-state">
         <svg viewBox="0 0 24 24"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4Z"/></svg>
         <p>Deine Liste ist leer!</p>
@@ -1642,9 +1949,69 @@ onUnmounted(() => {
       </section>
     </div>
 
-    <!-- Add Item Trigger -->
+    <!-- Add Item Trigger & Thumb-Zone Meta-Tag Filter Bar -->
     <div class="input-container">
-        <div style="display: flex; gap: 8px; width: 100%; max-width: var(--ks-page-width);">
+      <div class="bottom-action-inner">
+        <!-- Thumb-Zone Meta-Tag Filter Bar -->
+        <transition name="filter-slide">
+          <div v-if="hasAnyMetaTags" class="ks-thumb-filter-bar">
+            <div class="ks-thumb-filter-scroll">
+              <!-- Alle Pill -->
+              <button
+                class="ks-thumb-filter-pill"
+                :class="{ active: activeMetaFilter === 'all' }"
+                @click="setMetaFilter('all')"
+              >
+                <span class="pill-label">Alle</span>
+                <span class="pill-count">{{ totalOpenCount }}</span>
+              </button>
+
+              <!-- Dringend Pill (only if > 0) -->
+              <button
+                v-if="metaTagCounts.urgent > 0"
+                class="ks-thumb-filter-pill pill-urgent"
+                :class="{ active: activeMetaFilter === 'urgent' }"
+                @click="toggleMetaFilter('urgent')"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                </svg>
+                <span class="pill-label">Dringend</span>
+                <span class="pill-count">{{ metaTagCounts.urgent }}</span>
+              </button>
+
+              <!-- Angebot Pill (only if > 0) -->
+              <button
+                v-if="metaTagCounts.offer > 0"
+                class="ks-thumb-filter-pill pill-offer"
+                :class="{ active: activeMetaFilter === 'offer' }"
+                @click="toggleMetaFilter('offer')"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
+                </svg>
+                <span class="pill-label">Angebot</span>
+                <span class="pill-count">{{ metaTagCounts.offer }}</span>
+              </button>
+
+              <!-- Wenn's passt Pill (only if > 0) -->
+              <button
+                v-if="metaTagCounts.optional > 0"
+                class="ks-thumb-filter-pill pill-optional"
+                :class="{ active: activeMetaFilter === 'optional' }"
+                @click="toggleMetaFilter('optional')"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2zm4 5h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                </svg>
+                <span class="pill-label">Wenn's passt</span>
+                <span class="pill-count">{{ metaTagCounts.optional }}</span>
+              </button>
+            </div>
+          </div>
+        </transition>
+
+        <div style="display: flex; gap: 8px; width: 100%;">
             <button class="add-trigger-btn" @click="openAddModal" style="flex: 1;">
                 <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
                 <span>Artikel hinzufügen</span>
@@ -1656,6 +2023,7 @@ onUnmounted(() => {
                 <span>Barcode</span>
             </button>
         </div>
+      </div>
     </div>
 
     <!-- Confirm Modal -->
@@ -2402,5 +2770,214 @@ onUnmounted(() => {
   color: #38bdf8;
   font-weight: 600;
   border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+/* KEEP AWAKE BUTTON */
+.keep-awake-btn {
+  color: var(--ks-text-muted);
+  position: relative;
+  transition: all 0.25s ease;
+}
+.keep-awake-btn.is-active {
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+/* SWITCH PILL (LISTEN OPTIONEN) */
+.ks-switch-pill {
+  width: 44px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  position: relative;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  flex-shrink: 0;
+}
+.ks-switch-pill.is-on {
+  background: #f59e0b;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+.ks-switch-thumb {
+  width: 18px;
+  height: 18px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.2s ease;
+}
+.ks-switch-pill.is-on .ks-switch-thumb {
+  transform: translateX(20px);
+}
+
+/* THUMB-ZONE META-TAG FILTER BAR */
+.list-view-layout.has-meta-filters {
+  padding-bottom: 210px;
+}
+
+.bottom-action-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: var(--ks-page-width);
+}
+
+.ks-thumb-filter-bar {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.ks-thumb-filter-scroll {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  width: 100%;
+}
+.ks-thumb-filter-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.ks-thumb-filter-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 9999px;
+  background: rgba(30, 41, 59, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--ks-text-muted);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+}
+
+.ks-thumb-filter-pill:active {
+  transform: scale(0.95);
+}
+
+.ks-thumb-filter-pill.active {
+  background: var(--ks-primary);
+  color: #ffffff;
+  border-color: var(--ks-primary);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+
+.ks-thumb-filter-pill.pill-urgent.active {
+  background: #f43f5e;
+  border-color: #f43f5e;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.45);
+}
+
+.ks-thumb-filter-pill.pill-offer.active {
+  background: #f59e0b;
+  border-color: #f59e0b;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+}
+
+.ks-thumb-filter-pill.pill-optional.active {
+  background: #10b981;
+  border-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+}
+
+.pill-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  color: inherit;
+}
+
+.ks-thumb-filter-pill.active .pill-count {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.filter-slide-enter-active,
+.filter-slide-leave-active {
+  transition: all 0.25s ease;
+}
+.filter-slide-enter-from,
+.filter-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* EMPTY FILTER STATE */
+.empty-filter-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 16px;
+  text-align: center;
+}
+.empty-filter-icon {
+  font-size: 36px;
+  margin-bottom: 12px;
+}
+.empty-filter-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ks-text);
+  margin: 0 0 4px;
+}
+.empty-filter-desc {
+  font-size: 13px;
+  color: var(--ks-text-muted);
+  margin: 0 0 20px;
+}
+
+/* SNACKBAR VARIANTS */
+.ks-snackbar--info {
+  background: rgba(30, 41, 59, 0.95);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #fbbf24;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+.ks-snackbar--filter {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+.ks-filter-notice-btn {
+  background: var(--ks-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
 }
 </style>
