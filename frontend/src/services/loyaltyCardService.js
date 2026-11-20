@@ -1,32 +1,13 @@
 import { db } from '../db/index.js';
 import { apiUrl } from '../config/api.js';
 import { isOnline } from './syncService.js';
+import { maskCardCode, validateEan13 } from '../utils/barcodeValidation.js';
+
+export { maskCardCode, validateEan13 };
 
 /**
  * Service for offline-first loyalty cards (1:1 per user & list).
  */
-
-export function maskCardCode(code) {
-  if (!code) return '';
-  const trimmed = String(code).trim();
-  if (trimmed.length <= 4) {
-    return trimmed;
-  }
-  const last4 = trimmed.slice(-4);
-  return `•••• ${last4}`;
-}
-
-export function validateEan13(code) {
-  const clean = String(code).replace(/\s+/g, '');
-  if (!/^\d{13}$/.test(clean)) return false;
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    const digit = parseInt(clean[i], 10);
-    sum += i % 2 === 0 ? digit : digit * 3;
-  }
-  const checkDigit = (10 - (sum % 10)) % 10;
-  return checkDigit === parseInt(clean[12], 10);
-}
 
 export function detectCodeFormat(code) {
   const clean = String(code).trim();

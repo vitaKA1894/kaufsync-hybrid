@@ -1,5 +1,5 @@
 import { ref } from 'vue';
-import { db } from '../db/index';
+import { db } from '../db/index.js';
 import { apiUrl } from '../config/api';
 
 // Reactive states for UI

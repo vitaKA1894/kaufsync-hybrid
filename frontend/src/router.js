@@ -93,6 +93,15 @@ router.beforeEach((to, from, next) => {
   const status = localStorage.getItem('status');
 
   if (to.name === 'ShareTarget') {
+    if (to.query.type === 'image') {
+      if (isLoggedIn) {
+        next('/');
+      } else {
+        next('/login');
+      }
+      return;
+    }
+
     const rawUrl = to.query.url || '';
     const rawText = to.query.text || '';
     const title = to.query.title || '';

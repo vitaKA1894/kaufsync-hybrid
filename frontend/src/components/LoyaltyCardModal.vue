@@ -174,11 +174,6 @@ onBeforeUnmount(() => {
               <span class="ks-loyalty-tag">Bonuskarte</span>
               <h2 class="ks-loyalty-title">{{ listName || 'Einkaufsliste' }}</h2>
             </div>
-            <button class="ks-loyalty-close-btn" @click="handleClose" aria-label="Schließen">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                <path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-              </svg>
-            </button>
           </div>
 
           <!-- Pure White High-Contrast Scan Surface -->
@@ -285,25 +280,6 @@ onBeforeUnmount(() => {
   font-size: 19px;
   font-weight: 700;
   color: #f8fafc;
-}
-
-.ks-loyalty-close-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: #cbd5e1;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.ks-loyalty-close-btn:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
 }
 
 /* Pure White High-Contrast Scan Surface */

@@ -10,15 +10,12 @@ import {
   triggerTestNotification
 } from '../utils/notificationService';
 import { isWakeLockSupported } from '../utils/wakeLockService';
-import { isNativeScannerAvailable, scanBarcodeNative } from '../utils/nativeBarcode';
-import BarcodeScanner from '../components/BarcodeScanner.vue';
+import StoreLogo from '../components/StoreLogo.vue';
+import LoyaltyCardEditModal from '../components/LoyaltyCardEditModal.vue';
 import {
   getAllCards,
-  saveCard,
   deleteCard,
-  maskCardCode,
-  validateEan13,
-  detectCodeFormat
+  maskCardCode
 } from '../services/loyaltyCardService';
 
 const router = useRouter();
@@ -312,12 +309,6 @@ const isLoadingListsAndCards = ref(false);
 
 const showCardEditModal = ref(false);
 const selectedCardList = ref(null);
-const cardInputCode = ref('');
-const cardInputFormat = ref('CODE_128');
-const cardInputError = ref('');
-const isSavingCard = ref(false);
-const showWebScanner = ref(false);
-
 const showDeleteCardConfirm = ref(false);
 const cardToDeleteList = ref(null);
 
@@ -360,79 +351,18 @@ const loadShoppingListsAndCards = async () => {
 
 const openCardModal = (list) => {
   selectedCardList.value = list;
-  cardInputError.value = '';
-  const existing = loyaltyCardsMap.value[list.id];
-  if (existing) {
-    cardInputCode.value = existing.code_value || '';
-    cardInputFormat.value = existing.code_format || 'CODE_128';
-  } else {
-    cardInputCode.value = '';
-    cardInputFormat.value = 'EAN_13';
-  }
   showCardEditModal.value = true;
 };
 
-const startScanForCard = async () => {
-  cardInputError.value = '';
-  try {
-    const nativeAvail = await isNativeScannerAvailable();
-    if (nativeAvail) {
-      const scannedCode = await scanBarcodeNative();
-      if (scannedCode) {
-        cardInputCode.value = scannedCode;
-        cardInputFormat.value = detectCodeFormat(scannedCode);
-      }
-    } else {
-      showWebScanner.value = true;
-    }
-  } catch (err) {
-    console.warn('Scan cancelled or failed:', err);
-    cardInputError.value = 'Scan abgebrochen oder Kamera nicht verfügbar.';
-  }
-};
-
-const handleWebCardScan = (scanned) => {
-  showWebScanner.value = false;
-  if (scanned) {
-    cardInputCode.value = scanned;
-    cardInputFormat.value = detectCodeFormat(scanned);
-  }
-};
-
-const handleCodeInput = () => {
-  cardInputError.value = '';
-  if (cardInputCode.value && cardInputCode.value.length >= 8) {
-    cardInputFormat.value = detectCodeFormat(cardInputCode.value);
-  }
-};
-
-const saveCardSubmit = async () => {
-  if (!cardInputCode.value || !cardInputCode.value.trim()) {
-    cardInputError.value = 'Bitte gib eine Kartennummer ein oder scanne den Barcode.';
-    return;
-  }
-  const cleanCode = cardInputCode.value.trim();
-  const format = cardInputFormat.value || detectCodeFormat(cleanCode);
-
-  if (format === 'EAN_13' && !validateEan13(cleanCode)) {
-    cardInputError.value = 'Ungültige EAN-13 Prüfziffer. Bitte Eingabe prüfen oder Format CODE_128 wählen.';
-    return;
-  }
-
-  isSavingCard.value = true;
-  cardInputError.value = '';
-  try {
-    const token = localStorage.getItem('token');
-    const saved = await saveCard(selectedCardList.value.id, cleanCode, format, token);
-    loyaltyCardsMap.value[selectedCardList.value.id] = saved;
-    showCardEditModal.value = false;
+const handleCardSaved = (savedCard) => {
+  if (selectedCardList.value && savedCard) {
+    loyaltyCardsMap.value[selectedCardList.value.id] = savedCard;
     successMessage.value = `Bonuskarte für '${selectedCardList.value.name}' gespeichert! 💳`;
-    setTimeout(() => { if (successMessage.value && successMessage.value.includes('Bonuskarte')) successMessage.value = ''; }, 3000);
-  } catch (err) {
-    cardInputError.value = err.message || 'Fehler beim Speichern der Bonuskarte.';
-  } finally {
-    isSavingCard.value = false;
+    setTimeout(() => {
+      if (successMessage.value && successMessage.value.includes('Bonuskarte')) successMessage.value = '';
+    }, 3000);
   }
+  showCardEditModal.value = false;
 };
 
 const confirmDeleteCard = (list) => {
@@ -499,22 +429,10 @@ onMounted(async () => {
           <div
             class="hero-badge"
             :class="{ 'hero-badge--admin': user.is_admin }"
-            @click="user.is_admin ? router.push('/admin') : null"
-            :style="user.is_admin ? 'cursor: pointer;' : ''"
-            :title="user.is_admin ? 'Admin Dashboard öffnen' : ''"
           >
             <span v-if="user.is_admin">⚡ Admin</span>
             <span v-else>👤 Mitglied</span>
           </div>
-        </div>
-
-        <!-- DEDIZIERTER ADMIN BUTTON IN HERO CARD -->
-        <div v-if="user.is_admin" class="hero-admin-bar">
-          <button @click="router.push('/admin')" class="hero-admin-action-btn">
-            <span class="admin-icon">⚡</span>
-            <span class="admin-btn-text">Admin Dashboard öffnen</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" class="admin-arrow"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
-          </button>
         </div>
       </div>
 
@@ -604,15 +522,10 @@ onMounted(async () => {
           </div>
         </section>
 
-        <!-- BONUSKARTEN (1:1 PRO LISTE) -->
+        <!-- BONUSKARTEN -->
         <section class="page-panel settings-card" style="margin-top: 16px;">
           <div class="card-head">
-            <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-              <h3 style="margin: 0;">Bonuskarten</h3>
-              <span class="status-badge status-badge--active" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24; border-color: rgba(245, 158, 11, 0.3);">
-                1:1 pro Liste
-              </span>
-            </div>
+            <h3 style="margin: 0;">Bonuskarten</h3>
             <p class="settings-subtext">Hinterlege für deine Listen persönliche Kundenkarten. An der Kasse mit 1 Tap abrufbar – 100% offline.</p>
           </div>
 
@@ -628,17 +541,13 @@ onMounted(async () => {
               class="loyalty-list-row"
             >
               <div class="loyalty-list-info">
-                <div class="loyalty-list-icon-badge">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                    <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
-                  </svg>
-                </div>
+                <StoreLogo :name="list.name" :size="36" />
                 <div class="loyalty-list-text">
                   <div class="loyalty-list-name">{{ list.name }}</div>
                   <div class="loyalty-list-status">
                     <span v-if="loyaltyCardsMap[list.id]" class="loyalty-status-badge has-card">
-                      ✓ {{ maskCardCode(loyaltyCardsMap[list.id].code_value) }}
-                      <span class="loyalty-fmt-tag">({{ loyaltyCardsMap[list.id].code_format }})</span>
+                      <span class="status-check">✓</span>
+                      <span class="card-digits">{{ maskCardCode(loyaltyCardsMap[list.id].code_value) }}</span>
                     </span>
                     <span v-else class="loyalty-status-badge no-card">
                       Keine Karte hinterlegt
@@ -1021,103 +930,37 @@ onMounted(async () => {
       </div>
     </div>
 
-    <!-- MODAL: BONUSKARTE HINTERLEGEN / ÄNDERN -->
-    <div v-if="showCardEditModal" class="ks-modal-overlay" @click.self="showCardEditModal = false">
-      <div class="ks-modal-card" style="max-width: 440px;">
-        <div class="ks-modal-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-          <div>
-            <h3 style="margin: 0; font-size: 18px; color: #f8fafc;">Bonuskarte: {{ selectedCardList?.name }}</h3>
-            <p style="margin: 2px 0 0; font-size: 13px; color: #94a3b8;">Scanne den Barcode oder gib die Nummer ein</p>
+    <!-- DEDICATED STANDALONE MODAL: BONUSKARTE HINTERLEGEN / ÄNDERN -->
+    <LoyaltyCardEditModal
+      :is-open="showCardEditModal"
+      :list="selectedCardList"
+      :existing-card="selectedCardList ? loyaltyCardsMap[selectedCardList.id] : null"
+      @close="showCardEditModal = false"
+      @saved="handleCardSaved"
+    />
+
+    <!-- CONFIRM DELETE CARD MODAL (TELEPORTED TO BODY) -->
+    <teleport to="body">
+      <div v-if="showDeleteCardConfirm" class="ks-confirm-modal-overlay" @click.self="showDeleteCardConfirm = false">
+        <div class="ks-confirm-modal-card">
+          <div class="ks-confirm-modal-header">
+            <StoreLogo v-if="cardToDeleteList" :name="cardToDeleteList.name" :size="32" />
+            <h3 class="ks-confirm-title">Bonuskarte entfernen?</h3>
           </div>
-          <button class="ks-modal-close" @click="showCardEditModal = false" aria-label="Schließen">✕</button>
-        </div>
-
-        <div v-if="cardInputError" class="ks-error-banner" style="margin-bottom: 14px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); border-radius: 10px; padding: 10px 14px; color: #fca5a5; font-size: 13px;">
-          {{ cardInputError }}
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
-          <!-- Scan Button -->
-          <button
-            class="ks-btn-pill-secondary full-width"
-            style="border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; background: rgba(245, 158, 11, 0.1); display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px;"
-            @click="startScanForCard"
-          >
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-              <path d="M3 4h4v2H5v2H3V4zm2 16H3v-4h2v2h2v2zm16-4h-2v2h-2v2h4v-4zm-2-12h-2V2h4v4h-2V4zM7 6h2v12H7V6zm3 0h1v12h-1V6zm2 0h3v12h-3V6zm4 0h1v12h-1V6zm2 0h1v12h-1V6z"/>
-            </svg>
-            <span>Barcode / QR-Code scannen</span>
-          </button>
-
-          <div style="display: flex; align-items: center; gap: 10px; margin: 4px 0;">
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-            <span style="font-size: 12px; color: #64748b; text-transform: uppercase;">oder manuell</span>
-            <div style="flex: 1; height: 1px; background: rgba(255,255,255,0.1);"></div>
-          </div>
-
-          <div class="ks-field">
-            <input
-              type="text"
-              v-model="cardInputCode"
-              placeholder=" "
-              @input="handleCodeInput"
-            />
-            <label>Kartennummer / Barcode-Code</label>
-          </div>
-
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px;">Code-Format</label>
-            <select v-model="cardInputFormat" style="background: #1e293b; color: #f8fafc; border: 1px solid rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; width: 100%; font-size: 14px;">
-              <option value="EAN_13">EAN-13 (13 Ziffern, Standard Supermarkt)</option>
-              <option value="EAN_8">EAN-8 (8 Ziffern)</option>
-              <option value="CODE_128">Code-128 (Universell alphanumerisch)</option>
-              <option value="CODE_39">Code-39</option>
-              <option value="UPC_A">UPC-A (12 Ziffern)</option>
-              <option value="QR_CODE">QR-Code (2D)</option>
-            </select>
-          </div>
-
-          <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button
-              class="ks-btn-pill-secondary"
-              style="flex: 1;"
-              @click="showCardEditModal = false"
-            >
+          <p class="ks-confirm-desc">
+            Möchtest du die hinterlegte Bonuskarte für <strong class="ks-highlight-name">„{{ cardToDeleteList?.name }}“</strong> wirklich löschen?
+          </p>
+          <div class="ks-confirm-actions">
+            <button class="ks-btn-modal-cancel" @click="showDeleteCardConfirm = false">
               Abbrechen
             </button>
-            <button
-              class="ks-btn-pill-primary"
-              style="flex: 1;"
-              :disabled="isSavingCard"
-              @click="saveCardSubmit"
-            >
-              {{ isSavingCard ? 'Speichern...' : 'Speichern' }}
+            <button class="ks-btn-modal-danger" @click="executeDeleteCard">
+              Löschen
             </button>
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- CONFIRM DELETE CARD MODAL -->
-    <div v-if="showDeleteCardConfirm" class="ks-modal-overlay" @click.self="showDeleteCardConfirm = false">
-      <div class="ks-modal-card" style="max-width: 380px;">
-        <h3 style="margin: 0 0 8px; color: #f8fafc;">Bonuskarte entfernen?</h3>
-        <p style="margin: 0 0 16px; font-size: 14px; color: #94a3b8;">
-          Möchtest du die hinterlegte Bonuskarte für „{{ cardToDeleteList?.name }}“ wirklich löschen?
-        </p>
-        <div style="display: flex; gap: 10px;">
-          <button class="ks-btn-pill-secondary" style="flex: 1;" @click="showDeleteCardConfirm = false">Abbrechen</button>
-          <button class="ks-btn-pill-danger" style="flex: 1;" @click="executeDeleteCard">Löschen</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- WEB SCANNER MODAL -->
-    <BarcodeScanner
-      v-if="showWebScanner"
-      @close="showWebScanner = false"
-      @scan="handleWebCardScan"
-    />
+    </teleport>
   </div>
 </template>
 
@@ -1213,49 +1056,6 @@ onMounted(async () => {
   background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
   border-color: rgba(56, 189, 248, 0.35);
-}
-.hero-badge--admin:hover {
-  background: rgba(56, 189, 248, 0.25);
-  transform: translateY(-1px);
-}
-
-.hero-admin-bar {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 12px;
-  margin-top: -2px;
-}
-
-.hero-admin-action-btn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  background: rgba(56, 189, 248, 0.1);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: 12px;
-  color: #38bdf8;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.hero-admin-action-btn:hover {
-  background: rgba(56, 189, 248, 0.18);
-  border-color: rgba(56, 189, 248, 0.4);
-}
-.hero-admin-action-btn:active {
-  transform: scale(0.985);
-}
-.admin-icon {
-  font-size: 15px;
-}
-.admin-btn-text {
-  flex: 1;
-  text-align: left;
-}
-.admin-arrow {
-  opacity: 0.8;
 }
 
 /* SEGMENTED PILL NAVIGATION (3 TABS, FIT AUF JEDEM DISPLAY) */
@@ -1619,17 +1419,6 @@ onMounted(async () => {
   min-width: 0;
   flex: 1;
 }
-.loyalty-list-icon-badge {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: rgba(245, 158, 11, 0.15);
-  color: #f59e0b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
 .loyalty-list-text {
   display: flex;
   flex-direction: column;
@@ -1650,16 +1439,23 @@ onMounted(async () => {
 .loyalty-status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   font-weight: 500;
+  white-space: nowrap;
 }
 .loyalty-status-badge.has-card {
+  color: #f8fafc;
+}
+.status-check {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 13px;
+}
+.card-digits {
   color: #38bdf8;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
-.loyalty-fmt-tag {
-  color: #94a3b8;
-  font-size: 10px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
 }
 .loyalty-status-badge.no-card {
   color: #64748b;
@@ -1715,5 +1511,111 @@ onMounted(async () => {
 }
 .ks-btn-action-delete:hover {
   background: rgba(239, 68, 68, 0.25);
+}
+
+/* CONFIRM DELETE CARD MODAL */
+.ks-confirm-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  animation: ksFadeIn 0.2s ease-out;
+}
+
+.ks-confirm-modal-card {
+  background: #1e293b;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 20px;
+  max-width: 400px;
+  width: 100%;
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  animation: ksSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ks-confirm-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ks-confirm-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.ks-confirm-desc {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #cbd5e1;
+}
+
+.ks-highlight-name {
+  color: #f8fafc;
+}
+
+.ks-confirm-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ks-btn-modal-cancel {
+  flex: 1;
+  padding: 12px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ks-btn-modal-cancel:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+
+.ks-btn-modal-danger {
+  flex: 1;
+  padding: 12px;
+  border-radius: 9999px;
+  background: #ef4444;
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.35);
+  transition: all 0.15s ease;
+}
+
+.ks-btn-modal-danger:hover {
+  background: #dc2626;
+  transform: translateY(-1px);
+}
+
+@keyframes ksFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes ksSlideUp {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style>

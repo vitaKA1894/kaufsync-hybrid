@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl, wsUrl } from './config/api';
 import { isOnline } from './services/syncService';
+import ShareLoyaltyCardModal from './components/ShareLoyaltyCardModal.vue';
 import {
   showIncomingNotification,
   ensurePushSubscription,
@@ -179,6 +180,31 @@ const onStorageChange = (e) => {
   }
 };
 
+// Shared image import (Loyalty Card from OS share sheet)
+const showShareCardModal = ref(false);
+const sharedImageData = ref(null);
+const sharedImagePath = ref(null);
+
+const handleIncomingShareImage = (detail) => {
+  if (!detail) return;
+  sharedImageData.value = detail.dataUrl || detail.image || null;
+  sharedImagePath.value = detail.nativePath || null;
+  if (sharedImageData.value || sharedImagePath.value) {
+    showShareCardModal.value = true;
+  }
+};
+
+const onSharedCardSaved = ({ list, card }) => {
+  showShareCardModal.value = false;
+  sharedImageData.value = null;
+  sharedImagePath.value = null;
+  triggerInAppToast({
+    title: 'Bonuskarte gespeichert! 💳',
+    body: `Kundenkarte wurde für „${list.name}“ hinterlegt.`,
+    url: `/list/${list.id}`
+  });
+};
+
 onMounted(() => {
   // Listen for native Android SEND intent dispatched from MainActivity
   window.addEventListener('appShareTarget', (e) => {
@@ -186,6 +212,18 @@ onMounted(() => {
       handleIncomingShare(e.detail.text);
     }
   });
+
+  // Listen for native Android image SEND intent
+  window.addEventListener('appShareTargetImage', (e) => {
+    if (e.detail) {
+      handleIncomingShareImage(e.detail);
+    }
+  });
+
+  if (window.__pendingShareImage) {
+    handleIncomingShareImage(window.__pendingShareImage);
+    window.__pendingShareImage = null;
+  }
 
   // Listen for deep link URLs opened via Capacitor App plugin
   try {
@@ -262,6 +300,15 @@ onUnmounted(() => {
     </transition>
 
     <router-view />
+
+    <!-- GLOBAL SHARE TARGET: LOYALTY CARD IMPORT MODAL -->
+    <ShareLoyaltyCardModal
+      v-if="showShareCardModal"
+      :shared-image="sharedImageData"
+      :shared-image-path="sharedImagePath"
+      @close="showShareCardModal = false; sharedImageData = null; sharedImagePath = null;"
+      @saved="onSharedCardSaved"
+    />
   </div>
 </template>
 
