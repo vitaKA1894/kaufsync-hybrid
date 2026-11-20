@@ -8,6 +8,8 @@ import ConfirmModal from '../components/ConfirmModal.vue';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
 import Sortable from 'sortablejs';
 import QrcodeVue from 'qrcode.vue';
+import LoyaltyCardModal from '../components/LoyaltyCardModal.vue';
+import { getCardForList } from '../services/loyaltyCardService';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import SyncStatusBadge from '../components/SyncStatusBadge.vue';
 import { App as CapApp } from '@capacitor/app';
@@ -80,8 +82,19 @@ const confirmAction = ref(null);
 const successMessage = ref('');
 const infoToastMessage = ref('');
 const isKeepAwakeSupported = ref(isWakeLockSupported());
-const keepAwakeEnabled = ref(false); // User intent
-const keepAwakeActive = ref(false);  // Actual system lock
+const keepAwakeActive = ref(false);
+
+const isUserKeepAwakeSettingEnabled = () => {
+  return localStorage.getItem('ks_keep_screen_awake') === 'true' || Boolean(currentUser.value?.keep_screen_awake);
+};
+
+// Bonuskarte für die aktuell geöffnete Liste
+const currentListLoyaltyCard = ref(null);
+const showLoyaltyModal = ref(false);
+const openLoyaltyCardModal = () => {
+  showLoyaltyModal.value = true;
+};
+
 const isShoppingSessionActive = ref(false);
 
 const activeMetaFilter = ref('all'); // 'all', 'urgent', 'offer', 'optional'
@@ -112,10 +125,44 @@ let ws = null;
 let wsReconnectTimer = null;
 let isViewUnmounted = false;
 
-const isCompactView = ref(localStorage.getItem('ks_compact_view') === 'true');
-const toggleCompactView = () => {
-  isCompactView.value = !isCompactView.value;
-  localStorage.setItem('ks_compact_view', isCompactView.value);
+const savedViewMode = localStorage.getItem('ks_view_mode');
+const legacyCompact = localStorage.getItem('ks_compact_view') === 'true';
+const viewMode = ref(savedViewMode || (legacyCompact ? 'compact' : 'tiles')); // 'tiles' | 'compact' | 'rows'
+
+const isCompactView = computed(() => viewMode.value === 'compact');
+
+const setViewMode = (mode) => {
+  viewMode.value = mode;
+  localStorage.setItem('ks_view_mode', mode);
+  localStorage.setItem('ks_compact_view', String(mode === 'compact'));
+};
+
+const cycleViewMode = () => {
+  if (viewMode.value === 'tiles') {
+    setViewMode('compact');
+  } else if (viewMode.value === 'compact') {
+    setViewMode('rows');
+  } else {
+    setViewMode('tiles');
+  }
+};
+
+const getViewModeLabel = (mode) => {
+  switch (mode) {
+    case 'compact': return 'Kompakt';
+    case 'rows': return 'Zeilen';
+    case 'tiles':
+    default: return 'Kacheln';
+  }
+};
+
+const getViewModeDesc = (mode) => {
+  switch (mode) {
+    case 'compact': return 'Kompakte Liste';
+    case 'rows': return 'Zeilenansicht';
+    case 'tiles':
+    default: return 'Kachelansicht';
+  }
 };
 
 const formatCategoryName = (name) => {
@@ -431,6 +478,8 @@ const loadItems = async () => {
       const lists = JSON.parse(cachedData);
       currentList.value = lists.find(l => l.id === listId) || currentList.value;
     }
+    // Lade Bonuskarte aus lokalem Dexie-Store (0 ms Offline-Verfügbarkeit)
+    currentListLoyaltyCard.value = await getCardForList(listId);
   } catch (e) {
     console.warn('Local read error:', e);
   }
@@ -715,77 +764,23 @@ const loadChangelog = async () => {
 };
 
 // --- KEEP SCREEN AWAKE (IN-STORE FOCUS) ---
-const enableKeepAwake = async (silent = false) => {
-  if (!isKeepAwakeSupported.value) {
-    if (!silent) {
-      infoToastMessage.value = 'Bildschirm wachhalten wird von diesem Gerät oder Browser nicht unterstützt.';
-      setTimeout(() => { infoToastMessage.value = ''; }, 3500);
-    }
-    return false;
-  }
-
-  keepAwakeEnabled.value = true;
-  const res = await requestScreenWakeLock({
-    onRelease: () => {
-      keepAwakeActive.value = false;
-    }
-  });
-
-  if (res.success) {
-    keepAwakeActive.value = true;
-    if (!silent) {
-      infoToastMessage.value = 'Bildschirm bleibt während des Einkaufs aktiv';
-      setTimeout(() => {
-        if (infoToastMessage.value && infoToastMessage.value.includes('aktiv')) {
-          infoToastMessage.value = '';
-        }
-      }, 3000);
-    }
-    return true;
-  } else {
-    keepAwakeActive.value = false;
-    keepAwakeEnabled.value = false;
-    if (!silent) {
-      infoToastMessage.value = res.reason === 'denied'
-        ? 'Bildschirm wachhalten wurde verweigert (z. B. Energiesparmodus aktiv).'
-        : 'Bildschirm wachhalten konnte nicht aktiviert werden.';
-      setTimeout(() => { infoToastMessage.value = ''; }, 3500);
-    }
-    return false;
-  }
-};
-
-const disableKeepAwake = async (silent = false) => {
-  keepAwakeEnabled.value = false;
-  await releaseScreenWakeLock();
-  keepAwakeActive.value = false;
-  if (!silent) {
-    infoToastMessage.value = 'Automatische Bildschirmsperre wieder aktiv';
-    setTimeout(() => {
-      if (infoToastMessage.value && infoToastMessage.value.includes('Sperre')) {
-        infoToastMessage.value = '';
-      }
-    }, 3000);
-  }
-};
-
-const toggleKeepAwake = async () => {
-  if (keepAwakeActive.value) {
-    await disableKeepAwake();
-  } else {
-    await enableKeepAwake();
-  }
-};
-
 const handleWakeLockVisibility = async () => {
-  if (document.visibilityState === 'visible' && keepAwakeEnabled.value && !isScreenWakeLockActive()) {
-    const res = await requestScreenWakeLock({
-      onRelease: () => {
-        keepAwakeActive.value = false;
+  if (!isKeepAwakeSupported.value) return;
+  if (document.visibilityState === 'visible' && isUserKeepAwakeSettingEnabled()) {
+    if (!isScreenWakeLockActive()) {
+      const res = await requestScreenWakeLock({
+        onRelease: () => {
+          keepAwakeActive.value = false;
+        }
+      });
+      if (res.success) {
+        keepAwakeActive.value = true;
       }
-    });
-    if (res.success) {
-      keepAwakeActive.value = true;
+    }
+  } else {
+    if (isScreenWakeLockActive()) {
+      await releaseScreenWakeLock();
+      keepAwakeActive.value = false;
     }
   }
 };
@@ -807,11 +802,6 @@ const notifyShoppingStarted = async () => {
       successMessage.value = 'Gruppenmitglieder benachrichtigt: Du gehst einkaufen! 🛒';
       setTimeout(() => successMessage.value = '', 3500);
       showSettingsSheet.value = false;
-
-      // Automatically enable keep awake along with shopping action
-      if (isKeepAwakeSupported.value && !keepAwakeActive.value) {
-        await enableKeepAwake(true);
-      }
     } else {
       const err = await response.json().catch(() => ({}));
       errorMessage.value = err.detail || 'Fehler beim Senden der Benachrichtigung.';
@@ -835,12 +825,8 @@ const finishShopping = async () => {
   } catch (e) {}
 
   isShoppingSessionActive.value = false;
-  // Automatically disable keep awake
-  if (keepAwakeActive.value) {
-    await disableKeepAwake(true);
-  }
   showSettingsSheet.value = false;
-  successMessage.value = 'Einkauf abgeschlossen! ✅ Bildschirm-Wachhaltefunktion beendet.';
+  successMessage.value = 'Einkauf abgeschlossen! ✅';
   setTimeout(() => {
     if (successMessage.value && successMessage.value.includes('Einkauf abgeschlossen')) {
       successMessage.value = '';
@@ -988,6 +974,15 @@ const loadCurrentUser = async () => {
     });
     if (res.ok) {
       currentUser.value = await res.json();
+      if (currentUser.value?.keep_screen_awake !== undefined) {
+        localStorage.setItem('ks_keep_screen_awake', String(currentUser.value.keep_screen_awake));
+        if (currentUser.value.keep_screen_awake && isKeepAwakeSupported.value && !isScreenWakeLockActive()) {
+          const wRes = await requestScreenWakeLock({
+            onRelease: () => { keepAwakeActive.value = false; }
+          });
+          if (wRes.success) keepAwakeActive.value = true;
+        }
+      }
     }
   } catch (err) {
     console.error('Fehler beim Laden des Benutzers', err);
@@ -1344,6 +1339,15 @@ onMounted(() => {
     });
   } catch (e) {}
 
+  // Auto-acquire wake lock on list open IF user explicitly enabled it in settings
+  if (isUserKeepAwakeSettingEnabled() && isKeepAwakeSupported.value && !isScreenWakeLockActive()) {
+    requestScreenWakeLock({
+      onRelease: () => { keepAwakeActive.value = false; }
+    }).then(res => {
+      if (res.success) keepAwakeActive.value = true;
+    });
+  }
+
   setTimeout(() => {
     isInitialLoad.value = false;
   }, 400);
@@ -1368,7 +1372,6 @@ onMounted(() => {
 onUnmounted(() => {
   isViewUnmounted = true;
   document.removeEventListener('visibilitychange', handleWakeLockVisibility);
-  keepAwakeEnabled.value = false;
   releaseScreenWakeLock();
   keepAwakeActive.value = false;
   if (filterNoticeTimer) {
@@ -1400,18 +1403,6 @@ onUnmounted(() => {
         <h1 class="list-title">{{ currentList ? currentList.name : 'Laden...' }}</h1>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
-        <button
-          v-if="isKeepAwakeSupported"
-          class="ks-icon-btn keep-awake-btn"
-          :class="{ 'is-active': keepAwakeActive }"
-          @click.stop="toggleKeepAwake"
-          :title="keepAwakeActive ? 'Bildschirm wachhalten: Aktiv' : 'Bildschirm wachhalten: Inaktiv'"
-          :aria-label="keepAwakeActive ? 'Bildschirm wachhalten: Aktiv' : 'Bildschirm wachhalten: Inaktiv'"
-        >
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-            <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
-          </svg>
-        </button>
         <SyncStatusBadge />
         <button class="ks-icon-btn" @click.stop="showSettingsSheet = !showSettingsSheet" aria-label="Listen-Optionen">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -1449,7 +1440,7 @@ onUnmounted(() => {
             </div>
             <div class="settings-menu-content">
               <div class="settings-menu-title">„Ich gehe einkaufen!“</div>
-              <div class="settings-menu-desc">Benachrichtige die Gruppe & schalte Bildschirm auf aktiv</div>
+              <div class="settings-menu-desc">Benachrichtige die Gruppe über deinen Einkauf</div>
             </div>
             <div class="settings-menu-arrow">›</div>
           </button>
@@ -1461,27 +1452,10 @@ onUnmounted(() => {
             </div>
             <div class="settings-menu-content">
               <div class="settings-menu-title">Einkauf abgeschlossen</div>
-              <div class="settings-menu-desc">Einkauf beenden & Bildschirmsperre freigeben</div>
+              <div class="settings-menu-desc">Einkauf beenden & Benachrichtigung senden</div>
             </div>
             <span class="settings-menu-badge" style="background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: rgba(16, 185, 129, 0.35);">Aktiv</span>
           </button>
-
-          <!-- BILDSCHIRM WACHHALTEN TOGGLE -->
-          <div class="settings-menu-item" style="cursor: pointer;" @click="toggleKeepAwake">
-            <div class="settings-menu-icon" :style="{ background: keepAwakeActive ? 'rgba(245, 158, 11, 0.2)' : 'rgba(255, 255, 255, 0.05)', color: keepAwakeActive ? '#fbbf24' : 'var(--ks-text-muted)' }">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                <path d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zM2 13h2c.55 0 1-.45 1-1s-.45-1-1-1H2c-.55 0-1 .45-1 1s.45 1 1 1zm18 0h2c.55 0 1-.45 1-1s-.45-1-1-1h-2c-.55 0-1 .45-1 1s.45 1 1 1zM11 2v2c0 .55.45 1 1 1s1-.45 1-1V2c0-.55-.45-1-1-1s-1 .45-1 1zm0 18v2c0 .55.45 1 1 1s1-.45 1-1v-2c0-.55-.45-1-1-1s-1 .45-1 1zM5.99 4.58c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41L5.99 4.58zm12.37 12.37c-.39-.39-1.03-.39-1.41 0s-.39 1.03 0 1.41l1.06 1.06c.39.39 1.03.39 1.41 0s.39-1.03 0-1.41l-1.06-1.06zm1.06-10.96c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06zM7.05 18.36c.39-.39.39-1.03 0-1.41s-1.03-.39-1.41 0l-1.06 1.06c-.39.39-.39 1.03 0 1.41s1.03.39 1.41 0l1.06-1.06z"/>
-              </svg>
-            </div>
-            <div class="settings-menu-content">
-              <div class="settings-menu-title">Bildschirm wachhalten</div>
-              <div class="settings-menu-desc">Verhindert die automatische Bildschirmsperre im Markt</div>
-            </div>
-            <div v-if="isKeepAwakeSupported" class="ks-switch-pill" :class="{ 'is-on': keepAwakeActive }">
-              <div class="ks-switch-thumb"></div>
-            </div>
-            <span v-else class="settings-menu-badge" style="opacity: 0.6;">Nicht verfügbar</span>
-          </div>
 
           <!-- 2. TEILEN -->
           <button class="settings-menu-item" @click="showSettingsSheet = false; showShareSheet = true;">
@@ -1511,21 +1485,24 @@ onUnmounted(() => {
             <div class="settings-menu-arrow">›</div>
           </button>
 
-          <!-- 3. ANSICHT ÄNDERN -->
-          <button class="settings-menu-item" @click="toggleCompactView">
+          <!-- 4. ANSICHT ÄNDERN (Kacheln, Kompakt, Zeilen) -->
+          <button class="settings-menu-item" @click="cycleViewMode">
             <div class="settings-menu-icon view-icon-bg">
-              <svg v-if="isCompactView" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <svg v-if="viewMode === 'tiles'" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                 <path d="M3 3v8h8V3H3zm6 6H5V5h4v4zm-6 4v8h8v-8H3zm6 6H5v-4h4v4zm4-16v8h8V3h-8zm6 6h-4V5h4v4zm-6 4v8h8v-8h-8zm6 6h-4v-4h4v4z"/>
               </svg>
-              <svg v-else viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+              <svg v-else-if="viewMode === 'compact'" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
                 <path d="M4 18h17v-6H4v6zM4 5v6h17V5H4z"/>
+              </svg>
+              <svg v-else viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M3 13h18v-2H3v2zm0-7v2h18V6H3zm0 12h18v-2H3v2z"/>
               </svg>
             </div>
             <div class="settings-menu-content">
               <div class="settings-menu-title">Ansicht ändern</div>
-              <div class="settings-menu-desc">Aktuell: <strong style="color: #38bdf8;">{{ isCompactView ? 'Kompakte Liste' : 'Kachelansicht' }}</strong></div>
+              <div class="settings-menu-desc">Aktuell: <strong style="color: #38bdf8;">{{ getViewModeDesc(viewMode) }}</strong></div>
             </div>
-            <span class="settings-menu-badge">{{ isCompactView ? 'Kompakt' : 'Kacheln' }}</span>
+            <span class="settings-menu-badge">{{ getViewModeLabel(viewMode) }}</span>
           </button>
 
           <!-- 4. MARKTSORTIERUNG -->
@@ -1796,7 +1773,8 @@ onUnmounted(() => {
     <!-- GRUPPIERTE AKTIVE ARTIKEL -->
     <div class="list-scroll-area">
       <template v-if="groupedActiveItems.length > 0">
-        <template v-if="!isCompactView">
+        <!-- 1. KACHELANSICHT -->
+        <template v-if="viewMode === 'tiles'">
           <section v-for="group in groupedActiveItems" :key="group.name" class="flex gap-3 mb-6" style="display: flex; gap: 12px; margin-bottom: 24px;">
             <div class="category-indicator" :style="{ color: group.def.color, backgroundColor: group.def.color }" style="width: 4px; border-radius: 9999px; flex-shrink: 0; box-shadow: 0 0 10px currentColor; opacity: 0.8;"></div>
             <div style="flex: 1;">
@@ -1846,7 +1824,8 @@ onUnmounted(() => {
             </div>
           </section>
         </template>
-        <template v-else>
+        <!-- 2. KOMPAKTE LISTE -->
+        <template v-else-if="viewMode === 'compact'">
           <transition-group name="list" tag="div" :class="['ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full', { 'is-hydrating': isInitialLoad }]" style="padding-top: 0;">
             <div v-for="item in sortedActiveItems" :key="item.id" class="grid-card active" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
@@ -1885,7 +1864,81 @@ onUnmounted(() => {
                 <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: item._groupDef.color }">+</button>
               </div>
             </div>
-</transition-group>
+          </transition-group>
+        </template>
+
+        <!-- 3. ZEILENANSICHT (SINGLE-COLUMN ROW VIEW) -->
+        <template v-else-if="viewMode === 'rows'">
+          <div class="row-view-container">
+            <section v-for="group in groupedActiveItems" :key="group.name" class="row-category-section">
+              <div class="row-category-header">
+                <div class="row-category-indicator" :style="{ backgroundColor: group.def.color, boxShadow: '0 0 10px ' + group.def.color }"></div>
+                <h2 class="row-category-title" :style="{ color: group.def.color }">
+                  {{ formatCategoryName(group.name) }}
+                  <span class="row-category-count" :style="{ backgroundColor: 'color-mix(in srgb, ' + group.def.color + ' 20%, transparent)', color: group.def.color }">{{ group.items.length }}</span>
+                </h2>
+              </div>
+
+              <div class="row-items-list">
+                <div
+                  v-for="item in group.items"
+                  :key="item.id"
+                  class="row-item-card"
+                  :id="'item-' + item.id"
+                  @click="toggleItemStatus(item)"
+                  @mousedown="startPress(item, $event)"
+                  @touchstart="startPress(item, $event)"
+                  @mouseup="cancelPress"
+                  @mouseleave="cancelPress"
+                  @touchend="cancelPress"
+                  @touchmove="cancelPress"
+                >
+                  <!-- Left: Category Icon (40-42px) -->
+                  <div class="row-item-icon-box" :style="{ color: group.def.color, borderColor: 'color-mix(in srgb, ' + group.def.color + ' 30%, transparent)', background: 'color-mix(in srgb, ' + group.def.color + ' 12%, rgba(15, 23, 42, 0.7))' }">
+                    <CategoryIcon class="row-icon-svg" :name="item.name" :category="item.category" size="38" />
+                  </div>
+
+                  <!-- Center: Details (untruncated name, subtitle/notes, meta pills) -->
+                  <div class="row-item-content">
+                    <div class="row-item-title-wrap">
+                      <span class="row-item-name">{{ item.name }}</span>
+                    </div>
+
+                    <!-- Subtitle / Notes / Regular tags -->
+                    <div v-if="getRegularTags(item.tags).length > 0" class="row-item-subtext">
+                      {{ formatTags(item.tags) }}
+                    </div>
+
+                    <!-- Meta-tag pills (Dringend, Angebot, Wenn's passt) -->
+                    <div v-if="getUrgencyTags(item.tags).length > 0" class="row-meta-tags">
+                      <span
+                        v-for="tag in getUrgencyTags(item.tags)"
+                        :key="tag"
+                        class="row-meta-pill"
+                        :class="{
+                          'meta-pill-urgent': tag === 'Dringend',
+                          'meta-pill-offer': tag === 'Angebot',
+                          'meta-pill-optional': tag === 'Wenn\'s passt'
+                        }"
+                      >
+                        <svg v-if="tag === 'Dringend'" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/></svg>
+                        <svg v-else-if="tag === 'Angebot'" width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 6.33 7 5.5 7z"/></svg>
+                        <svg v-else width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2zm4 5h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                        <span>{{ tag }}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  <!-- Right: Quantity Controls -->
+                  <div class="row-quantity-controls" @click.stop>
+                    <button @click.stop="updateItemQuantity(item, -1)" class="row-qty-btn row-qty-btn-minus">-</button>
+                    <span class="row-qty-val" :style="{ color: group.def.color }">{{ formatQuantity(item) }}</span>
+                    <button @click.stop="updateItemQuantity(item, 1)" class="row-qty-btn row-qty-btn-plus" :style="{ backgroundColor: group.def.color }">+</button>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </div>
         </template>
       </template>
 
@@ -2011,16 +2064,30 @@ onUnmounted(() => {
           </div>
         </transition>
 
-        <div style="display: flex; gap: 8px; width: 100%;">
-            <button class="add-trigger-btn" @click="openAddModal" style="flex: 1;">
+        <div class="bottom-action-buttons-cluster">
+            <button class="add-trigger-btn add-item-main-btn" @click="openAddModal">
                 <svg viewBox="0 0 24 24"><path d="M11 19v-6H5v-2h6V5h2v6h6v2h-6v6Z"/></svg>
-                <span>Artikel hinzufügen</span>
+                <span class="btn-text-full">Artikel hinzufügen</span>
+                <span class="btn-text-short">Artikel</span>
             </button>
             <button class="add-trigger-btn barcode-trigger-btn" @click="openScannerModal" aria-label="Barcode scannen" title="Barcode scannen">
                 <svg viewBox="0 0 24 24" fill="currentColor" class="barcode-icon">
                   <path d="M3 4h4v2H5v2H3V4zm2 16H3v-4h2v2h2v2zm16-4h-2v2h-2v2h4v-4zm-2-12h-2V2h4v4h-2V4zM7 6h2v12H7V6zm3 0h1v12h-1V6zm2 0h3v12h-3V6zm4 0h1v12h-1V6zm2 0h1v12h-1V6z"/>
                 </svg>
-                <span>Barcode</span>
+                <span class="btn-text-full">Barcode scannen</span>
+                <span class="btn-text-short">Barcode</span>
+            </button>
+            <button
+              v-if="currentListLoyaltyCard"
+              class="add-trigger-btn loyalty-trigger-btn"
+              @click="openLoyaltyCardModal"
+              aria-label="Bonuskarte an der Kasse vorzeigen"
+              title="Bonuskarte vorzeigen"
+            >
+              <svg viewBox="0 0 24 24" fill="currentColor" class="loyalty-icon">
+                <path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>
+              </svg>
+              <span>Bonuskarte</span>
             </button>
         </div>
       </div>
@@ -2055,6 +2122,14 @@ onUnmounted(() => {
         :initial-url="recipeInitialUrl"
         @close="isRecipeModalOpen = false; recipeInitialUrl = ''"
         @imported="handleRecipeImported"
+    />
+
+    <!-- Loyalty Card Modal -->
+    <LoyaltyCardModal
+      :is-open="showLoyaltyModal"
+      :card="currentListLoyaltyCard"
+      :list-name="currentList?.name"
+      @close="showLoyaltyModal = false"
     />
 
   </div>
@@ -2361,14 +2436,75 @@ onUnmounted(() => {
 }
 .input-container > * { pointer-events: auto; }
 
-.add-trigger-btn {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  width: 100%; max-width: var(--ks-page-width);
-  min-height: 56px;
+.bottom-action-buttons-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+.bottom-action-buttons-cluster .add-item-main-btn {
+  flex: 1.25;
+  min-width: 0;
+}
+.bottom-action-buttons-cluster .barcode-trigger-btn {
+  flex: 1.1;
+  min-width: 0;
   background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
   color: #ffffff;
-  border: none; border-radius: 20px;
-  padding: 14px 20px; font-size: 15px; font-weight: 700;
+  border: none;
+  box-shadow: 0 10px 25px -4px rgba(56, 189, 248, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+}
+.bottom-action-buttons-cluster .loyalty-trigger-btn {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6), 0 0 14px rgba(245, 158, 11, 0.2);
+  color: #f8fafc;
+}
+.bottom-action-buttons-cluster .loyalty-trigger-btn svg {
+  color: #f59e0b;
+}
+.bottom-action-buttons-cluster .loyalty-trigger-btn:hover {
+  border-color: #f59e0b;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.7), 0 0 18px rgba(245, 158, 11, 0.35);
+}
+
+.bottom-action-buttons-cluster .btn-text-short {
+  display: none;
+}
+.bottom-action-buttons-cluster .btn-text-full {
+  display: inline;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 440px) {
+  .bottom-action-buttons-cluster .btn-text-full {
+    display: none;
+  }
+  .bottom-action-buttons-cluster .btn-text-short {
+    display: inline;
+  }
+  .add-trigger-btn {
+    padding: 12px 10px;
+    font-size: 13px;
+    gap: 6px;
+  }
+  .add-trigger-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.add-trigger-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 54px;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none; border-radius: 18px;
+  padding: 12px 16px; font-size: 14px; font-weight: 700;
   cursor: pointer;
   box-shadow: 0 10px 25px -4px rgba(56, 189, 248, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.2s ease;
@@ -2380,35 +2516,209 @@ onUnmounted(() => {
 .add-trigger-btn:active {
   transform: scale(0.98);
 }
-.add-trigger-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.add-trigger-btn svg { width: 20px; height: 20px; fill: currentColor; flex-shrink: 0; }
 
-.barcode-trigger-btn {
-  flex-shrink: 0;
-  width: auto;
-  min-height: 56px;
-  padding: 0 16px;
+/* --- SINGLE-COLUMN ROW VIEW (ZEILENANSICHT) --- */
+.row-view-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+}
+
+.row-category-section {
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  border-radius: 18px;
-  background: rgba(30, 41, 59, 0.95);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 600;
-  font-size: 14px;
+  width: 100%;
+}
+
+.row-category-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 2px 2px;
+}
+
+.row-category-indicator {
+  width: 4px;
+  height: 16px;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.row-category-title {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.row-category-count {
+  padding: 2px 8px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.row-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.row-item-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: rgba(30, 41, 59, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
   cursor: pointer;
+  user-select: none;
   transition: transform 0.15s ease, background 0.15s ease, border-color 0.2s ease;
+  min-width: 0;
 }
-.barcode-trigger-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: #38bdf8;
+
+.row-item-card:hover {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.16);
 }
-.barcode-trigger-btn:active {
-  transform: scale(0.95);
+
+.row-item-card:active {
+  transform: scale(0.99);
 }
-.barcode-trigger-btn svg {
-  width: 22px;
-  height: 22px;
+
+.row-item-icon-box {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+.row-icon-svg {
+  width: 36px;
+  height: 36px;
+}
+
+.row-item-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.row-item-title-wrap {
+  min-width: 0;
+}
+
+.row-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #f8fafc;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.row-item-subtext {
+  font-size: 12px;
+  color: #94a3b8;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.row-meta-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+.row-meta-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 6px;
+  line-height: 1;
+}
+
+.meta-pill-urgent {
+  background: rgba(239, 68, 68, 0.18);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.meta-pill-offer {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.meta-pill-optional {
+  background: rgba(148, 163, 184, 0.18);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.row-quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  padding: 3px;
+  flex-shrink: 0;
+}
+
+.row-qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.row-qty-btn:active {
+  transform: scale(0.9);
+}
+
+.row-qty-btn-minus {
+  background: #1e293b;
+  color: #cbd5e1;
+}
+
+.row-qty-btn-plus {
+  color: #0f172a;
+}
+
+.row-qty-val {
+  font-weight: 700;
+  font-size: 13px;
+  min-width: 20px;
+  text-align: center;
+  padding: 0 2px;
 }
 
 /* Modal & Sheets */
@@ -2770,47 +3080,6 @@ onUnmounted(() => {
   color: #38bdf8;
   font-weight: 600;
   border: 1px solid rgba(56, 189, 248, 0.3);
-}
-
-/* KEEP AWAKE BUTTON */
-.keep-awake-btn {
-  color: var(--ks-text-muted);
-  position: relative;
-  transition: all 0.25s ease;
-}
-.keep-awake-btn.is-active {
-  color: #f59e0b;
-  background: rgba(245, 158, 11, 0.15);
-  box-shadow: 0 0 12px rgba(245, 158, 11, 0.4);
-  border-color: rgba(245, 158, 11, 0.4);
-}
-
-/* SWITCH PILL (LISTEN OPTIONEN) */
-.ks-switch-pill {
-  width: 44px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  position: relative;
-  transition: background 0.2s ease, box-shadow 0.2s ease;
-  flex-shrink: 0;
-}
-.ks-switch-pill.is-on {
-  background: #f59e0b;
-  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
-}
-.ks-switch-thumb {
-  width: 18px;
-  height: 18px;
-  background: #ffffff;
-  border-radius: 50%;
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  transition: transform 0.2s ease;
-}
-.ks-switch-pill.is-on .ks-switch-thumb {
-  transform: translateX(20px);
 }
 
 /* THUMB-ZONE META-TAG FILTER BAR */

@@ -10,13 +10,18 @@ db.version(1).stores({
   metadata: 'key'
 });
 
+db.version(2).stores({
+  loyaltyCards: 'id, list_id, user_id, updated_at'
+});
+
 export async function clearAllLocalData() {
   try {
     await Promise.all([
       db.lists.clear(),
       db.items.clear(),
       db.syncQueue.clear(),
-      db.metadata.clear()
+      db.metadata.clear(),
+      db.loyaltyCards.clear()
     ]);
   } catch (e) {
     console.error('Error clearing Dexie tables:', e);

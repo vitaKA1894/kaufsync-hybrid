@@ -36,6 +36,7 @@ def ensure_columns():
                 ("settings_push_quiet_end", "VARCHAR DEFAULT '07:00'"),
                 ("settings_sound_enabled", "BOOLEAN DEFAULT 1"),
                 ("settings_vibration_enabled", "BOOLEAN DEFAULT 1"),
+                ("keep_screen_awake", "BOOLEAN DEFAULT 0"),
             ]
             for col_name, col_type in cols_to_add:
                 if col_name not in existing_cols:
@@ -545,7 +546,7 @@ def update_user_profile(
         'settings_push_cleared_items', 'settings_push_shopping_started', 'settings_push_shopping_done',
         'settings_push_members', 'settings_push_quiet_hours', 'settings_push_quiet_start',
         'settings_push_quiet_end', 'settings_sound_enabled', 'settings_vibration_enabled',
-        'settings_push_admin_pending_users'
+        'settings_push_admin_pending_users', 'keep_screen_awake'
     ]
     for f in fields:
         val = getattr(user_update, f, None)
@@ -674,6 +675,7 @@ def delete_account(
             db.query(models.ActivityLog).filter(models.ActivityLog.list_id == l.id).delete(synchronize_session=False)
             db.query(models.ListInvitation).filter(models.ListInvitation.list_id == l.id).delete(synchronize_session=False)
             db.query(models.ListJoinRequest).filter(models.ListJoinRequest.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.list_id == l.id).delete(synchronize_session=False)
             db.delete(l)
 
     # 4. Nutzer aus allen Mitgliedschaften austragen
@@ -695,6 +697,7 @@ def delete_account(
     db.query(models.PasswordResetToken).filter(models.PasswordResetToken.user_id == user_id).delete(synchronize_session=False)
     db.query(models.Notification).filter(models.Notification.user_id == user_id).delete(synchronize_session=False)
     db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).delete(synchronize_session=False)
+    db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.user_id == user_id).delete(synchronize_session=False)
 
     # 7. Nutzer löschen
     db.delete(current_user)
@@ -779,6 +782,10 @@ async def delete_list(
         # Alternativ: Nur Mitgliedschaft aufheben
         if current_user in db_list.members:
             db_list.members.remove(current_user)
+            db.query(models.ListLoyaltyCard).filter(
+                models.ListLoyaltyCard.list_id == list_id,
+                models.ListLoyaltyCard.user_id == current_user.id
+            ).delete(synchronize_session=False)
             db.commit()
             await manager.broadcast_user(str(current_user.id), {
                 "event": "LIST_UPDATED"
@@ -786,6 +793,7 @@ async def delete_list(
             return {"status": "ok", "message": "Liste verlassen"}
         raise HTTPException(status_code=403, detail="Keine Berechtigung")
         
+    db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.list_id == list_id).delete(synchronize_session=False)
     db.delete(db_list)
     db.commit()
 
@@ -794,6 +802,96 @@ async def delete_list(
     })
 
     return {"status": "ok", "message": "Liste erfolgreich gelöscht"}
+
+# --- LOYALTY CARDS ENDPOINTS ---
+
+@app.get("/api/loyalty-cards", response_model=List[schemas.LoyaltyCardResponse])
+def get_user_loyalty_cards(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Liefert alle hinterlegten Bonuskarten des aktuell eingeloggten Nutzers."""
+    cards = db.query(models.ListLoyaltyCard).filter(
+        models.ListLoyaltyCard.user_id == current_user.id
+    ).all()
+    return cards
+
+@app.get("/api/lists/{list_id}/loyalty-card", response_model=Optional[schemas.LoyaltyCardResponse])
+def get_list_loyalty_card(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Liefert die für diese Liste hinterlegte persönliche Bonuskarte des Nutzers."""
+    card = db.query(models.ListLoyaltyCard).filter(
+        models.ListLoyaltyCard.user_id == current_user.id,
+        models.ListLoyaltyCard.list_id == list_id
+    ).first()
+    return card
+
+@app.put("/api/lists/{list_id}/loyalty-card", response_model=schemas.LoyaltyCardResponse)
+def upsert_list_loyalty_card(
+    list_id: str,
+    payload: schemas.LoyaltyCardCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Hinterlegt oder aktualisiert die Bonuskarte für eine Liste (1:1 pro Nutzer & Liste)."""
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
+
+    if not payload.code_value or not payload.code_value.strip():
+        raise HTTPException(status_code=400, detail="Code-Wert darf nicht leer sein")
+
+    code_format = (payload.code_format or "CODE_128").upper().strip()
+
+    card = db.query(models.ListLoyaltyCard).filter(
+        models.ListLoyaltyCard.user_id == current_user.id,
+        models.ListLoyaltyCard.list_id == list_id
+    ).first()
+
+    now = datetime.now(timezone.utc)
+    if card:
+        card.code_value = payload.code_value.strip()
+        card.code_format = code_format
+        card.updated_at = now
+    else:
+        card = models.ListLoyaltyCard(
+            id=models.generate_uuid(),
+            user_id=current_user.id,
+            list_id=list_id,
+            code_value=payload.code_value.strip(),
+            code_format=code_format,
+            created_at=now,
+            updated_at=now
+        )
+        db.add(card)
+
+    db.commit()
+    db.refresh(card)
+    return card
+
+@app.delete("/api/lists/{list_id}/loyalty-card")
+def delete_list_loyalty_card(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Löscht die hinterlegte Bonuskarte für die angegebene Liste."""
+    card = db.query(models.ListLoyaltyCard).filter(
+        models.ListLoyaltyCard.user_id == current_user.id,
+        models.ListLoyaltyCard.list_id == list_id
+    ).first()
+    if not card:
+        return {"status": "ok", "message": "Keine Bonuskarte vorhanden"}
+
+    db.delete(card)
+    db.commit()
+    return {"status": "ok", "message": "Bonuskarte gelöscht"}
+
     
 # --- READONLY PUBLIC SHARING ---
 

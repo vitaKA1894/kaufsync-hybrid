@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, Boolean, and_
+from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, Boolean, and_, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import uuid
@@ -45,6 +45,7 @@ class User(Base):
     settings_sound_enabled = Column(Boolean, default=True)
     settings_vibration_enabled = Column(Boolean, default=True)
     settings_push_admin_pending_users = Column(Boolean, default=False)
+    keep_screen_awake = Column(Boolean, default=False)
     created_at = Column(DateTime, default=utc_now)
 
 class PasswordResetToken(Base):
@@ -158,4 +159,22 @@ class ListJoinRequest(Base):
 
     list = relationship("List")
     user = relationship("User")
+
+class ListLoyaltyCard(Base):
+    __tablename__ = "list_loyalty_cards"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'list_id', name='uq_user_list_loyalty'),
+    )
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    list_id = Column(String, ForeignKey("lists.id", ondelete="CASCADE"), index=True, nullable=False)
+    code_value = Column(String, nullable=False)
+    code_format = Column(String, nullable=False, default="CODE_128") # EAN_13, EAN_8, CODE_128, CODE_39, UPC_A, ITF, QR_CODE
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("User", backref="loyalty_cards")
+    shopping_list = relationship("List", backref="loyalty_cards")
+
 

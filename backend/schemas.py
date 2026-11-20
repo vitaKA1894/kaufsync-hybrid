@@ -24,6 +24,7 @@ class UserUpdate(BaseModel):
     settings_sound_enabled: Optional[bool] = None
     settings_vibration_enabled: Optional[bool] = None
     settings_push_admin_pending_users: Optional[bool] = None
+    keep_screen_awake: Optional[bool] = None
 
 # NEU: Für die Passwort-Änderung
 class PasswordUpdate(BaseModel):
@@ -52,6 +53,7 @@ class UserResponse(BaseModel):
     settings_sound_enabled: Optional[bool] = True
     settings_vibration_enabled: Optional[bool] = True
     settings_push_admin_pending_users: Optional[bool] = False
+    keep_screen_awake: Optional[bool] = False
 
     class Config:
         from_attributes = True
@@ -256,3 +258,20 @@ class RecipeParseResponse(BaseModel):
 class BulkItemCreate(BaseModel):
     items: List[ItemCreate]
     recipe_title: Optional[str] = None
+
+# --- LOYALTY CARD SCHEMAS ---
+class LoyaltyCardCreate(BaseModel):
+    code_value: str
+    code_format: Optional[str] = "CODE_128"
+
+class LoyaltyCardResponse(BaseModel):
+    id: str
+    user_id: str
+    list_id: str
+    code_value: str
+    code_format: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
