@@ -18,3 +18,8 @@ env/
 # OS generierte Dateien
 .DS_Store
 Thumbs.db
+
+# Build Output
+build-output/
+*.apk
+local.properties

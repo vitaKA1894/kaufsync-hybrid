@@ -230,22 +230,34 @@ class ListInvitationResponse(BaseModel):
 class RecipeParseRequest(BaseModel):
     url: str
 
+class RecipeTextParseRequest(BaseModel):
+    text: str
+    title: Optional[str] = None
+
 class RecipeIngredientParsed(BaseModel):
-    raw: str
+    id: Optional[str] = None
     name: str
-    original_name: str
-    quantity: float
-    base_quantity: float
-    unit: str
+    quantity: Optional[float] = None
+    base_quantity: Optional[float] = None
+    unit: Optional[str] = "Stk"
+    display_quantity: Optional[str] = None
     display_amount: Optional[str] = None
+    specification: Optional[str] = None
     recipe_quantity: Optional[float] = None
     recipe_unit: Optional[str] = None
     tags: Optional[List[str]] = None
-    category: str
+    category: str = "Sonstiges"
     icon: Optional[str] = None
-    matched: bool
-    is_staple: bool
-    selected: bool
+    taxonomy_id: Optional[str] = None
+    match_confidence: Optional[float] = 0.0
+    is_pantry_staple: Optional[bool] = False
+    is_staple: Optional[bool] = False
+    selected: bool = True
+    original_lines: Optional[List[str]] = None
+    was_merged: Optional[bool] = False
+    raw: str = ""
+    original_name: Optional[str] = None
+    matched: Optional[bool] = False
 
 class RecipeParseResponse(BaseModel):
     title: str

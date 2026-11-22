@@ -1466,10 +1466,44 @@ async def parse_recipe(
     try:
         result = recipe_service.parse_recipe_url(request.url)
         return result
+    except recipe_service.RecipeImportError as e:
+        logger.warning(f"Recipe parse error [{e.code}]: {e.user_message}")
+        raise HTTPException(
+            status_code=e.status_code,
+            detail={"code": e.code, "message": e.user_message}
+        )
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail={"code": "invalid_value", "message": str(e)})
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Fehler beim Verarbeiten des Rezepts: {str(e)}")
+        logger.error(f"Fehler beim Verarbeiten des Rezepts: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "code": "timeout_or_network",
+                "message": "Die Rezeptseite antwortet gerade nicht oder die Verbindung wurde unterbrochen. Bitte versuche es erneut oder nutze den Text-Import."
+            }
+        )
+
+
+@app.post("/api/recipes/parse-text", response_model=schemas.RecipeParseResponse)
+async def parse_recipe_text(
+    request: schemas.RecipeTextParseRequest,
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    try:
+        result = recipe_service.parse_recipe_text(request.text, request.title)
+        return result
+    except recipe_service.RecipeImportError as e:
+        raise HTTPException(
+            status_code=e.status_code,
+            detail={"code": e.code, "message": e.user_message}
+        )
+    except Exception as e:
+        logger.error(f"Fehler beim Verarbeiten des Text-Rezepts: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "parse_error", "message": "Zutaten konnten nicht verarbeitet werden."}
+        )
 
 
 @app.post("/api/lists/{list_id}/start-shopping")

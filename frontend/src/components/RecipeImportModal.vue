@@ -4,7 +4,11 @@ import { apiUrl } from '../config/api';
 import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
 import StoreLogo from './StoreLogo.vue';
-import { parseRecipeClientSide } from '../utils/clientRecipeParser';
+import {
+  parseRecipeClientSide,
+  parseTextRecipe,
+  formatGermanQuantity
+} from '../utils/clientRecipeParser';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 const props = defineProps({
@@ -28,14 +32,21 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'imported', 'list-created']);
 
+// Mode: 'link' (default) or 'text'
+const importMode = ref('link');
+
 // State
 const url = ref('');
+const textInput = ref('');
+const textTitleInput = ref('');
 const isLoading = ref(false);
 const isImporting = ref(false);
 const errorMessage = ref('');
+const errorCode = ref('');
 const recipeData = ref(null);
 const currentServings = ref(4);
 const inputRef = ref(null);
+const textareaRef = ref(null);
 
 // Sheet Dragging Logic
 const {
@@ -58,6 +69,71 @@ const predefinedCategories = [
   'Sonstiges'
 ];
 
+// Error Categorization & Actions
+const canSwitchToText = computed(() => {
+  return ['blocked_or_auth', 'no_recipe_found', 'timeout_or_network'].includes(errorCode.value) ||
+    (importMode.value === 'link' && !!errorMessage.value);
+});
+
+const canRetry = computed(() => {
+  return errorCode.value === 'timeout_or_network' && importMode.value === 'link';
+});
+
+const switchToTextMode = () => {
+  importMode.value = 'text';
+  errorMessage.value = '';
+  errorCode.value = '';
+  nextTick(() => {
+    if (textareaRef.value) textareaRef.value.focus();
+  });
+};
+
+const normalizeError = (err) => {
+  const msg = err?.message || String(err || '');
+  const code = err?.code || '';
+
+  // Intercept CORS / Failed to fetch
+  if (/failed to fetch|networkerror|load failed|network request failed/i.test(msg)) {
+    return {
+      code: 'timeout_or_network',
+      message: 'Die Rezeptseite antwortet gerade nicht oder die Verbindung wurde unterbrochen. Bitte versuche es erneut oder nutze den Text-Import.'
+    };
+  }
+
+  if (code === 'not_found' || /nicht gefunden|404/i.test(msg)) {
+    return {
+      code: 'not_found',
+      message: 'Dieser Rezept-Link wurde leider nicht gefunden. Bitte prüfe die Adresse.'
+    };
+  }
+
+  if (code === 'blocked_or_auth' || /blockiert|bot|captcha|403|401|429/i.test(msg)) {
+    return {
+      code: 'blocked_or_auth',
+      message: 'Diese Seite blockiert den automatischen Abruf. Kopiere die Zutatenliste einfach direkt in den Text-Import.'
+    };
+  }
+
+  if (code === 'no_recipe_found' || /keine zutaten|kein rezept/i.test(msg)) {
+    return {
+      code: 'no_recipe_found',
+      message: 'Auf dieser Seite wurden keine Zutaten erkannt. Du kannst sie einfach über den Text-Import einfügen.'
+    };
+  }
+
+  if (code === 'timeout_or_network' || /timeout|zeitüberschreitung|unterbrochen|verbindung/i.test(msg)) {
+    return {
+      code: 'timeout_or_network',
+      message: 'Die Rezeptseite antwortet gerade nicht oder die Verbindung wurde unterbrochen. Bitte versuche es erneut oder nutze den Text-Import.'
+    };
+  }
+
+  return {
+    code: code || 'error',
+    message: msg || 'Rezept konnte nicht geladen werden. Bitte nutze den Text-Import.'
+  };
+};
+
 // Inline Ingredient Editing State
 const editingIndex = ref(null);
 const editForm = ref({
@@ -76,7 +152,7 @@ const startEditItem = (idx) => {
   editingIndex.value = idx;
   editForm.value = {
     name: it.name,
-    display_amount: it.display_amount || (it.quantity ? `${it.quantity} ${it.unit || 'Stk'}` : ''),
+    display_amount: it.display_quantity || it.display_amount || (it.quantity ? `${it.quantity} ${it.unit || 'Stk'}` : ''),
     category: it.category || 'Sonstiges'
   };
   nextTick(() => {
@@ -101,10 +177,11 @@ const saveEditItem = (idx) => {
   it.category = editForm.value.category || 'Sonstiges';
   const newAmount = editForm.value.display_amount.trim();
   it.display_amount = newAmount;
+  it.display_quantity = newAmount;
   if (newAmount) {
     it.tags = [newAmount];
   }
-  it.selected = true; // Ensure edited item is selected
+  it.selected = true;
   editingIndex.value = null;
 };
 
@@ -131,7 +208,6 @@ const loadAvailableLists = async () => {
     }
   }
 
-  // Pre-select if listId passed
   if (props.listId) {
     selectedListId.value = props.listId;
   } else {
@@ -142,12 +218,17 @@ const loadAvailableLists = async () => {
 // Reset state
 const resetState = () => {
   url.value = props.initialUrl || '';
+  textInput.value = '';
+  textTitleInput.value = '';
+  importMode.value = 'link';
   isLoading.value = false;
   isImporting.value = false;
   errorMessage.value = '';
+  errorCode.value = '';
   recipeData.value = null;
   currentServings.value = 4;
   selectedListId.value = props.listId || '';
+  editingIndex.value = null;
   isCreatingListLoading.value = false;
 };
 
@@ -156,10 +237,12 @@ watch(() => props.isOpen, async (newVal) => {
     await loadAvailableLists();
     if (props.initialUrl) {
       url.value = props.initialUrl;
+      importMode.value = 'link';
       if (isOnline.value) {
         fetchRecipe();
       } else {
         errorMessage.value = 'Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.';
+        errorCode.value = 'offline';
       }
     } else {
       nextTick(() => {
@@ -177,33 +260,46 @@ watch(() => props.shoppingLists, (newVal) => {
   }
 }, { deep: true });
 
-// Paste from clipboard helper
+// Clipboard helpers
 const pasteFromClipboard = async () => {
   try {
     const text = await navigator.clipboard.readText();
     if (text && text.trim()) {
       url.value = text.trim();
       errorMessage.value = '';
+      errorCode.value = '';
     }
-  } catch (err) {
-    // Clipboard permission denied or unavailable
-  }
+  } catch (err) {}
 };
 
-// Fetch & parse recipe
+const pasteTextFromClipboard = async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (text && text.trim()) {
+      textInput.value = text.trim();
+      errorMessage.value = '';
+      errorCode.value = '';
+    }
+  } catch (err) {}
+};
+
+// Fetch & parse recipe via Link
 const fetchRecipe = async () => {
   if (!isOnline.value) {
     errorMessage.value = 'Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.';
+    errorCode.value = 'offline';
     return;
   }
   const targetUrl = url.value.trim();
   if (!targetUrl) {
     errorMessage.value = 'Bitte gib eine Rezept-URL ein.';
+    errorCode.value = 'validation';
     return;
   }
 
   isLoading.value = true;
   errorMessage.value = '';
+  errorCode.value = '';
   recipeData.value = null;
 
   try {
@@ -222,42 +318,100 @@ const fetchRecipe = async () => {
 
       if (response.ok) {
         data = await response.json();
-      } else if (response.status === 405 || response.status === 404) {
-        // Backend noch nicht aktualisiert -> Client-seitiger Fallback-Parser
-        data = await parseRecipeClientSide(targetUrl);
       } else {
         const errJson = await response.json().catch(() => ({}));
-        throw new Error(errJson.detail || 'Rezept konnte nicht geladen werden.');
+        const errDetail = errJson.detail;
+        if (errDetail && typeof errDetail === 'object') {
+          const err = new Error(errDetail.message || 'Rezept konnte nicht geladen werden.');
+          err.code = errDetail.code;
+          throw err;
+        }
+        throw new Error(typeof errDetail === 'string' ? errDetail : 'Rezept konnte nicht geladen werden.');
       }
     } catch (netErr) {
-      // Wenn der Server nicht erreichbar ist oder Endpoint fehlt, nutze Client-Parser
-      if (!data) {
-        data = await parseRecipeClientSide(targetUrl);
-      }
+      if (netErr.code) throw netErr;
+      // If server unreachable, try client parser
+      data = await parseRecipeClientSide(targetUrl);
     }
 
-    if (!data) {
-      throw new Error('Kein Rezept mit strukturierten Zutaten gefunden.');
-    }
-
-    if (data && data.ingredients) {
-      data.ingredients.forEach(item => {
-        if (item.selected === undefined) {
-          item.selected = true;
-        }
-      });
+    if (!data || !data.ingredients || data.ingredients.length === 0) {
+      const err = new Error('Auf dieser Seite wurden keine Zutaten erkannt. Du kannst sie einfach über den Text-Import einfügen.');
+      err.code = 'no_recipe_found';
+      throw err;
     }
 
     recipeData.value = data;
     currentServings.value = data.servings || 4;
   } catch (err) {
-    errorMessage.value = err.message || 'Verbindung zum Server fehlgeschlagen.';
+    const norm = normalizeError(err);
+    errorMessage.value = norm.message;
+    errorCode.value = norm.code;
   } finally {
     isLoading.value = false;
   }
 };
 
-// Portions scaling
+// Parse recipe via Text mode (Works online & offline!)
+const handleTextParse = async () => {
+  const content = textInput.value.trim();
+  if (!content) {
+    errorMessage.value = 'Bitte gib mindestens eine Zutat ein.';
+    errorCode.value = 'validation';
+    return;
+  }
+
+  isLoading.value = true;
+  errorMessage.value = '';
+  errorCode.value = '';
+  recipeData.value = null;
+
+  try {
+    // If offline, always use local clientRecipeParser
+    if (!isOnline.value) {
+      const data = parseTextRecipe(content, textTitleInput.value);
+      recipeData.value = data;
+      currentServings.value = data.servings || 4;
+      return;
+    }
+
+    let data = null;
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(apiUrl('/api/recipes/parse-text'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          text: content,
+          title: textTitleInput.value.trim() || undefined
+        })
+      });
+
+      if (response.ok) {
+        data = await response.json();
+      }
+    } catch (e) {
+      // Backend unavailable -> fallback to client-side
+    }
+
+    if (!data) {
+      data = parseTextRecipe(content, textTitleInput.value);
+    }
+
+    recipeData.value = data;
+    currentServings.value = data.servings || 4;
+  } catch (err) {
+    const norm = normalizeError(err);
+    errorMessage.value = norm.message;
+    errorCode.value = norm.code;
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+// Portions scaling with clean German number formatting
 const baseServings = computed(() => recipeData.value?.servings || 4);
 
 const updateServings = (delta) => {
@@ -265,7 +419,6 @@ const updateServings = (delta) => {
   if (next < 1) return;
   currentServings.value = next;
 
-  // Scale quantities
   if (recipeData.value && recipeData.value.ingredients) {
     const factor = currentServings.value / baseServings.value;
     recipeData.value.ingredients.forEach(item => {
@@ -278,22 +431,19 @@ const updateServings = (delta) => {
 
       if (origRecipeQty != null && origRecipeQty > 0) {
         let scaledRecipeQty = origRecipeQty * factor;
-        scaledRecipeQty = Math.round(scaledRecipeQty * 10) / 10;
-        const qStr = Number.isInteger(scaledRecipeQty) ? scaledRecipeQty.toString() : scaledRecipeQty.toString();
+        const formattedAmount = formatGermanQuantity(scaledRecipeQty, unit);
 
-        if (isWeightOrVol) {
+        if (isWeightOrVol || isSpoonOrPinch) {
           item.quantity = 1.0;
-          item.tags = [`${qStr}${unit}`];
-          item.display_amount = `${qStr} ${unit}`.trim();
-        } else if (isSpoonOrPinch) {
-          item.quantity = 1.0;
-          item.tags = [`${qStr} ${unit}`.trim()];
-          item.display_amount = `${qStr} ${unit}`.trim();
+          item.tags = [formattedAmount];
+          item.display_amount = formattedAmount;
+          item.display_quantity = formattedAmount;
         } else if (isContainer) {
           item.quantity = Math.max(1, Math.round(scaledRecipeQty * 10) / 10);
-          item.display_amount = `${qStr} ${unit}`.trim();
+          item.display_amount = formattedAmount;
+          item.display_quantity = formattedAmount;
           if (['dose', 'dosen'].includes(uClean)) {
-            item.tags = [item.quantity > 1 ? `${item.quantity} Dosen` : 'Dose'];
+            item.tags = [item.quantity > 1 ? `${formatGermanQuantity(item.quantity, null)} Dosen` : 'Dose'];
           } else if (['becher'].includes(uClean)) {
             item.tags = ['Becher'];
           } else if (['glas', 'gläser'].includes(uClean)) {
@@ -305,7 +455,8 @@ const updateServings = (delta) => {
           }
         } else {
           item.quantity = Math.max(0.5, Math.round(scaledRecipeQty * 10) / 10);
-          item.display_amount = `${qStr} ${unit}`.trim();
+          item.display_amount = formattedAmount;
+          item.display_quantity = formattedAmount;
         }
       }
     });
@@ -332,7 +483,7 @@ const selectedCount = computed(() => {
 // Toggle staples (Gewürze & Vorrat)
 const areStaplesSelected = computed(() => {
   if (!recipeData.value?.ingredients) return false;
-  const staples = recipeData.value.ingredients.filter(i => i.is_staple);
+  const staples = recipeData.value.ingredients.filter(i => i.is_pantry_staple || i.is_staple);
   if (staples.length === 0) return false;
   return staples.some(i => i.selected);
 });
@@ -341,26 +492,26 @@ const toggleStaples = () => {
   if (!recipeData.value?.ingredients) return;
   const shouldSelect = !areStaplesSelected.value;
   recipeData.value.ingredients.forEach(i => {
-    if (i.is_staple) {
+    if (i.is_pantry_staple || i.is_staple) {
       i.selected = shouldSelect;
     }
   });
 };
 
-// --- STORE / LIST SELECTION ---
+// Target list selection & quick creation
 const getSelectedListName = computed(() => {
   if (!selectedListId.value) return '';
   const found = availableLists.value.find(l => l.id === selectedListId.value);
   return found ? found.name : '';
 });
 
-// Quick 1-click list creation from recipe title
 const createQuickListFromRecipe = async () => {
   if (!recipeData.value) return;
   const listName = `${recipeData.value.title || 'Rezept'} Liste`.trim();
 
   isCreatingListLoading.value = true;
   errorMessage.value = '';
+  errorCode.value = '';
 
   try {
     const token = localStorage.getItem('token');
@@ -387,7 +538,9 @@ const createQuickListFromRecipe = async () => {
     selectedListId.value = created.id;
     emit('list-created', created);
   } catch (err) {
-    errorMessage.value = err.message || 'Konnte Liste nicht erstellen.';
+    const norm = normalizeError(err);
+    errorMessage.value = norm.message;
+    errorCode.value = norm.code;
   } finally {
     isCreatingListLoading.value = false;
   }
@@ -407,26 +560,37 @@ const importSelectedItems = async () => {
       } else if (typeof i.tags === 'string' && i.tags.trim()) {
         tagsVal = i.tags;
       }
+
+      // Build note
+      let noteVal = null;
+      if (i.original_lines && i.original_lines.length > 1) {
+        noteVal = `Rezept: ${i.original_lines.join(', ')}`;
+      } else if (i.original_name && i.original_name !== i.name) {
+        noteVal = `Rezept: ${i.original_name}`;
+      } else if (i.raw && i.raw !== i.name) {
+        noteVal = `Rezept: ${i.raw}`;
+      }
+
       return {
         name: i.name.trim(),
         category: i.category || 'Sonstiges',
         quantity: parseFloat(i.quantity) || 1.0,
         unit: i.unit || 'Stk',
         tags: tagsVal,
-        note: i.original_name && i.original_name !== i.name ? `Rezept: ${i.original_name}` : null
+        note: noteVal
       };
     });
 
   isImporting.value = true;
   errorMessage.value = '';
+  errorCode.value = '';
 
   let successCount = 0;
 
   try {
     const token = localStorage.getItem('token');
-    
-    // 1. Erst versuchen, gebündelt über den Bulk-Endpoint zu speichern
     let bulkSuccess = false;
+
     try {
       const response = await fetch(apiUrl(`/api/lists/${targetId}/items/bulk`), {
         method: 'POST',
@@ -445,11 +609,9 @@ const importSelectedItems = async () => {
         successCount = itemsToCreate.length;
       }
     } catch (e) {
-      // Bulk endpoint noch nicht verfügbar oder Netzwerkfehler
       bulkSuccess = false;
     }
 
-    // 2. Falls Bulk nicht erfolgreich, resilient einzeln mit Promise.allSettled anlegen
     if (!bulkSuccess) {
       const results = await Promise.allSettled(
         itemsToCreate.map(item =>
@@ -466,7 +628,6 @@ const importSelectedItems = async () => {
           })
         )
       );
-
       successCount = results.filter(r => r.status === 'fulfilled').length;
     }
 
@@ -481,13 +642,16 @@ const importSelectedItems = async () => {
       throw new Error('Artikel konnten nicht gespeichert werden. Bitte Verbindung prüfen.');
     }
   } catch (err) {
-    errorMessage.value = err.message || 'Konnte Artikel nicht speichern.';
+    const norm = normalizeError(err);
+    errorMessage.value = norm.message;
+    errorCode.value = norm.code;
   } finally {
     isImporting.value = false;
   }
 };
 
 const getHostname = (link) => {
+  if (!link) return 'Rezept';
   try {
     const parsed = new URL(link);
     return parsed.hostname.replace('www.', '');
@@ -513,7 +677,7 @@ const getHostname = (link) => {
             </div>
             <div>
               <h2 class="modal-title">Rezept importieren</h2>
-              <p class="modal-subtitle">Mealie, Chefkoch & alle Rezeptseiten</p>
+              <p class="modal-subtitle">Monsieur Cuisine, Mealie, Chefkoch & alle Rezeptseiten</p>
             </div>
           </div>
           <button class="close-btn" @click="emit('close')" aria-label="Schließen">
@@ -522,62 +686,135 @@ const getHostname = (link) => {
         </div>
       </div>
 
-      <!-- ERROR MESSAGE -->
+      <!-- ERROR MESSAGE BANNER WITH ACTION BUTTONS -->
       <div v-if="errorMessage" class="error-banner">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-        <span>{{ errorMessage }}</span>
-      </div>
-
-      <!-- OFFLINE NOTICE -->
-      <div v-if="!isOnline" class="ks-offline-notice" style="margin-bottom: 12px;">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-        <span>Du bist offline. Rezepte können erst wieder geladen werden, wenn du wieder verbunden bist.</span>
-      </div>
-
-      <!-- PHASE 1: URL INPUT (IF NO RECIPE LOADED YET) -->
-      <div v-if="!recipeData" class="url-input-section">
-        <div class="input-wrapper">
-          <input
-            ref="inputRef"
-            type="url"
-            v-model="url"
-            class="url-input"
-            placeholder="Rezept-Link einfügen (z. B. Mealie, Chefkoch...)"
-            :disabled="isLoading || !isOnline"
-            @keyup.enter="fetchRecipe"
-          />
-          <button v-if="!url" type="button" class="paste-btn" @click="pasteFromClipboard" title="Aus Zwischenablage einfügen" :disabled="!isOnline">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
-            Einfügen
+        <div class="error-main-row">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" class="error-icon"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+          <span class="error-text">{{ errorMessage }}</span>
+        </div>
+        <div v-if="canSwitchToText || canRetry" class="error-actions-row">
+          <button v-if="canRetry" type="button" class="error-pill-btn secondary" @click="fetchRecipe">
+            Erneut versuchen
           </button>
-          <button v-else type="button" class="clear-btn" @click="url = ''" title="Löschen">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+          <button v-if="canSwitchToText" type="button" class="error-pill-btn primary" @click="switchToTextMode">
+            Als Text einfügen
+          </button>
+        </div>
+      </div>
+
+      <!-- PHASE 1: INPUT MODE (LINK | TEXT) -->
+      <div v-if="!recipeData" class="input-phase-container">
+        <!-- MODE TABS SWITCHER -->
+        <div class="import-mode-tabs">
+          <button
+            type="button"
+            class="mode-tab-btn"
+            :class="{ 'active': importMode === 'link' }"
+            @click="importMode = 'link'; errorMessage = '';"
+          >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+              <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
+            </svg>
+            <span>Link</span>
+          </button>
+          <button
+            type="button"
+            class="mode-tab-btn"
+            :class="{ 'active': importMode === 'text' }"
+            @click="importMode = 'text'; errorMessage = '';"
+          >
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+              <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
+            </svg>
+            <span>Text</span>
           </button>
         </div>
 
-        <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim() || !isOnline" @click="fetchRecipe" style="width: 100%; margin-top: 14px;">
-          <span v-if="isLoading" class="spinner"></span>
-          <span v-else>Rezept laden</span>
-        </button>
+        <!-- LINK TAB -->
+        <div v-if="importMode === 'link'" class="url-input-section">
+          <!-- OFFLINE NOTICE FOR LINK -->
+          <div v-if="!isOnline" class="ks-offline-notice">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            <span>Du bist offline. Weblinks können erst wieder geladen werden, wenn du online bist. Nutze einfach den <strong>Text-Import</strong>!</span>
+          </div>
 
-        <div class="hint-box">
-          <div class="hint-title">💡 Tipp für Mealie & Web:</div>
-          <p class="hint-text">
-            Du kannst auch direkt auf deinem Handy im Browser oder in Mealie auf <strong>„Teilen“</strong> tippen und <strong>KaufSync</strong> auswählen!
-          </p>
+          <div class="input-wrapper">
+            <input
+              ref="inputRef"
+              type="url"
+              v-model="url"
+              class="url-input"
+              placeholder="Rezept-Link einfügen (Monsieur Cuisine, Mealie, Chefkoch...)"
+              :disabled="isLoading || !isOnline"
+              @keyup.enter="fetchRecipe"
+            />
+            <button v-if="!url" type="button" class="paste-btn" @click="pasteFromClipboard" title="Aus Zwischenablage einfügen" :disabled="!isOnline">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
+              Einfügen
+            </button>
+            <button v-else type="button" class="clear-btn" @click="url = ''" title="Löschen">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+
+          <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim() || !isOnline" @click="fetchRecipe" style="width: 100%;">
+            <span v-if="isLoading" class="spinner"></span>
+            <span v-else>Rezept laden</span>
+          </button>
+
+          <div class="hint-box">
+            <div class="hint-title">💡 Tipp für Monsieur Cuisine & Apps:</div>
+            <p class="hint-text">
+              Du kannst direkt in deinem Handy-Browser oder in der Rezept-App auf <strong>„Teilen“</strong> tippen und <strong>KaufSync</strong> auswählen!
+            </p>
+          </div>
+        </div>
+
+        <!-- TEXT TAB (WORKS ONLINE & OFFLINE) -->
+        <div v-else class="text-input-section">
+          <input
+            type="text"
+            v-model="textTitleInput"
+            class="text-title-input"
+            placeholder="Rezepttitel (optional, z. B. Erdbeer-Marmelade)"
+            :disabled="isLoading"
+          />
+
+          <div class="textarea-wrapper">
+            <textarea
+              ref="textareaRef"
+              v-model="textInput"
+              rows="6"
+              class="text-recipe-input"
+              placeholder="Zutatenliste einfügen (eine Zutat pro Zeile, z. B.&#10;500 g Erdbeeren&#10;250 g Gelierzucker 2:1&#10;1 EL Zitronensaft)..."
+              :disabled="isLoading"
+            ></textarea>
+
+            <button v-if="!textInput" type="button" class="paste-btn-textarea" @click="pasteTextFromClipboard" title="Aus Zwischenablage einfügen">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 2h-4.18C14.4.84 13.3 0 12 0c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm7 18H5V4h2v3h10V4h2v16z"/></svg>
+              Einfügen
+            </button>
+            <button v-else type="button" class="clear-btn-textarea" @click="textInput = ''" title="Löschen">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+          </div>
+
+          <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !textInput.trim()" @click="handleTextParse" style="width: 100%;">
+            <span v-if="isLoading" class="spinner"></span>
+            <span v-else>Zutaten übernehmen</span>
+          </button>
         </div>
       </div>
 
       <!-- PHASE 2: RECIPE PREVIEW & INGREDIENT LIST -->
       <div v-else class="recipe-review-section">
-        <!-- SINGLE SCROLLABLE BODY: Natural top-to-bottom flow, no overlapping windows -->
         <div class="recipe-modal-scroll-body">
-          <!-- RECIPE DISCLAIMER BANNER (SCROLLS WITH CONTENT) -->
+          <!-- RECIPE DISCLAIMER BANNER -->
           <div class="recipe-disclaimer-box top-disclaimer">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
             </svg>
-            <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch aus dem Rezept übernommen. Bitte prüfe die Angaben kurz vor dem Import.</span>
+            <span><strong>Hinweis:</strong> Zutaten & Mengen werden automatisch erkannt und Duplikate zusammengeführt. Bitte prüfe die Angaben kurz vor dem Import.</span>
           </div>
 
           <!-- RECIPE HEADER CARD -->
@@ -587,7 +824,7 @@ const getHostname = (link) => {
               <svg viewBox="0 0 24 24" width="32" height="32" fill="currentColor"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.48l1.3-11.23a1.503 1.503 0 0 0-1.49-1.67h-3.1v-2c0-3.31-2.69-6-6-6s-6 2.69-6 6v2H3c-.88 0-1.58.74-1.49 1.67l1.3 11.23c.1.84.79 1.48 1.63 1.48h13.62zM8 6.61c0-2.21 1.79-4 4-4s4 1.79 4 4v2H8v-2z"/></svg>
             </div>
             <div class="recipe-meta">
-              <span class="source-badge">{{ getHostname(recipeData.url) }}</span>
+              <span class="source-badge">{{ recipeData.url ? getHostname(recipeData.url) : 'Text-Import' }}</span>
               <h3 class="recipe-name" :title="recipeData.title">{{ recipeData.title }}</h3>
               
               <!-- PORTIONEN SKALIERER -->
@@ -623,7 +860,7 @@ const getHostname = (link) => {
 
           <!-- INGREDIENTS LIST -->
           <div class="ingredients-list">
-            <template v-for="(item, idx) in recipeData.ingredients" :key="idx">
+            <template v-for="(item, idx) in recipeData.ingredients" :key="item.id || idx">
               <!-- INLINE EDIT MODE FOR THIS ITEM -->
               <div v-if="editingIndex === idx" class="ingredient-edit-card" @click.stop>
                 <div class="edit-card-header">
@@ -688,16 +925,19 @@ const getHostname = (link) => {
                 <!-- DETAILS -->
                 <div class="ing-details">
                   <div class="ing-main-line">
-                    <span class="ing-qty" v-if="item.display_amount">{{ item.display_amount }}</span>
-                    <span class="ing-qty" v-else-if="item.quantity">{{ item.quantity }} {{ item.unit }}</span>
+                    <span class="ing-qty" v-if="item.display_quantity || item.display_amount">
+                      {{ item.display_quantity || item.display_amount }}
+                    </span>
                     <span class="ing-name">{{ item.name }}</span>
+                    <span v-if="item.specification" class="ing-spec-badge">{{ item.specification }}</span>
                   </div>
                   <div class="ing-sub-line">
                     <span class="cat-pill">{{ item.category }}</span>
-                    <span v-if="item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
+                    <span v-if="item.is_pantry_staple || item.is_staple" class="staple-pill">Gewürz / Vorrat</span>
+                    <span v-if="item.was_merged" class="merged-pill" title="Automatisch zusammengeführt">Zusammengeführt</span>
                   </div>
                   <div v-if="item.raw" class="ing-basis" :title="item.raw">
-                    <span class="basis-prefix">Basis:</span> „{{ item.raw }}“
+                    <span class="basis-prefix">Basis:</span> {{ item.raw }}
                   </div>
                 </div>
 
@@ -717,7 +957,7 @@ const getHostname = (link) => {
             </template>
           </div>
 
-          <!-- TARGET LIST SECTION: Directly following ingredients, slightly color-separated -->
+          <!-- TARGET LIST SECTION -->
           <div class="target-list-section">
             <div class="target-list-top-row">
               <div class="target-heading-wrap">
@@ -774,7 +1014,7 @@ const getHostname = (link) => {
             </div>
           </div>
 
-          <!-- STATIC FOOTER ACTIONS (SCROLLS WITH CONTENT) -->
+          <!-- STATIC FOOTER ACTIONS -->
           <div class="modal-footer static-footer">
             <button type="button" class="ks-btn-pill-secondary" @click="recipeData = null">
               Anderes Rezept
@@ -828,7 +1068,7 @@ const getHostname = (link) => {
 
 .recipe-modal-sheet.is-compact {
   height: auto;
-  max-height: min(55vh, 460px);
+  max-height: min(70vh, 560px);
 }
 
 @keyframes slideUp {
@@ -857,7 +1097,7 @@ const getHostname = (link) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .header-left {
@@ -909,24 +1149,120 @@ const getHostname = (link) => {
   color: #fff;
 }
 
+/* ERROR BANNER WITH ACTION BUTTONS */
 .error-banner {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
   color: #fca5a5;
-  padding: 10px 14px;
-  border-radius: 12px;
+  padding: 12px 14px;
+  border-radius: 14px;
   font-size: 13px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 10px;
   margin-bottom: 14px;
+}
+
+.error-main-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.error-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.error-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.error-actions-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.error-pill-btn {
+  border: none;
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.error-pill-btn.primary {
+  background: #3b82f6;
+  color: #fff;
+}
+
+.error-pill-btn.primary:hover {
+  background: #2563eb;
+}
+
+.error-pill-btn.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f8fafc;
+}
+
+.error-pill-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+
+/* MODE TABS */
+.import-mode-tabs {
+  display: flex;
+  background: #1e2430;
+  border-radius: 14px;
+  padding: 3px;
+  gap: 4px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mode-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 11px;
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mode-tab-btn:hover {
+  color: #f8fafc;
+}
+
+.mode-tab-btn.active {
+  background: #2a3344;
+  color: #38bdf8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.input-phase-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* URL INPUT SECTION */
 .url-input-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .input-wrapper {
@@ -941,7 +1277,7 @@ const getHostname = (link) => {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 14px 90px 14px 16px;
-  font-size: 15px;
+  font-size: 14px;
   color: #f8fafc;
   outline: none;
   transition: border-color 0.2s;
@@ -972,54 +1308,99 @@ const getHostname = (link) => {
   border-radius: 50%;
 }
 
-.primary-action-btn {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border: none;
+/* TEXT INPUT SECTION */
+.text-input-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.text-title-input {
+  width: 100%;
+  background: #212631;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #f8fafc;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.text-title-input:focus {
+  border-color: #38bdf8;
+}
+
+.textarea-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.text-recipe-input {
+  width: 100%;
+  background: #212631;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
-  padding: 14px;
-  font-size: 15px;
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #f8fafc;
+  outline: none;
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.text-recipe-input:focus {
+  border-color: #38bdf8;
+}
+
+.paste-btn-textarea {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(46, 54, 70, 0.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  font-size: 11px;
   font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.clear-btn-textarea {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(46, 54, 70, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #cbd5e1;
+  padding: 4px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: opacity 0.2s, transform 0.1s;
-}
-
-.primary-action-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.primary-action-btn:not(:disabled):active {
-  transform: scale(0.98);
-}
-
-.secondary-btn {
-  background: #212631;
-  color: #cbd5e1;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 14px 18px;
-  font-size: 14px;
-  font-weight: 600;
   cursor: pointer;
 }
 
 .hint-box {
   background: #1e2430;
   border-radius: 12px;
-  padding: 12px 14px;
-  margin-top: 6px;
+  padding: 10px 14px;
+  margin-top: 4px;
 }
 
 .hint-title {
   font-size: 12px;
   font-weight: 700;
   color: #f59e0b;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .hint-text {
@@ -1057,7 +1438,7 @@ const getHostname = (link) => {
   border-radius: 16px;
   padding: 12px;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .recipe-thumb {
@@ -1160,7 +1541,6 @@ const getHostname = (link) => {
   border: 1px solid rgba(245, 158, 11, 0.22);
   border-radius: 14px;
   padding: 10px 14px;
-  margin-bottom: 8px;
   font-size: 12px;
   line-height: 1.4;
   color: #fde68a;
@@ -1181,8 +1561,8 @@ const getHostname = (link) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 4px;
-  margin-bottom: 6px;
+  padding: 4px 4px;
+  margin-bottom: 4px;
 }
 
 .staple-toggle-btn {
@@ -1204,10 +1584,6 @@ const getHostname = (link) => {
 .staple-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.1);
   border-color: rgba(255, 255, 255, 0.2);
-}
-
-.staple-toggle-btn:active {
-  transform: scale(0.96);
 }
 
 .staple-toggle-btn.staples-active {
@@ -1302,6 +1678,7 @@ const getHostname = (link) => {
   align-items: baseline;
   gap: 6px;
   margin-bottom: 2px;
+  flex-wrap: wrap;
 }
 
 .ing-qty {
@@ -1317,6 +1694,17 @@ const getHostname = (link) => {
   color: #f8fafc;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ing-spec-badge {
+  font-size: 10px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 1px 6px;
+  border-radius: 4px;
   white-space: nowrap;
 }
 
@@ -1338,6 +1726,15 @@ const getHostname = (link) => {
   font-size: 10px;
   color: #f59e0b;
   background: rgba(245, 158, 11, 0.1);
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.merged-pill {
+  font-size: 10px;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.25);
   padding: 1px 6px;
   border-radius: 4px;
 }
@@ -1506,11 +1903,6 @@ const getHostname = (link) => {
   font-size: 13px !important;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 /* TARGET LIST SECTION */
 .target-list-section {
   background: rgba(30, 41, 59, 0.5);
@@ -1621,12 +2013,6 @@ const getHostname = (link) => {
   padding: 2px;
   flex-shrink: 0;
   color: #38bdf8;
-}
-
-.store-card-logo {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
 }
 
 .store-card-info {
