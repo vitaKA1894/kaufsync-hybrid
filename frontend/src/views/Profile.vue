@@ -11,6 +11,7 @@ import {
 } from '../utils/notificationService';
 import { isWakeLockSupported } from '../utils/wakeLockService';
 import { isHapticFeedbackEnabled, setHapticFeedbackEnabled } from '../utils/hapticsService';
+import { isRestockSuggestionsEnabled, setRestockSuggestionsEnabled } from '../services/consumptionService';
 import StoreLogo from '../components/StoreLogo.vue';
 import LoyaltyCardEditModal from '../components/LoyaltyCardEditModal.vue';
 import {
@@ -29,6 +30,7 @@ const user = ref({
   is_admin: false,
   keep_screen_awake: localStorage.getItem('ks_keep_screen_awake') === 'true',
   haptic_feedback_enabled: isHapticFeedbackEnabled(),
+  show_restock_suggestions: isRestockSuggestionsEnabled(),
   settings_push_async_events: true, // Master Switch
   settings_push_new_items: true,
   settings_push_completed_items: true,
@@ -91,6 +93,8 @@ const loadUserProfile = async () => {
     localStorage.setItem('ks_keep_screen_awake', String(user.value.keep_screen_awake));
     user.value.haptic_feedback_enabled = data.haptic_feedback_enabled ?? isHapticFeedbackEnabled();
     setHapticFeedbackEnabled(user.value.haptic_feedback_enabled);
+    user.value.show_restock_suggestions = data.show_restock_suggestions ?? isRestockSuggestionsEnabled();
+    setRestockSuggestionsEnabled(user.value.show_restock_suggestions);
   } catch (error) {
     console.error(error);
   }
@@ -127,7 +131,8 @@ const updateProfile = async (silent = false) => {
         settings_push_shopping_done: user.value.settings_push_shopping_done,
         settings_push_members: user.value.settings_push_members,
         keep_screen_awake: user.value.keep_screen_awake,
-        haptic_feedback_enabled: user.value.haptic_feedback_enabled
+        haptic_feedback_enabled: user.value.haptic_feedback_enabled,
+        show_restock_suggestions: user.value.show_restock_suggestions
       })
     });
 
@@ -309,6 +314,11 @@ const handleToggleKeepScreenAwake = async () => {
 
 const handleToggleHapticFeedback = async () => {
   setHapticFeedbackEnabled(user.value.haptic_feedback_enabled);
+  await updateProfile(true);
+};
+
+const handleToggleRestockSuggestions = async () => {
+  setRestockSuggestionsEnabled(user.value.show_restock_suggestions);
   await updateProfile(true);
 };
 
@@ -540,6 +550,19 @@ onMounted(async () => {
             </div>
             <label class="ks-switch">
               <input type="checkbox" v-model="user.haptic_feedback_enabled" @change="handleToggleHapticFeedback" />
+              <span class="ks-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="master-toggle-card" style="margin-top: 10px;">
+            <div class="master-toggle-info">
+              <span class="master-toggle-title">Nachkauf-Vorschläge anzeigen</span>
+              <span class="master-toggle-desc">
+                Zeigt im Suchfenster Artikel an, die bald wieder leer sein könnten („Bald wieder leer“).
+              </span>
+            </div>
+            <label class="ks-switch">
+              <input type="checkbox" v-model="user.show_restock_suggestions" @change="handleToggleRestockSuggestions" />
               <span class="ks-switch-slider"></span>
             </label>
           </div>

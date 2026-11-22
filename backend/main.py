@@ -38,6 +38,7 @@ def ensure_columns():
                 ("settings_vibration_enabled", "BOOLEAN DEFAULT 1"),
                 ("keep_screen_awake", "BOOLEAN DEFAULT 0"),
                 ("haptic_feedback_enabled", "BOOLEAN DEFAULT 1"),
+                ("show_restock_suggestions", "BOOLEAN DEFAULT 1"),
             ]
             for col_name, col_type in cols_to_add:
                 if col_name not in existing_cols:
@@ -68,6 +69,31 @@ def ensure_columns():
                 conn.exec_driver_sql("DELETE FROM activity_logs WHERE action_type = 'started'")
             except Exception:
                 pass
+
+            # Initial Backfill: Bestehende abgehakte Artikel in purchase_events überführen
+            try:
+                pe_count = conn.exec_driver_sql("SELECT COUNT(*) FROM purchase_events").scalar()
+                if pe_count == 0:
+                    rows = conn.exec_driver_sql(
+                        "SELECT id, list_id, item_name, created_at FROM activity_logs WHERE action_type = 'completed' AND item_name IS NOT NULL"
+                    ).fetchall()
+                    for r in rows:
+                        _, l_id, i_name, c_at = r
+                        if not i_name or not l_id:
+                            continue
+                        d_str = str(c_at)[:10]
+                        a_key = i_name.strip().lower()
+                        dup = conn.exec_driver_sql(
+                            "SELECT id FROM purchase_events WHERE list_id = ? AND article_key = ? AND purchased_date = ?",
+                            (l_id, a_key, d_str)
+                        ).first()
+                        if not dup:
+                            conn.exec_driver_sql(
+                                "INSERT INTO purchase_events (id, list_id, article_key, display_name, category, purchased_date, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                                (generate_uuid(), l_id, a_key, i_name.strip(), "Sonstiges", d_str, c_at)
+                            )
+            except Exception as bf_err:
+                print(f"Backfill purchase_events notice: {bf_err}")
 
             conn.commit()
     except Exception as e:
@@ -547,7 +573,8 @@ def update_user_profile(
         'settings_push_cleared_items', 'settings_push_shopping_started', 'settings_push_shopping_done',
         'settings_push_members', 'settings_push_quiet_hours', 'settings_push_quiet_start',
         'settings_push_quiet_end', 'settings_sound_enabled', 'settings_vibration_enabled',
-        'settings_push_admin_pending_users', 'keep_screen_awake', 'haptic_feedback_enabled'
+        'settings_push_admin_pending_users', 'keep_screen_awake', 'haptic_feedback_enabled',
+        'show_restock_suggestions'
     ]
     for f in fields:
         val = getattr(user_update, f, None)
@@ -677,6 +704,8 @@ def delete_account(
             db.query(models.ListInvitation).filter(models.ListInvitation.list_id == l.id).delete(synchronize_session=False)
             db.query(models.ListJoinRequest).filter(models.ListJoinRequest.list_id == l.id).delete(synchronize_session=False)
             db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.PurchaseEvent).filter(models.PurchaseEvent.list_id == l.id).delete(synchronize_session=False)
+            db.query(models.SuggestionSnooze).filter(models.SuggestionSnooze.list_id == l.id).delete(synchronize_session=False)
             db.delete(l)
 
     # 4. Nutzer aus allen Mitgliedschaften austragen
@@ -795,6 +824,8 @@ async def delete_list(
         raise HTTPException(status_code=403, detail="Keine Berechtigung")
         
     db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.list_id == list_id).delete(synchronize_session=False)
+    db.query(models.PurchaseEvent).filter(models.PurchaseEvent.list_id == list_id).delete(synchronize_session=False)
+    db.query(models.SuggestionSnooze).filter(models.SuggestionSnooze.list_id == list_id).delete(synchronize_session=False)
     db.delete(db_list)
     db.commit()
 
@@ -893,7 +924,231 @@ def delete_list_loyalty_card(
     db.commit()
     return {"status": "ok", "message": "Bonuskarte gelöscht"}
 
-    
+# --- CONSUMPTION CYCLES & SUGGESTIONS ---
+
+def format_cadence_text(median_days: int) -> str:
+    m = round(median_days)
+    if m <= 1:
+        return "Täglich"
+    if m < 6:
+        return f"Alle ~{m} Tage"
+    if 6 <= m <= 8:
+        return "Wöchentlich"
+    if 12 <= m <= 16:
+        return "Meist alle 2 Wochen"
+    if 19 <= m <= 23:
+        return "Meist alle 3 Wochen"
+    if 27 <= m <= 35:
+        return "Meist monatlich"
+    if m > 35 and m % 7 <= 2:
+        return f"Alle ~{round(m / 7)} Wochen"
+    return f"Alle ~{m} Tage"
+
+def calculate_median(numbers: List[int]) -> int:
+    if not numbers:
+        return 0
+    s = sorted(numbers)
+    mid = len(s) // 2
+    if len(s) % 2 != 0:
+        return s[mid]
+    return round((s[mid - 1] + s[mid]) / 2)
+
+def record_purchase_event(db: Session, list_id: str, item_name: str, category: str = "Sonstiges", source_item_id: Optional[str] = None):
+    if not list_id or not item_name:
+        return
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    article_key = item_name.strip().lower()
+    existing = db.query(models.PurchaseEvent).filter(
+        models.PurchaseEvent.list_id == list_id,
+        models.PurchaseEvent.article_key == article_key,
+        models.PurchaseEvent.purchased_date == today_str
+    ).first()
+    if not existing:
+        pe = models.PurchaseEvent(
+            list_id=list_id,
+            article_key=article_key,
+            display_name=item_name.strip(),
+            category=category or "Sonstiges",
+            purchased_date=today_str,
+            source_item_id=source_item_id
+        )
+        db.add(pe)
+    # Clear active snoozes for this article in this list
+    db.query(models.SuggestionSnooze).filter(
+        models.SuggestionSnooze.list_id == list_id,
+        models.SuggestionSnooze.article_key == article_key
+    ).delete(synchronize_session=False)
+
+def retract_purchase_event(db: Session, list_id: str, source_item_id: str):
+    if not list_id or not source_item_id:
+        return
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    db.query(models.PurchaseEvent).filter(
+        models.PurchaseEvent.list_id == list_id,
+        models.PurchaseEvent.source_item_id == source_item_id,
+        models.PurchaseEvent.purchased_date == today_str
+    ).delete(synchronize_session=False)
+
+@app.get("/api/lists/{list_id}/purchases", response_model=List[schemas.PurchaseEventResponse])
+def get_list_purchases(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung")
+
+    events = db.query(models.PurchaseEvent).filter(
+        models.PurchaseEvent.list_id == list_id
+    ).order_by(models.PurchaseEvent.purchased_date.desc()).all()
+    return events
+
+@app.get("/api/lists/{list_id}/suggestions", response_model=List[schemas.DueSuggestionResponse])
+def get_due_suggestions(
+    list_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung")
+
+    if hasattr(current_user, 'show_restock_suggestions') and not current_user.show_restock_suggestions:
+        return []
+
+    now = datetime.now(timezone.utc)
+    today_str = now.strftime("%Y-%m-%d")
+
+    active_items = db.query(models.Item).filter(
+        models.Item.list_id == list_id,
+        models.Item.status != "completed",
+        models.Item.is_deleted == False
+    ).all()
+    active_keys = {item.name.strip().lower() for item in active_items if item.name}
+
+    snoozes = db.query(models.SuggestionSnooze).filter(
+        models.SuggestionSnooze.list_id == list_id,
+        models.SuggestionSnooze.snoozed_until > now
+    ).all()
+    snoozed_keys = {s.article_key.lower() for s in snoozes}
+
+    events = db.query(models.PurchaseEvent).filter(
+        models.PurchaseEvent.list_id == list_id
+    ).all()
+
+    grouped = {}
+    for ev in events:
+        ak = ev.article_key.lower()
+        if ak not in grouped:
+            grouped[ak] = {
+                "article_key": ev.article_key,
+                "display_name": ev.display_name,
+                "category": ev.category or "Sonstiges",
+                "icon": ev.icon,
+                "dates": set()
+            }
+        grouped[ak]["dates"].add(ev.purchased_date)
+        if ev.display_name:
+            grouped[ak]["display_name"] = ev.display_name
+        if ev.category and ev.category != "Sonstiges":
+            grouped[ak]["category"] = ev.category
+        if ev.icon:
+            grouped[ak]["icon"] = ev.icon
+
+    today_date = datetime.strptime(today_str, "%Y-%m-%d").date()
+    suggestions = []
+
+    for ak, data in grouped.items():
+        if ak in active_keys or data["display_name"].lower() in active_keys:
+            continue
+        if ak in snoozed_keys or data["display_name"].lower() in snoozed_keys:
+            continue
+
+        unique_dates = sorted(list(data["dates"]))
+        if len(unique_dates) < 3:
+            continue
+
+        recent_dates = unique_dates[-12:]
+        intervals = []
+        for i in range(len(recent_dates) - 1):
+            d1 = datetime.strptime(recent_dates[i], "%Y-%m-%d").date()
+            d2 = datetime.strptime(recent_dates[i + 1], "%Y-%m-%d").date()
+            diff = (d2 - d1).days
+            if 1 <= diff <= 180:
+                intervals.append(diff)
+
+        if len(intervals) < 2:
+            continue
+
+        median_cycle = max(1, calculate_median(intervals))
+        last_date_str = recent_dates[-1]
+        last_date = datetime.strptime(last_date_str, "%Y-%m-%d").date()
+        days_since = (today_date - last_date).days
+
+        if days_since < 1:
+            continue
+
+        if days_since < (median_cycle * 0.85):
+            continue
+
+        max_stale = max(median_cycle * 3, 60)
+        if days_since > max_stale:
+            continue
+
+        urgency_score = days_since / median_cycle
+        suggestions.append({
+            "article_key": data["article_key"],
+            "display_name": data["display_name"],
+            "category": data["category"],
+            "icon": data["icon"],
+            "median_cycle_days": median_cycle,
+            "days_since_last_purchase": days_since,
+            "urgency_score": urgency_score,
+            "last_purchased_at": last_date_str,
+            "cadence_text": format_cadence_text(median_cycle)
+        })
+
+    suggestions.sort(key=lambda s: s["urgency_score"], reverse=True)
+    return suggestions[:10]
+
+@app.post("/api/lists/{list_id}/suggestions/snooze")
+def snooze_suggestion(
+    list_id: str,
+    req: schemas.SnoozeRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    db_list = db.query(models.List).filter(models.List.id == list_id).first()
+    if not db_list:
+        raise HTTPException(status_code=404, detail="Liste nicht gefunden")
+    if db_list.created_by != current_user.id and current_user not in db_list.members:
+        raise HTTPException(status_code=403, detail="Keine Berechtigung")
+
+    days = req.days if req.days and req.days > 0 else 3
+    snoozed_until = datetime.now(timezone.utc) + timedelta(days=days)
+    ak = req.article_key.strip().lower()
+
+    existing = db.query(models.SuggestionSnooze).filter(
+        models.SuggestionSnooze.list_id == list_id,
+        models.SuggestionSnooze.article_key == ak
+    ).first()
+    if existing:
+        existing.snoozed_until = snoozed_until
+    else:
+        snooze = models.SuggestionSnooze(
+            list_id=list_id,
+            article_key=ak,
+            snoozed_until=snoozed_until
+        )
+        db.add(snooze)
+    db.commit()
+    return {"status": "ok", "snoozed_until": snoozed_until.isoformat()}
+
 # --- READONLY PUBLIC SHARING ---
 
 @app.get("/api/public/list/{readonly_token}", response_model=schemas.PublicListResponse)
@@ -1704,6 +1959,10 @@ async def update_item(
     # LOG ACTIVITY (if status changed)
     if item_data.status is not None and old_status != item_data.status:
         action = "completed" if item_data.status == "completed" else "reactivated"
+        if item_data.status == "completed":
+            record_purchase_event(db, db_item.list_id, db_item.name, db_item.category, db_item.id)
+        elif item_data.status == "active" and old_status == "completed":
+            retract_purchase_event(db, db_item.list_id, db_item.id)
         log_entry = models.ActivityLog(
             list_id=db_item.list_id,
             user_id=current_user.id,
@@ -1890,6 +2149,10 @@ async def sync_list(
                     item.last_modified_by = current_user.id
                     if "status" in payload and payload["status"] != old_status:
                         log_action = "completed" if payload["status"] == "completed" else "reactivated"
+                        if log_action == "completed":
+                            record_purchase_event(db, list_id, item.name, item.category, item.id)
+                        elif log_action == "reactivated":
+                            retract_purchase_event(db, list_id, item.id)
                         activity_logs_to_add.append(models.ActivityLog(
                             list_id=list_id,
                             user_id=current_user.id,
@@ -1910,6 +2173,10 @@ async def sync_list(
                     item.updated_at = now
                     item.last_modified_by = current_user.id
                     log_action = "completed" if new_status == "completed" else "reactivated"
+                    if log_action == "completed":
+                        record_purchase_event(db, list_id, item.name, item.category, item.id)
+                    elif log_action == "reactivated":
+                        retract_purchase_event(db, list_id, item.id)
                     activity_logs_to_add.append(models.ActivityLog(
                         list_id=list_id,
                         user_id=current_user.id,

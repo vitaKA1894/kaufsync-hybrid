@@ -26,6 +26,7 @@ class UserUpdate(BaseModel):
     settings_push_admin_pending_users: Optional[bool] = None
     keep_screen_awake: Optional[bool] = None
     haptic_feedback_enabled: Optional[bool] = None
+    show_restock_suggestions: Optional[bool] = None
 
 # NEU: Für die Passwort-Änderung
 class PasswordUpdate(BaseModel):
@@ -56,6 +57,7 @@ class UserResponse(BaseModel):
     settings_push_admin_pending_users: Optional[bool] = False
     keep_screen_awake: Optional[bool] = False
     haptic_feedback_enabled: Optional[bool] = True
+    show_restock_suggestions: Optional[bool] = True
 
     class Config:
         from_attributes = True
@@ -289,3 +291,34 @@ class LoyaltyCardResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- CONSUMPTION CYCLES & SUGGESTIONS SCHEMAS ---
+class PurchaseEventResponse(BaseModel):
+    id: str
+    list_id: str
+    article_key: str
+    display_name: str
+    category: str
+    icon: Optional[str] = None
+    purchased_date: str
+    source_item_id: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class DueSuggestionResponse(BaseModel):
+    article_key: str
+    display_name: str
+    category: str
+    icon: Optional[str] = None
+    median_cycle_days: int
+    days_since_last_purchase: int
+    urgency_score: float
+    last_purchased_at: str
+    cadence_text: str
+
+class SnoozeRequest(BaseModel):
+    article_key: str
+    days: Optional[int] = None
+

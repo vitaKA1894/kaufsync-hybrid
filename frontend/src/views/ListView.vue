@@ -34,6 +34,12 @@ import {
   processSyncQueue,
   triggerSync
 } from '../services/syncService';
+import {
+  recordPurchase,
+  retractPurchase,
+  syncPurchases,
+  backfillFromChangelog
+} from '../services/consumptionService';
 import { db } from '../db/index';
 
 const route = useRoute();
@@ -737,7 +743,10 @@ const toggleItemStatus = async (item) => {
     // 1. Tactile confirmation feedback
     triggerConfirmationHaptic();
 
-    // 2. Snapshot & Smart Undo Snackbar (aktualisiert bei schnellem Nacheinander, kein Stacking)
+    // 2. Record consumption cycle purchase event
+    recordPurchase(listId, item);
+
+    // 3. Snapshot & Smart Undo Snackbar (aktualisiert bei schnellem Nacheinander, kein Stacking)
     if (undoSnackbar.value.timer) {
       clearTimeout(undoSnackbar.value.timer);
     }
@@ -764,14 +773,15 @@ const toggleItemStatus = async (item) => {
       }, 4000)
     };
 
-    // 3. Completion Prompt Check (ausschließlich beim Übergang von >0 auf 0 offene Artikel der gesamten Liste)
+    // 4. Completion Prompt Check (ausschließlich beim Übergang von >0 auf 0 offene Artikel der gesamten Liste)
     const currentOpenCount = openActiveItems.value.length;
     if (previousOpenCount > 0 && currentOpenCount === 0 && !completionPromptDismissed.value) {
       showCompletionPrompt.value = true;
     }
   } else {
-    // Falls manuell reaktiviert: Abschlussaufforderung verwerfen
+    // Falls manuell reaktiviert: Abschlussaufforderung verwerfen & Kaufereignis zurückziehen
     showCompletionPrompt.value = false;
+    retractPurchase(listId, item.id);
   }
 };
 
@@ -813,6 +823,7 @@ const executeUndo = async () => {
   const item = items.value.find(i => i.id === snapshot.id);
 
   if (item) {
+    retractPurchase(listId, snapshot.id);
     item.status = 'active';
     item.quantity = snapshot.quantity;
     item.unit = snapshot.unit;
@@ -912,6 +923,7 @@ const loadChangelog = async () => {
     try {
       const parsed = JSON.parse(cached);
       changelog.value = Array.isArray(parsed) ? parsed.filter(l => l.action_type !== 'started' && l.action_type !== 'shopping') : [];
+      backfillFromChangelog(listId);
     } catch (e) {}
   }
 
@@ -929,6 +941,7 @@ const loadChangelog = async () => {
       const sanitized = Array.isArray(data) ? data.filter(l => l.action_type !== 'started' && l.action_type !== 'shopping') : [];
       changelog.value = sanitized;
       localStorage.setItem(`cached_changelog_${listId}`, JSON.stringify(sanitized));
+      backfillFromChangelog(listId);
     }
   } catch (error) {
     console.error("Fehler beim Laden des Changelogs", error);
@@ -1515,6 +1528,8 @@ onMounted(() => {
   loadCurrentUser();
   setupWebSocket();
   processOfflineQueue();
+  syncPurchases(listId);
+  backfillFromChangelog(listId);
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
   document.addEventListener('visibilitychange', handleWakeLockVisibility);

@@ -1,6 +1,6 @@
 import { ref } from 'vue';
 import { db } from '../db/index.js';
-import { apiUrl } from '../config/api';
+import { apiUrl } from '../config/api.js';
 
 // Reactive states for UI
 export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true);

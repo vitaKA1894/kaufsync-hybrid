@@ -15,6 +15,11 @@ import {
   saveCustomNote,
   removeCustomNote
 } from '../utils/articleNoteHistory';
+import {
+  getDueSuggestions,
+  snoozeSuggestion,
+  isRestockSuggestionsEnabled
+} from '../services/consumptionService';
 
 // --- KATEGORIE DEFINITIONEN ---
 const predefinedCategories = [
@@ -70,6 +75,66 @@ const isSliderExpanded = ref(false);
 const localNotesVersion = ref(0);
 const showCategorySelector = ref(false);
 const activeTags = ref([]);
+
+// Restock Suggestions State ("Bald wieder leer")
+const dueSuggestions = ref([]);
+const recentlyAddedKeys = ref([]);
+const dismissedKeys = ref([]);
+
+const loadDueSuggestions = () => {
+  if (!props.listId || !isRestockSuggestionsEnabled()) {
+    dueSuggestions.value = [];
+    return;
+  }
+  try {
+    const list = getDueSuggestions(props.listId, props.activeItems || []);
+    dueSuggestions.value = list;
+  } catch (err) {
+    console.error("Fehler beim Laden der Nachkauf-Vorschläge:", err);
+    dueSuggestions.value = [];
+  }
+};
+
+const visibleDueSuggestions = computed(() => {
+  if (!isRestockSuggestionsEnabled()) return [];
+  if (query.value.trim() !== '') return [];
+
+  const activeNames = new Set((props.activeItems || []).map(i => i.name.trim().toLowerCase()));
+
+  return dueSuggestions.value.filter(sug => {
+    if (recentlyAddedKeys.value.includes(sug.articleKey)) return false;
+    if (dismissedKeys.value.includes(sug.articleKey)) return false;
+    if (activeNames.has(sug.name.trim().toLowerCase())) return false;
+    return true;
+  });
+});
+
+const restockSuggestion = (sug) => {
+  triggerLightHaptic();
+  const newId = crypto.randomUUID();
+  const searchMatch = searchTaxonomy(sug.name).find(
+    t => t.name.toLowerCase() === sug.name.toLowerCase()
+  );
+  const unit = searchMatch?.unit || 'Stk';
+
+  recentlyAddedKeys.value.push(sug.articleKey);
+
+  emit('add', {
+    id: newId,
+    name: sug.name,
+    category: sug.category || 'Sonstiges',
+    quantity: 1,
+    unit: unit,
+    tags: JSON.stringify([]),
+    note: ''
+  });
+};
+
+const dismissSuggestion = (sug) => {
+  triggerLightHaptic();
+  dismissedKeys.value.push(sug.articleKey);
+  snoozeSuggestion(props.listId, sug.articleKey, sug.medianCycleDays);
+};
 
 // Sheet Dragging Logic
 const {
@@ -564,6 +629,8 @@ const closeModal = () => {
   openedFromNewAdd.value = false;
   duplicateWarning.value = false;
   barcodeError.value = '';
+  recentlyAddedKeys.value = [];
+  dismissedKeys.value = [];
   emit('close');
 };
 
@@ -577,6 +644,7 @@ const highlightText = (text, match) => {
 onMounted(() => {
   if (props.isOpen) {
     lockBackgroundScroll();
+    loadDueSuggestions();
     if (props.editItem) {
       openedFromNewAdd.value = false;
       setupEditItem(props.editItem);
@@ -595,6 +663,9 @@ onUnmounted(() => {
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     lockBackgroundScroll();
+    recentlyAddedKeys.value = [];
+    dismissedKeys.value = [];
+    loadDueSuggestions();
     if (props.editItem) {
       openedFromNewAdd.value = false;
       setupEditItem(props.editItem);
@@ -611,6 +682,12 @@ watch(() => props.isOpen, (newVal) => {
   } else {
     unlockBackgroundScroll();
     closeModal();
+  }
+});
+
+watch(() => props.listId, () => {
+  if (props.isOpen) {
+    loadDueSuggestions();
   }
 });
 
@@ -655,6 +732,62 @@ watch(() => props.editItem, (newVal) => {
 
               <div v-if="results.length === 0" class="no-results">
                 Keine Vorschläge gefunden. Drücke Enter, um "{{ query }}" hinzuzufügen.
+              </div>
+            </div>
+
+            <!-- "Bald wieder leer" Suggestions Section -->
+            <div
+              v-if="!query.trim() && visibleDueSuggestions.length > 0"
+              class="restock-suggestions-section"
+            >
+              <div class="restock-section-header">
+                <div class="restock-title-wrapper">
+                  <svg class="restock-header-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
+                  </svg>
+                  <span class="restock-title">Bald wieder leer</span>
+                  <span class="restock-count-badge">{{ visibleDueSuggestions.length }}</span>
+                </div>
+              </div>
+
+              <div class="restock-chips-slider" @touchstart.stop @touchmove.stop>
+                <div
+                  v-for="sug in visibleDueSuggestions"
+                  :key="sug.articleKey"
+                  class="restock-card"
+                  :style="{ '--cat-accent': getCategoryDef(sug.category).color }"
+                  @click="restockSuggestion(sug)"
+                  role="button"
+                  tabindex="0"
+                  :aria-label="`${sug.name} wieder auf die Liste setzen`"
+                >
+                  <button
+                    type="button"
+                    class="restock-dismiss-btn"
+                    @click.stop="dismissSuggestion(sug)"
+                    :aria-label="`${sug.name} Vorschlag verwerfen`"
+                  >
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                    </svg>
+                  </button>
+
+                  <div class="restock-card-main">
+                    <div class="restock-icon-wrapper" :style="{ color: getCategoryDef(sug.category).color }">
+                      <CategoryIcon :name="sug.name" :category="sug.category" size="26" />
+                    </div>
+                    <div class="restock-card-text">
+                      <span class="restock-item-name">{{ sug.name }}</span>
+                      <span class="restock-cadence">{{ sug.cadenceText }}</span>
+                    </div>
+                  </div>
+
+                  <div class="restock-add-badge">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -1451,5 +1584,185 @@ watch(() => props.editItem, (newVal) => {
   padding: 16px;
   font-size: 16px;
   font-weight: 600;
+}
+
+/* Restock Suggestions Section ("Bald wieder leer") */
+.restock-suggestions-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+  animation: restockFadeIn 0.2s ease-out;
+}
+
+@keyframes restockFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.restock-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px 6px 4px;
+}
+
+.restock-title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.restock-header-icon {
+  color: #38bdf8;
+}
+
+.restock-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.restock-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  padding: 1px 6px;
+  border-radius: 9999px;
+}
+
+.restock-chips-slider {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 4px 8px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+}
+
+.restock-chips-slider::-webkit-scrollbar {
+  display: none;
+}
+
+.restock-card {
+  position: relative;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 3px solid var(--cat-accent, #38bdf8);
+  border-radius: 14px;
+  padding: 8px 10px 8px 10px;
+  min-height: 48px;
+  cursor: pointer;
+  user-select: none;
+  touch-action: pan-x;
+  scroll-snap-align: start;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.2s ease;
+}
+
+.restock-card:active {
+  transform: scale(0.96);
+  background: rgba(51, 65, 85, 0.95);
+}
+
+.restock-card-main {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.restock-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.restock-card-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.restock-item-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+
+.restock-cadence {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
+.restock-add-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  flex-shrink: 0;
+  margin-left: 2px;
+}
+
+.restock-dismiss-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #334155;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.15s ease;
+  z-index: 2;
+}
+
+.restock-dismiss-btn::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+}
+
+.restock-dismiss-btn:hover,
+.restock-dismiss-btn:active {
+  background: #475569;
+  color: #f8fafc;
+  transform: scale(1.1);
 }
 </style>

@@ -47,6 +47,7 @@ class User(Base):
     settings_push_admin_pending_users = Column(Boolean, default=False)
     keep_screen_awake = Column(Boolean, default=False)
     haptic_feedback_enabled = Column(Boolean, default=True)
+    show_restock_suggestions = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utc_now)
 
 class PasswordResetToken(Base):
@@ -177,5 +178,30 @@ class ListLoyaltyCard(Base):
 
     user = relationship("User", backref="loyalty_cards")
     shopping_list = relationship("List", backref="loyalty_cards")
+
+class PurchaseEvent(Base):
+    __tablename__ = "purchase_events"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    list_id = Column(String, ForeignKey("lists.id", ondelete="CASCADE"), index=True, nullable=False)
+    article_key = Column(String, index=True, nullable=False)
+    display_name = Column(String, nullable=False)
+    category = Column(String, default="Sonstiges")
+    icon = Column(String, nullable=True)
+    purchased_date = Column(String, index=True, nullable=False)  # YYYY-MM-DD
+    source_item_id = Column(String, nullable=True, index=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    shopping_list = relationship("List", backref="purchase_events")
+
+class SuggestionSnooze(Base):
+    __tablename__ = "suggestion_snoozes"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    list_id = Column(String, ForeignKey("lists.id", ondelete="CASCADE"), index=True, nullable=False)
+    article_key = Column(String, index=True, nullable=False)
+    snoozed_until = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+
+    shopping_list = relationship("List", backref="suggestion_snoozes")
+
 
 
