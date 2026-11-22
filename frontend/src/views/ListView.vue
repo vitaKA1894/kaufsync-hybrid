@@ -20,6 +20,11 @@ import {
   isScreenWakeLockActive
 } from '../utils/wakeLockService';
 import {
+  triggerLightHaptic,
+  triggerConfirmationHaptic,
+  triggerSuccessHaptic
+} from '../utils/hapticsService';
+import {
   isOnline,
   syncStatus,
   pendingCount,
@@ -100,6 +105,25 @@ const isShoppingSessionActive = ref(false);
 const activeMetaFilter = ref('all'); // 'all', 'urgent', 'offer', 'optional'
 const filterNotice = ref(null);
 let filterNoticeTimer = null;
+
+// Ephemeral Smart Undo Snackbar State
+const undoSnackbar = ref({
+  visible: false,
+  itemSnapshot: null,
+  timer: null
+});
+const isUndoing = ref(false);
+let touchStartX = 0;
+let touchStartY = 0;
+
+// Ephemeral "Complete Shopping" Prompt State
+const showCompletionPrompt = ref(false);
+const completionPromptDismissed = ref(false);
+const isSubmittingCompletion = ref(false);
+
+const isSharedList = computed(() => {
+  return (currentList.value?.members?.length || 0) > 1;
+});
 
 const showShareSheet = ref(false);
 const showSortSheet = ref(false);
@@ -323,10 +347,12 @@ const filteredActiveItems = computed(() => {
 });
 
 const setMetaFilter = (key) => {
+  triggerLightHaptic();
   activeMetaFilter.value = key;
 };
 
 const toggleMetaFilter = (key) => {
+  triggerLightHaptic();
   if (activeMetaFilter.value === key) {
     activeMetaFilter.value = 'all';
   } else {
@@ -335,6 +361,7 @@ const toggleMetaFilter = (key) => {
 };
 
 const clearMetaFilter = () => {
+  triggerLightHaptic();
   activeMetaFilter.value = 'all';
   filterNotice.value = null;
   if (filterNoticeTimer) {
@@ -342,6 +369,13 @@ const clearMetaFilter = () => {
     filterNoticeTimer = null;
   }
 };
+
+// Automatisches Zurücksetzen der Abschlussaufforderung, sobald wieder offene Artikel existieren
+watch(totalOpenCount, (newCount) => {
+  if (newCount > 0) {
+    showCompletionPrompt.value = false;
+  }
+});
 
 // Automatischer Reset, wenn die gefilterten Artikel erledigt werden (Count -> 0)
 watch(metaTagCounts, (newCounts) => {
@@ -622,6 +656,7 @@ const handleAddItem = async (itemPayload) => {
   };
   
   items.value.push(newItem);
+  showCompletionPrompt.value = false;
 
   // Hinweismeldung, falls Artikel durch einen aktiven Filter ausgeblendet wird
   if (activeMetaFilter.value !== 'all' && !itemHasMetaTag(newItem, activeMetaFilter.value)) {
@@ -644,10 +679,17 @@ const handleAddItem = async (itemPayload) => {
 };
 
 const updateItemQuantity = (item, delta) => {
+  if (delta === -1 && (item.quantity || 1) <= 1) {
+    // Bei Menge 1 führt das Dekrementieren zum Abhaken und triggert die Smart Undo Snackbar
+    toggleItemStatus(item);
+    return;
+  }
+
   const newQty = Math.max(1, (item.quantity || 1) + delta);
   if (newQty !== item.quantity) {
     item.quantity = newQty;
     handleUpdateItem({ id: item.id, quantity: newQty });
+    triggerLightHaptic();
   }
 };
 
@@ -674,6 +716,8 @@ const toggleItemStatus = async (item) => {
     }
   }
 
+  const previousOpenCount = openActiveItems.value.length;
+
   // Optimistisches sofortiges Update für 0ms Verzögerung in der UI
   item.status = newStatus;
   const itemIdx = items.value.findIndex(i => i.id === item.id);
@@ -688,6 +732,134 @@ const toggleItemStatus = async (item) => {
     action: 'TOGGLE_STATUS',
     payload: { status: newStatus }
   });
+
+  if (newStatus === 'completed') {
+    // 1. Tactile confirmation feedback
+    triggerConfirmationHaptic();
+
+    // 2. Snapshot & Smart Undo Snackbar (aktualisiert bei schnellem Nacheinander, kein Stacking)
+    if (undoSnackbar.value.timer) {
+      clearTimeout(undoSnackbar.value.timer);
+    }
+    const snapshot = {
+      id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      unit: item.unit,
+      category: item.category,
+      subtitle: item.subtitle,
+      note: item.note,
+      meta_tags: item.meta_tags ? [...item.meta_tags] : [],
+      tags: item.tags ? [...item.tags] : [],
+      position: item.position
+    };
+
+    undoSnackbar.value = {
+      visible: true,
+      itemSnapshot: snapshot,
+      timer: setTimeout(() => {
+        undoSnackbar.value.visible = false;
+        undoSnackbar.value.itemSnapshot = null;
+        undoSnackbar.value.timer = null;
+      }, 4000)
+    };
+
+    // 3. Completion Prompt Check (ausschließlich beim Übergang von >0 auf 0 offene Artikel der gesamten Liste)
+    const currentOpenCount = openActiveItems.value.length;
+    if (previousOpenCount > 0 && currentOpenCount === 0 && !completionPromptDismissed.value) {
+      showCompletionPrompt.value = true;
+    }
+  } else {
+    // Falls manuell reaktiviert: Abschlussaufforderung verwerfen
+    showCompletionPrompt.value = false;
+  }
+};
+
+const handleUndoTouchStart = (e) => {
+  if (e.touches && e.touches[0]) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }
+};
+
+const handleUndoTouchEnd = (e) => {
+  if (e.changedTouches && e.changedTouches[0]) {
+    const diffX = Math.abs(e.changedTouches[0].clientX - touchStartX);
+    const diffY = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    if (diffX > 40 || diffY > 40) {
+      dismissUndoSnackbar();
+    }
+  }
+};
+
+const dismissUndoSnackbar = () => {
+  if (undoSnackbar.value.timer) {
+    clearTimeout(undoSnackbar.value.timer);
+    undoSnackbar.value.timer = null;
+  }
+  undoSnackbar.value.visible = false;
+};
+
+const executeUndo = async () => {
+  if (isUndoing.value || !undoSnackbar.value.itemSnapshot) return;
+  isUndoing.value = true;
+
+  if (undoSnackbar.value.timer) {
+    clearTimeout(undoSnackbar.value.timer);
+    undoSnackbar.value.timer = null;
+  }
+
+  const snapshot = undoSnackbar.value.itemSnapshot;
+  const item = items.value.find(i => i.id === snapshot.id);
+
+  if (item) {
+    item.status = 'active';
+    item.quantity = snapshot.quantity;
+    item.unit = snapshot.unit;
+    item.category = snapshot.category;
+    item.subtitle = snapshot.subtitle;
+    item.note = snapshot.note;
+    if (snapshot.meta_tags) item.meta_tags = [...snapshot.meta_tags];
+    if (snapshot.tags) item.tags = [...snapshot.tags];
+    item.position = snapshot.position;
+
+    const itemIdx = items.value.findIndex(i => i.id === item.id);
+    if (itemIdx !== -1) {
+      items.value[itemIdx] = { ...item };
+    }
+
+    await queueMutation({
+      listId,
+      itemId: item.id,
+      action: 'TOGGLE_STATUS',
+      payload: { status: 'active' }
+    });
+  }
+
+  triggerConfirmationHaptic();
+  showCompletionPrompt.value = false;
+  undoSnackbar.value.visible = false;
+  undoSnackbar.value.itemSnapshot = null;
+  isUndoing.value = false;
+};
+
+const handlePromptCompleteShopping = async () => {
+  if (isSubmittingCompletion.value) return;
+  isSubmittingCompletion.value = true;
+  triggerSuccessHaptic();
+  try {
+    await finishShopping();
+    showCompletionPrompt.value = false;
+  } catch (err) {
+    console.error('Error completing shopping:', err);
+  } finally {
+    isSubmittingCompletion.value = false;
+  }
+};
+
+const dismissCompletionPrompt = () => {
+  completionPromptDismissed.value = true;
+  showCompletionPrompt.value = false;
 };
 
 const executeConfirmAction = async () => {
@@ -814,21 +986,34 @@ const notifyShoppingStarted = async () => {
 };
 
 const finishShopping = async () => {
+  let pushSuccess = true;
   try {
     const token = localStorage.getItem('token');
     if (isOnline.value && token) {
-      await fetch(apiUrl(`/api/lists/${listId}/finish-shopping`), {
+      const resp = await fetch(apiUrl(`/api/lists/${listId}/finish-shopping`), {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` }
-      }).catch(() => {});
+      }).catch(() => null);
+      if (!resp || !resp.ok) {
+        pushSuccess = false;
+      }
     }
-  } catch (e) {}
+  } catch (e) {
+    pushSuccess = false;
+  }
 
+  triggerSuccessHaptic();
   isShoppingSessionActive.value = false;
   showSettingsSheet.value = false;
-  successMessage.value = 'Einkauf abgeschlossen! ✅';
+  if (!isOnline.value) {
+    successMessage.value = 'Einkauf lokal beendet (offline) ✅';
+  } else if (!pushSuccess && isSharedList.value) {
+    successMessage.value = 'Einkauf beendet – Gruppen-Benachrichtigung konnte nicht gesendet werden.';
+  } else {
+    successMessage.value = 'Einkauf abgeschlossen! ✅';
+  }
   setTimeout(() => {
-    if (successMessage.value && successMessage.value.includes('Einkauf abgeschlossen')) {
+    if (successMessage.value && (successMessage.value.includes('Einkauf') || successMessage.value.includes('beendet'))) {
       successMessage.value = '';
     }
   }, 3500);
@@ -1378,6 +1563,13 @@ onUnmounted(() => {
     clearTimeout(filterNoticeTimer);
     filterNoticeTimer = null;
   }
+  if (undoSnackbar.value.timer) {
+    clearTimeout(undoSnackbar.value.timer);
+    undoSnackbar.value.timer = null;
+  }
+  undoSnackbar.value.visible = false;
+  undoSnackbar.value.itemSnapshot = null;
+  showCompletionPrompt.value = false;
   if (wsReconnectTimer) {
     clearTimeout(wsReconnectTimer);
     wsReconnectTimer = null;
@@ -1955,10 +2147,46 @@ onUnmounted(() => {
         <p>Deine Liste ist leer!</p>
       </div>
 
-      <div v-if="groupedActiveItems.length === 0 && completedItems.length > 0" class="all-done-banner text-center bg-green-100 text-green-700 p-4 rounded-xl mb-4 flex items-center justify-center gap-3" style="background-color: #d1fae5; color: #15803d; padding: 16px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 12px;">
-        <svg class="modern-check-icon w-8 h-8" style="width: 45px; height: 45px;" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
-        <span class="font-bold text-lg" style="font-weight: 700; font-size: 18px;">Alles erledigt!</span>
-      </div>
+      <!-- Completion Prompt Card on Final Item Check-Off -->
+      <transition name="prompt-fade">
+        <div v-if="showCompletionPrompt" class="ks-completion-prompt-card">
+          <div class="prompt-card-icon-wrap">
+            <span class="prompt-card-icon">🛒</span>
+            <span class="prompt-card-sparkle">✨</span>
+          </div>
+          <div class="prompt-card-content">
+            <h3 class="prompt-card-title">Alles im Einkaufswagen!</h3>
+            <p class="prompt-card-desc">
+              {{ isSharedList 
+                ? 'Alle Artikel sind abgehakt. Möchtest du den Einkauf abschließen und die Gruppe benachrichtigen?' 
+                : 'Alle Artikel dieser Liste sind abgehakt. Möchtest du den Einkauf jetzt abschließen?' }}
+            </p>
+            <p v-if="!isOnline && isSharedList" class="prompt-offline-notice">
+              ℹ️ Du bist offline – Gruppen-Benachrichtigungen können aktuell nicht gesendet werden.
+            </p>
+          </div>
+          <div class="prompt-card-actions">
+            <button
+              class="prompt-btn-primary"
+              :disabled="isSubmittingCompletion"
+              @click="handlePromptCompleteShopping"
+            >
+              <span v-if="isSubmittingCompletion" class="prompt-spinner"></span>
+              <span>{{ isSubmittingCompletion ? 'Wird beendet...' : 'Einkauf abschließen' }}</span>
+            </button>
+            <button
+              class="prompt-btn-secondary"
+              @click="dismissCompletionPrompt"
+            >
+              Später
+            </button>
+          </div>
+        </div>
+        <div v-else-if="groupedActiveItems.length === 0 && completedItems.length > 0" class="all-done-banner text-center bg-green-100 text-green-700 p-4 rounded-xl mb-4 flex items-center justify-center gap-3" style="background-color: #d1fae5; color: #15803d; padding: 16px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <svg class="modern-check-icon w-8 h-8" style="width: 45px; height: 45px;" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+          <span class="font-bold text-lg" style="font-weight: 700; font-size: 18px;">Alles erledigt!</span>
+        </div>
+      </transition>
 
       <!-- ERLEDIGTE ARTIKEL -->
       <section v-if="completedItems.length > 0" class="flex gap-3 mb-6 completed-section"
@@ -2005,6 +2233,30 @@ onUnmounted(() => {
     <!-- Add Item Trigger & Thumb-Zone Meta-Tag Filter Bar -->
     <div class="input-container">
       <div class="bottom-action-inner">
+        <!-- Smart Undo Snackbar -->
+        <transition name="undo-snack">
+          <div
+            v-if="undoSnackbar.visible && undoSnackbar.itemSnapshot"
+            class="ks-undo-snackbar"
+            @touchstart="handleUndoTouchStart"
+            @touchend="handleUndoTouchEnd"
+          >
+            <div class="undo-snack-info">
+              <span class="undo-snack-check">✓</span>
+              <span class="undo-snack-text">
+                <strong class="undo-item-name">„{{ undoSnackbar.itemSnapshot.name }}“</strong> abgehakt
+              </span>
+            </div>
+            <button
+              class="undo-snack-btn"
+              :disabled="isUndoing"
+              @click.stop="executeUndo"
+            >
+              Rückgängig
+            </button>
+          </div>
+        </transition>
+
         <!-- Thumb-Zone Meta-Tag Filter Bar -->
         <transition name="filter-slide">
           <div v-if="hasAnyMetaTags" class="ks-thumb-filter-bar">
@@ -3248,5 +3500,246 @@ onUnmounted(() => {
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+}
+
+/* SMART UNDO SNACKBAR */
+.ks-undo-snackbar {
+  width: 100%;
+  max-width: 500px;
+  background: #1e2430;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  padding: 9px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 10px 25px -4px rgba(0, 0, 0, 0.6);
+  pointer-events: auto;
+  user-select: none;
+  animation: snackbarSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.undo-snack-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.undo-snack-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(52, 211, 153, 0.2);
+  color: #34d399;
+  font-size: 11px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.undo-snack-text {
+  font-size: 13px;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.undo-item-name {
+  color: #f8fafc;
+  font-weight: 600;
+}
+
+.undo-snack-btn {
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.undo-snack-btn:active {
+  transform: scale(0.95);
+  background: rgba(56, 189, 248, 0.25);
+}
+
+.undo-snack-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.undo-snack-enter-active,
+.undo-snack-leave-active {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.undo-snack-enter-from,
+.undo-snack-leave-to {
+  opacity: 0;
+  transform: translateY(12px) scale(0.97);
+}
+
+@keyframes snackbarSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* COMPLETION PROMPT CARD */
+.ks-completion-prompt-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.prompt-card-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.prompt-card-icon {
+  font-size: 40px;
+  line-height: 1;
+}
+
+.prompt-card-sparkle {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  font-size: 20px;
+}
+
+.prompt-card-content {
+  max-width: 440px;
+}
+
+.prompt-card-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f8fafc;
+  margin: 0 0 6px;
+}
+
+.prompt-card-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.prompt-offline-notice {
+  font-size: 12px;
+  color: #fbbf24;
+  margin: 6px 0 0;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.prompt-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 360px;
+  margin-top: 4px;
+}
+
+.prompt-btn-primary {
+  flex: 1;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 11px 16px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+.prompt-btn-primary:active {
+  transform: scale(0.97);
+}
+
+.prompt-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.prompt-btn-secondary {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+  border-radius: 12px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.prompt-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e2e8f0;
+}
+
+.prompt-btn-secondary:active {
+  transform: scale(0.97);
+}
+
+.prompt-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+}
+
+.prompt-fade-enter-active,
+.prompt-fade-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.prompt-fade-enter-from,
+.prompt-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

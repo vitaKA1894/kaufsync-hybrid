@@ -46,6 +46,7 @@ class User(Base):
     settings_vibration_enabled = Column(Boolean, default=True)
     settings_push_admin_pending_users = Column(Boolean, default=False)
     keep_screen_awake = Column(Boolean, default=False)
+    haptic_feedback_enabled = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utc_now)
 
 class PasswordResetToken(Base):

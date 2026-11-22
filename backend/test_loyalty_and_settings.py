@@ -53,24 +53,28 @@ def test_loyalty_cards_and_user_settings():
         headers_vita = {"Authorization": f"Bearer {token_vita}"}
         headers_karo = {"Authorization": f"Bearer {token_karo}"}
 
-        # 2. Test keep_screen_awake setting defaults to False
+        # 2. Test keep_screen_awake setting defaults to False and haptic_feedback_enabled defaults to True
         profile_res = client.get("/api/users/me", headers=headers_vita)
         assert profile_res.status_code == 200
         assert profile_res.json()["keep_screen_awake"] is False, "Default keep_screen_awake must be False"
-        print("✓ Verified: keep_screen_awake defaults to False.")
+        assert profile_res.json()["haptic_feedback_enabled"] is True, "Default haptic_feedback_enabled must be True"
+        print("✓ Verified: keep_screen_awake defaults to False, haptic_feedback_enabled defaults to True.")
 
-        # Update keep_screen_awake to True
+        # Update keep_screen_awake to True and haptic_feedback_enabled to False
         update_res = client.put("/api/users/me", json={
             "display_name": "Vita",
-            "keep_screen_awake": True
+            "keep_screen_awake": True,
+            "haptic_feedback_enabled": False
         }, headers=headers_vita)
         assert update_res.status_code == 200
         assert update_res.json()["keep_screen_awake"] is True, "Setting keep_screen_awake to True must succeed"
+        assert update_res.json()["haptic_feedback_enabled"] is False, "Setting haptic_feedback_enabled to False must succeed"
 
         # Check persistence
         profile_res2 = client.get("/api/users/me", headers=headers_vita)
         assert profile_res2.json()["keep_screen_awake"] is True
-        print("✓ Verified: keep_screen_awake persists changes via PUT /api/users/me.")
+        assert profile_res2.json()["haptic_feedback_enabled"] is False
+        print("✓ Verified: keep_screen_awake and haptic_feedback_enabled persist changes via PUT /api/users/me.")
 
         # 3. Create a shared list (Lidl)
         shared_list = models.List(

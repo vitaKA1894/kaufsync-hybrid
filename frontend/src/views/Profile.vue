@@ -10,6 +10,7 @@ import {
   triggerTestNotification
 } from '../utils/notificationService';
 import { isWakeLockSupported } from '../utils/wakeLockService';
+import { isHapticFeedbackEnabled, setHapticFeedbackEnabled } from '../utils/hapticsService';
 import StoreLogo from '../components/StoreLogo.vue';
 import LoyaltyCardEditModal from '../components/LoyaltyCardEditModal.vue';
 import {
@@ -27,6 +28,7 @@ const user = ref({
   display_name: '',
   is_admin: false,
   keep_screen_awake: localStorage.getItem('ks_keep_screen_awake') === 'true',
+  haptic_feedback_enabled: isHapticFeedbackEnabled(),
   settings_push_async_events: true, // Master Switch
   settings_push_new_items: true,
   settings_push_completed_items: true,
@@ -87,6 +89,8 @@ const loadUserProfile = async () => {
     user.value.settings_push_members = data.settings_push_members ?? true;
     user.value.keep_screen_awake = data.keep_screen_awake ?? (localStorage.getItem('ks_keep_screen_awake') === 'true');
     localStorage.setItem('ks_keep_screen_awake', String(user.value.keep_screen_awake));
+    user.value.haptic_feedback_enabled = data.haptic_feedback_enabled ?? isHapticFeedbackEnabled();
+    setHapticFeedbackEnabled(user.value.haptic_feedback_enabled);
   } catch (error) {
     console.error(error);
   }
@@ -122,7 +126,8 @@ const updateProfile = async (silent = false) => {
         settings_push_shopping_started: user.value.settings_push_shopping_started,
         settings_push_shopping_done: user.value.settings_push_shopping_done,
         settings_push_members: user.value.settings_push_members,
-        keep_screen_awake: user.value.keep_screen_awake
+        keep_screen_awake: user.value.keep_screen_awake,
+        haptic_feedback_enabled: user.value.haptic_feedback_enabled
       })
     });
 
@@ -299,6 +304,11 @@ const isWakeLockAvail = ref(isWakeLockSupported());
 
 const handleToggleKeepScreenAwake = async () => {
   localStorage.setItem('ks_keep_screen_awake', String(user.value.keep_screen_awake));
+  await updateProfile(true);
+};
+
+const handleToggleHapticFeedback = async () => {
+  setHapticFeedbackEnabled(user.value.haptic_feedback_enabled);
   await updateProfile(true);
 };
 
@@ -517,6 +527,19 @@ onMounted(async () => {
             </div>
             <label class="ks-switch">
               <input type="checkbox" v-model="user.keep_screen_awake" @change="handleToggleKeepScreenAwake" />
+              <span class="ks-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="master-toggle-card" style="margin-top: 10px;">
+            <div class="master-toggle-info">
+              <span class="master-toggle-title">Haptisches Feedback</span>
+              <span class="master-toggle-desc">
+                Dezente Vibration beim Abhaken und Anpassen von Mengen.
+              </span>
+            </div>
+            <label class="ks-switch">
+              <input type="checkbox" v-model="user.haptic_feedback_enabled" @change="handleToggleHapticFeedback" />
               <span class="ks-switch-slider"></span>
             </label>
           </div>

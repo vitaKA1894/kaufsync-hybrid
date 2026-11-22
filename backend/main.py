@@ -37,6 +37,7 @@ def ensure_columns():
                 ("settings_sound_enabled", "BOOLEAN DEFAULT 1"),
                 ("settings_vibration_enabled", "BOOLEAN DEFAULT 1"),
                 ("keep_screen_awake", "BOOLEAN DEFAULT 0"),
+                ("haptic_feedback_enabled", "BOOLEAN DEFAULT 1"),
             ]
             for col_name, col_type in cols_to_add:
                 if col_name not in existing_cols:
@@ -546,7 +547,7 @@ def update_user_profile(
         'settings_push_cleared_items', 'settings_push_shopping_started', 'settings_push_shopping_done',
         'settings_push_members', 'settings_push_quiet_hours', 'settings_push_quiet_start',
         'settings_push_quiet_end', 'settings_sound_enabled', 'settings_vibration_enabled',
-        'settings_push_admin_pending_users', 'keep_screen_awake'
+        'settings_push_admin_pending_users', 'keep_screen_awake', 'haptic_feedback_enabled'
     ]
     for f in fields:
         val = getattr(user_update, f, None)
