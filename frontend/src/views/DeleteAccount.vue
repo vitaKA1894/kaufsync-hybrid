@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl } from '../config/api';
 import { clearAllLocalData } from '../db/index';
+import { clearAllNoteHistories } from '../utils/articleNoteHistory';
 import { isOnline } from '../services/syncService';
 
 const router = useRouter();
@@ -109,6 +110,7 @@ const executeAccountDeletion = async () => {
 
     showConfirmModal.value = false;
     await clearAllLocalData();
+    clearAllNoteHistories();
     router.push('/login?deleted=1');
   } catch (err) {
     deleteError.value = 'Verbindung zum Server fehlgeschlagen. Bitte versuche es erneut.';

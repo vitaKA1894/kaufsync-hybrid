@@ -7,6 +7,7 @@ import SyncStatusBadge from '../components/SyncStatusBadge.vue';
 import StoreLogo from '../components/StoreLogo.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import { getLocalLists, saveLocalLists, isOnline } from '../services/syncService';
+import { clearListNoteHistory } from '../utils/articleNoteHistory';
 
 const router = useRouter();
 
@@ -377,7 +378,9 @@ const deleteList = async () => {
     });
     if (!response.ok) throw new Error();
     
-    shoppingLists.value = shoppingLists.value.filter(l => l.id !== selectedListForOptions.value.id);
+    const deletedListId = selectedListForOptions.value.id;
+    shoppingLists.value = shoppingLists.value.filter(l => l.id !== deletedListId);
+    clearListNoteHistory(deletedListId);
     successMessage.value = "Liste entfernt.";
     closeActionSheet();
     setTimeout(() => successMessage.value = '', 3000);

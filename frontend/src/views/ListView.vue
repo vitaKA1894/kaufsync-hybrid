@@ -2361,6 +2361,7 @@ onUnmounted(() => {
         :start-with-scanner="startScanner"
         :edit-item="itemToEdit"
         :active-items="items.filter(i => i.status === 'active')"
+        :list-id="listId"
         @close="isAddModalOpen = false; itemToEdit = null; startScanner = false"
         @add="handleAddItem"
         @update="handleUpdateItem"
