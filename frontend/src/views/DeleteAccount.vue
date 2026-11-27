@@ -7,6 +7,7 @@ import { clearAllNoteHistories } from '../utils/articleNoteHistory';
 import { clearLocalUserMappings } from '../services/userMappingService';
 import { clearLocalTemplates } from '../services/templateService';
 import { clearNativeWidgetOnLogout } from '../services/widgetBridgeService';
+import { clearLocalPrices } from '../services/priceService';
 import { isOnline } from '../services/syncService';
 
 const router = useRouter();
@@ -114,6 +115,7 @@ const executeAccountDeletion = async () => {
     showConfirmModal.value = false;
     clearLocalUserMappings();
     clearLocalTemplates();
+    clearLocalPrices();
     await clearNativeWidgetOnLogout();
     await clearAllLocalData();
     clearAllNoteHistories();

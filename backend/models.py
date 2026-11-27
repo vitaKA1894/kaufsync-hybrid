@@ -49,6 +49,7 @@ class User(Base):
     keep_screen_awake = Column(Boolean, default=False)
     haptic_feedback_enabled = Column(Boolean, default=True)
     show_restock_suggestions = Column(Boolean, default=True)
+    show_price_estimate = Column(Boolean, default=True)
     created_at = Column(DateTime, default=utc_now)
 
 class PasswordResetToken(Base):
@@ -131,6 +132,7 @@ class Item(Base):
     note = Column(String, nullable=True)
     status = Column(String, default="active")
     tags = Column(String, nullable=True)
+    scanned_barcode = Column(String, nullable=True)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
     is_deleted = Column(Boolean, default=False)
@@ -279,4 +281,38 @@ class TemplateItem(Base):
             return parsed if isinstance(parsed, list) else []
         except Exception:
             return []
+
+
+class UserItemPrice(Base):
+    __tablename__ = "user_item_prices"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'price_key_type', 'price_key', name='uq_user_item_price_key'),
+    )
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    price_key_type = Column(String, nullable=False)  # "barcode" | "article"
+    price_key = Column(String, index=True, nullable=False)
+    unit_price_eur = Column(Float, nullable=False)
+    is_bulk_variant = Column(Boolean, default=False, nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("User", backref="item_prices")
+
+
+class CrowdPriceAggregate(Base):
+    __tablename__ = "crowd_price_aggregates"
+    __table_args__ = (
+        UniqueConstraint('price_key_type', 'price_key', name='uq_crowd_price_type_key'),
+    )
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    price_key_type = Column(String, nullable=False)  # "barcode" | "article"
+    price_key = Column(String, index=True, nullable=False)
+    median_price_eur = Column(Float, nullable=False)
+    contributor_count = Column(Integer, default=0, nullable=False)
+    source = Column(String, default="crowd", nullable=False)  # "crowd" | "external_open_prices"
+    computed_at = Column(DateTime, default=utc_now)
+
 

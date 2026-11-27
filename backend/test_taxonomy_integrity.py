@@ -82,6 +82,10 @@ def test_taxonomy_integrity_and_sync():
         name = item["name"].strip()
         assert REQUIRED_SCHEMA_V2_KEYS.issubset(item.keys()), f"Missing Schema v2 keys on {name}"
         assert "tags" not in item, f"Legacy tags object still present on {name}"
+        ref_price = item.get("reference_price_eur")
+        assert ref_price is None or (isinstance(ref_price, (int, float)) and 0.05 <= ref_price <= 500.0), (
+            f"Invalid reference_price_eur on {name}: {ref_price}"
+        )
 
         assert item["category"] in VALID_CATEGORIES, f"Invalid category for {name}: {item['category']}"
         assert isinstance(item["subcategory"], str) and item["subcategory"].strip(), f"Empty subcategory on {name}"

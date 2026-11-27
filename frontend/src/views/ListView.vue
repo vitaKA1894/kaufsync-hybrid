@@ -66,6 +66,15 @@ import {
 import { findMergeCandidate, buildMergedItemUpdate } from '../utils/itemMerge';
 import { findTaxonomyItem } from '../utils/search';
 import { db } from '../db/index';
+import CostBreakdownSheet from '../components/CostBreakdownSheet.vue';
+import {
+  syncPriceSnapshot,
+  isPriceEstimateEnabled,
+  setPriceEstimateEnabled,
+  getPriceContext,
+  priceSnapshotVersion
+} from '../services/priceService';
+import { computeListCheckoutSummary } from '../utils/priceEstimator';
 
 const route = useRoute();
 const router = useRouter();
@@ -111,6 +120,17 @@ const transferDrag = useBottomSheetDrag(() => { showTransferSheet.value = false;
 const showTemplatesModal = ref(false);
 const templateModalMode = ref('overview');
 const templateInitialDraft = ref(null);
+
+// Optional Estimated Checkout Total & Breakdown State
+const showCostBreakdown = ref(false);
+const checkoutSummary = computed(() => {
+  priceSnapshotVersion.value;
+  return computeListCheckoutSummary(items.value, getPriceContext());
+});
+const showPriceHeaderPill = computed(() => {
+  priceSnapshotVersion.value;
+  return isPriceEstimateEnabled() && checkoutSummary.value.hasCountableItems;
+});
 
 const openTemplatesForList = () => {
   showSettingsSheet.value = false;
@@ -780,7 +800,9 @@ const handleAddItem = async (itemPayload) => {
     category: itemPayload.category || 'Sonstiges',
     tags: itemPayload.tags || '',
     note: itemPayload.note || '',
-    status: 'active'
+    status: 'active',
+    taxonomy_id: itemPayload.taxonomy_id || null,
+    scanned_barcode: itemPayload.scanned_barcode || null
   };
   
   items.value.push(newItem);
@@ -1417,6 +1439,9 @@ const loadCurrentUser = async () => {
     });
     if (res.ok) {
       currentUser.value = await res.json();
+      if (currentUser.value?.show_price_estimate !== undefined) {
+        setPriceEstimateEnabled(currentUser.value.show_price_estimate);
+      }
       if (currentUser.value?.keep_screen_awake !== undefined) {
         localStorage.setItem('ks_keep_screen_awake', String(currentUser.value.keep_screen_awake));
         if (currentUser.value.keep_screen_awake && isKeepAwakeSupported.value && !isScreenWakeLockActive()) {
@@ -1810,6 +1835,7 @@ onMounted(() => {
   syncPurchases(listId);
   syncUserMappings();
   syncTemplates();
+  syncPriceSnapshot();
   backfillFromChangelog(listId);
   syncSnapshotToNativeWidget();
   handleListShortcutQuery(route.query);
@@ -1892,7 +1918,16 @@ onUnmounted(() => {
         </button>
         <h1 class="list-title">{{ currentList ? currentList.name : 'Laden...' }}</h1>
       </div>
-      <div style="display: flex; align-items: center; gap: 8px;">
+      <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+        <button
+          v-if="showPriceHeaderPill"
+          type="button"
+          class="ks-price-pill"
+          @click.stop="showCostBreakdown = true"
+          aria-label="Geschätzten Warenwert und Aufschlüsselung öffnen"
+        >
+          {{ checkoutSummary.pillLabel }}
+        </button>
         <SyncStatusBadge />
         <button class="ks-icon-btn" @click.stop="showSettingsSheet = !showSettingsSheet" aria-label="Listen-Optionen">
           <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -2798,6 +2833,14 @@ onUnmounted(() => {
         @update="handleUpdateItem"
         @delete="deleteItem"
         @transfer-item="handleDetailTransfer"
+    />
+
+    <!-- Optional Checkout Cost Breakdown Sheet -->
+    <CostBreakdownSheet
+        :is-open="showCostBreakdown"
+        :list-name="currentList?.name || ''"
+        :summary="checkoutSummary"
+        @close="showCostBreakdown = false"
     />
 
     <!-- Recipe Import Modal -->
@@ -4347,5 +4390,29 @@ onUnmounted(() => {
 
 .ks-activity-save-template-btn:active {
   transform: scale(0.96);
+}
+
+.ks-price-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  background: rgba(30, 41, 59, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  color: #e2e8f0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.1s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ks-price-pill:active {
+  transform: scale(0.95);
+  background: rgba(51, 65, 85, 0.85);
 }
 </style>

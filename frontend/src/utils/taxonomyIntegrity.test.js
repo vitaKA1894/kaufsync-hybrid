@@ -31,6 +31,11 @@ for (const item of taxonomy) {
   assert(validStorage.has(item.storage), `Invalid storage on ${item.name}: ${item.storage}`);
   assert(item.defaultUnit && Array.isArray(item.allowedUnits) && item.allowedUnits.includes(item.defaultUnit), `Invalid unit setup on ${item.name}`);
   assert(!('tags' in item), `Legacy tags field should be migrated away on ${item.name}`);
+  assert(
+    item.reference_price_eur === null ||
+      (typeof item.reference_price_eur === 'number' && item.reference_price_eur >= 0.05 && item.reference_price_eur <= 500),
+    `Invalid reference_price_eur on ${item.name}: ${item.reference_price_eur}`
+  );
 
   for (const a of item.aliases || []) {
     const al = a.trim().toLowerCase();

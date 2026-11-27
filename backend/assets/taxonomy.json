@@ -39,7 +39,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.29
   },
   {
     "id": "bcef3af7-2e7a-4b57-b00f-2171b79f0408",
@@ -84,7 +85,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "b46a373a-81e9-4b9c-8901-5f983a28903d",
@@ -136,7 +138,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "454cbebe-07d5-42a3-b7cf-a1f1a089eff7",
@@ -170,7 +173,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "9d0fbbbf-5341-4e81-9f6f-904d77243f85",
@@ -214,7 +218,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "e0f30693-5028-4aae-8c95-4985b271426b",
@@ -257,7 +262,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "d7f2b216-2fdb-4664-885d-be4c428d8121",
@@ -302,7 +308,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "c4f56ae7-3e02-495d-922b-d68a85f0eeab",
@@ -345,7 +352,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "47e6806e-8f21-4c21-8e5d-0c4d930ed60f",
@@ -390,7 +398,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "819da2e1-7fa6-4ba1-8ad0-b28c965838ae",
@@ -433,7 +442,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "02fc5f47-7aa7-4710-9f28-13b0f51baf92",
@@ -474,7 +484,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "18362bae-4634-4477-a705-36da1f2f7aa0",
@@ -514,7 +525,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "35873b3d-1f02-4567-9f01-b16ddef9a6f8",
@@ -552,7 +564,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "1a199082-a417-4932-98c3-18713221dc4e",
@@ -600,7 +613,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "91fe6a5e-4522-410e-a01c-0494d2eb923f",
@@ -640,7 +654,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "a348c3d3-b8ce-475e-b0a7-14e3993a6617",
@@ -682,7 +697,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ead6cfa6-ed7f-48a5-8e09-3ef0aa0106a3",
@@ -722,7 +738,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "561a46fd-313f-4ed0-9e92-3852b83caafa",
@@ -762,7 +779,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.79
   },
   {
     "id": "60dfa9f9-e3b4-473a-b64c-ff65bdd77b30",
@@ -816,7 +834,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "79889402-349a-4d68-9149-2861dd20c1f7",
@@ -853,7 +872,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "147f6528-08cc-4586-a1e9-fcd90ad009dd",
@@ -896,7 +916,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "aaf0a9bf-d642-4c96-8b53-dcc9588fa1ae",
@@ -933,7 +954,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "10dc07b0-2e75-4d74-ba77-3bafaa23cfa7",
@@ -976,7 +998,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "1f7b0180-bd91-48dc-8903-846bd495f713",
@@ -1021,7 +1044,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "012a54ff-931d-4b32-8bb5-578767442faa",
@@ -1062,7 +1086,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "af568f64-955d-445a-b821-e0a300f64282",
@@ -1099,7 +1124,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "3eadeb15-1cce-442b-97a0-33f3db6a2917",
@@ -1144,7 +1170,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "d2ca7ad4-1116-46d9-ac13-2f434a2f8dd6",
@@ -1190,7 +1217,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "1fef8658-c008-405c-8ae8-12d46aa3f40f",
@@ -1230,7 +1258,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "0d63aa88-aa35-43dd-8673-5494684509be",
@@ -1273,7 +1302,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "0078589f-546f-42c8-9738-f3ad29c5eda8",
@@ -1319,7 +1349,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "fcb364fc-3c27-4bff-8dff-55b1525237fd",
@@ -1363,7 +1394,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "97212e47-7cd1-4752-9a08-755021641434",
@@ -1433,7 +1465,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "1f810cb3-e406-4025-a427-d7312152ed57",
@@ -1479,7 +1512,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "5fb82042-2a88-4c62-a2a9-2d997289ece8",
@@ -1524,7 +1558,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "71b3376a-24fc-43cd-a105-ba7857d3ab62",
@@ -1566,7 +1601,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "c93d1c1e-c4bc-40db-bf6b-358c9c600e23",
@@ -1606,7 +1642,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "069ab45f-5e5e-4e4f-8541-5822ebaa1f95",
@@ -1646,7 +1683,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "65428e32-37ab-4e3e-afdf-d5621e192bf8",
@@ -1681,7 +1719,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 7.99
   },
   {
     "id": "976e3469-075d-422b-8f61-8e5316932760",
@@ -1723,7 +1762,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "fcd3c33e-e742-4181-849f-8f5236d165b4",
@@ -1763,7 +1803,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "baaeed41-51e2-49bb-81ce-71f4a130f987",
@@ -1802,7 +1843,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "f624aff6-109f-4e60-8d58-3434ec92ebfc",
@@ -1853,7 +1895,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "d021eb5a-9897-4b4c-b712-85649b43ca9c",
@@ -1895,7 +1938,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "f9a8de07-b3b9-4789-b4f3-55a02abf9d6e",
@@ -1937,7 +1981,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "bcc9dd5a-5c64-4373-b923-b67a54d22baa",
@@ -1991,7 +2036,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "c940c1d6-21a9-4e29-b92f-9cae1b652e6f",
@@ -2026,7 +2072,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.99
   },
   {
     "id": "769c2936-3080-43bc-817a-1e0a5facf03d",
@@ -2062,7 +2109,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.95
   },
   {
     "id": "a95eecbf-e9a7-4d3d-aa87-bffa2071b3b7",
@@ -2103,7 +2151,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "52cf5933-94a2-4a34-8f8e-adbfaf4974d8",
@@ -2140,7 +2189,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "3d3c0e29-c31f-4782-bcb1-2eb4df43932b",
@@ -2192,7 +2242,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "897bc9a7-8f56-4fa8-acf3-9d370754cb26",
@@ -2240,7 +2291,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.45
   },
   {
     "id": "1d046468-8465-4d43-b475-2ae2cb2c3e19",
@@ -2280,7 +2332,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "7fa7b9d9-511b-4a3a-8b29-13aa0ced1b93",
@@ -2324,7 +2377,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "28c4b87d-bd14-4c65-9271-1fd439c95bc6",
@@ -2366,7 +2420,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "0b382e29-cb15-4d3c-a0b3-d6d6a838d76a",
@@ -2423,7 +2478,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.39
   },
   {
     "id": "4af0a802-e326-4f67-bd59-9d923f1b3874",
@@ -2473,7 +2529,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.89
   },
   {
     "id": "fb2dd3b9-45fc-4b94-8d8d-a3f907d23a84",
@@ -2526,7 +2583,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "8326a88c-f514-408f-a723-5cf535859c47",
@@ -2579,7 +2637,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "0bf480f3-b72f-496d-b408-164a5c42f2a3",
@@ -2616,7 +2675,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b532375d-b978-407b-af3a-48ec3247f843",
@@ -2659,7 +2719,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "05ef31cc-4918-4271-9e32-0ab1aab9df74",
@@ -2701,7 +2762,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "90b086c8-8029-493c-920f-d2e3368b51f4",
@@ -2743,7 +2805,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "b4162f0f-f5fd-4100-831f-fe4e7d0d23d2",
@@ -2785,7 +2848,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "853f49d5-1194-40ec-85c6-a98c3bea6388",
@@ -2829,7 +2893,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b87b593e-d556-4a57-8cc6-ffb5611b9294",
@@ -2871,7 +2936,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "001a9da0-6266-4a26-b996-55fa57382c23",
@@ -2908,7 +2974,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "b05f76ba-aad2-4111-bcfc-f2bc93aa8daa",
@@ -2946,7 +3013,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "6ddca136-5fc4-4ab4-a649-6ec0f8cabb80",
@@ -2987,7 +3055,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "44020f24-a088-4ce8-b9f6-56ee503f2f36",
@@ -3025,7 +3094,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "0a1680c5-f11b-493b-8a5b-a538123c235d",
@@ -3080,7 +3150,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "a5eeaa39-49b8-419e-93b2-8c040ddf6b9b",
@@ -3123,7 +3194,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "68e7bfb9-7ad3-4677-94e3-3be94327a47c",
@@ -3180,7 +3252,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "1b266121-7a40-4dd2-b941-9c33de753482",
@@ -3228,7 +3301,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "887d855f-d7b2-41c3-8b23-7b807834bce4",
@@ -3271,7 +3345,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "c2cc226b-3995-4b68-acf3-116baab90f61",
@@ -3311,7 +3386,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "17f700ca-48a5-49da-8f1e-9f87eb7b8453",
@@ -3350,7 +3426,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "6f035143-c971-4947-b895-a65fac2ef0bd",
@@ -3399,7 +3476,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "26719419-b03a-468a-9136-a34e5804eac0",
@@ -3445,7 +3523,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "1997a93b-a804-4ea6-8e4b-96722c15e0f9",
@@ -3497,7 +3576,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "55882bc8-e2dd-4842-9704-8ce30d7db869",
@@ -3536,7 +3616,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "f0e08b63-9c04-4ff1-9daf-b170010f29a2",
@@ -3577,7 +3658,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "df6d9a92-2e5d-4087-9297-7ae5c9700e29",
@@ -3632,7 +3714,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "a958c3f6-82b8-4353-9669-1399b4256c5b",
@@ -3679,7 +3762,8 @@
     "consumption": {
       "typicalCycleDays": 45,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "35ba9935-bc25-4ee6-acf1-18b75afa3ab0",
@@ -3716,7 +3800,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "9ac1e487-9697-4075-88b4-245a7faf9be4",
@@ -3754,7 +3839,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "063a84d2-68e2-4f2c-b737-bd0a5782871b",
@@ -3797,7 +3883,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "f3f0427e-c375-4c17-85ec-8adb7e117f57",
@@ -3837,7 +3924,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "cb921b25-eeac-4595-a287-cdd8df0f944f",
@@ -3876,7 +3964,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "5f41a291-2040-4a61-81a7-aed1d6dc4949",
@@ -3918,7 +4007,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "46540766-6300-46db-b616-ce34b090b706",
@@ -3973,7 +4063,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "65e31584-acdf-4689-84d4-8b45b83dc947",
@@ -4014,7 +4105,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "27dea475-4876-4b84-85b5-0319cc9edbb1",
@@ -4065,7 +4157,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "42814715-a82b-4398-ad8a-0d0fb187d818",
@@ -4099,7 +4192,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "f83b0e42-c3d3-43f9-a48f-dd74c787d295",
@@ -4138,7 +4232,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "fc02a237-795b-4397-92c6-710159dd6b02",
@@ -4187,7 +4282,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "568cc1ba-4d7c-47eb-ade6-c533a3cc5b2e",
@@ -4226,7 +4322,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "0f942f6b-dbeb-47ca-953f-f0504cf94cdd",
@@ -4270,7 +4367,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "e709b1ed-6d12-4c06-8133-2ba574ba95cc",
@@ -4314,7 +4412,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "edad5289-c1c0-4287-942a-b1bf361f59ba",
@@ -4353,7 +4452,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 7.99
   },
   {
     "id": "260a6b02-7ad9-4406-8f92-5c21c9d84f05",
@@ -4391,7 +4491,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "12086375-c687-4b01-aa3a-d607f98a3cf8",
@@ -4430,7 +4531,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "f4b7a25d-130d-4716-a9ed-bebc698803ab",
@@ -4473,7 +4575,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b438e1d4-3952-4bd2-ad19-0f3ac1d00f1c",
@@ -4514,7 +4617,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "3d0693a5-183f-4b6b-b569-a045f17536c0",
@@ -4558,7 +4662,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "105df440-b2be-4d8d-ba55-5d51c85ad103",
@@ -4602,7 +4707,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "5bfa52e5-07d0-4105-81ad-fc1aea74f23f",
@@ -4657,7 +4763,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "c4cdad23-7589-4166-bd4f-89b600c93bcd",
@@ -4705,7 +4812,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "1592d899-ed89-477f-990a-8f70ea5abb5c",
@@ -4746,7 +4854,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "20b55012-3518-4584-bc5f-0dc837d84ee3",
@@ -4785,7 +4894,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "bf6651b7-5f3d-403d-8a00-9de6877e5d64",
@@ -4823,7 +4933,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "f0aa3968-8808-4e29-8f56-c05a7c627246",
@@ -4872,7 +4983,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "42adf4ee-2820-4923-acde-69afee16a82f",
@@ -4920,7 +5032,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "1130d07a-3a99-44a6-a84f-c7df822924d4",
@@ -4967,7 +5080,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "94c6c31c-7624-480e-82a3-63e4d8f31109",
@@ -5006,7 +5120,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 5.99
   },
   {
     "id": "be158e8b-c466-4e73-81aa-c43ab9f09217",
@@ -5046,7 +5161,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "673553f7-4758-4aa3-af17-3b7d90d9eb61",
@@ -5084,7 +5200,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "af1a29d1-041d-4b7b-99e5-547474083468",
@@ -5126,7 +5243,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "07c42e02-228c-4832-9d72-4c2ef56696b2",
@@ -5179,7 +5297,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "68e08829-3969-4325-9f22-1b562898e862",
@@ -5218,7 +5337,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "679ad93b-6291-44c7-8a7b-bcdf0c9b433b",
@@ -5257,7 +5377,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "d7b78a86-4335-4ec3-ad5c-e87756d19f6a",
@@ -5298,7 +5419,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "5869c4dd-0d86-4a7d-9dc1-d13aba8e21f8",
@@ -5334,7 +5456,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "86ffa6b5-102a-47c6-a982-d10de80672c7",
@@ -5376,7 +5499,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "278f8218-3dec-48c7-be9f-7a9e2be44909",
@@ -5418,7 +5542,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "98579c0d-2980-4d2c-9466-b5fd2421c02e",
@@ -5461,7 +5586,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "9e4708e4-d3a4-478b-b54d-5f0c4d4d13a4",
@@ -5505,7 +5631,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "177eab49-5b1d-4a27-8b6b-7544c081b58c",
@@ -5540,7 +5667,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "150fd77e-b057-4a0e-865d-331b07587d81",
@@ -5595,7 +5723,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "721ca2f5-1f3a-4914-93be-9582748e50c7",
@@ -5656,7 +5785,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "bd7c7ca9-e5cb-4f3f-8fd2-f61eb5235823",
@@ -5701,7 +5831,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "a917de27-1dc2-401b-9c27-814ccab9c77b",
@@ -5741,7 +5872,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "a80033f3-1678-45e1-93fb-251163800391",
@@ -5780,7 +5912,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.89
   },
   {
     "id": "52ace1b8-b676-4a45-b378-be8fd4ffa52f",
@@ -5833,7 +5966,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "8ffe63ab-faeb-43c7-848f-9f786c0c4405",
@@ -5869,7 +6003,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 9.99
   },
   {
     "id": "fec8cdc3-5e4a-4cd6-8f6c-f7a6d0e831ab",
@@ -5910,7 +6045,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "1464cf08-9bff-4b53-ac08-4840b175ed52",
@@ -5949,7 +6085,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "5f04ff17-ce05-4c6f-83f6-ae91d892f8db",
@@ -5990,7 +6127,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "97143203-b403-4045-ab06-f26ce66ecd11",
@@ -6039,7 +6177,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "3a0c68d8-cc06-474c-9077-8e81e6829740",
@@ -6076,7 +6215,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "3c7d62eb-2ab2-43ce-8f32-7bd73aab0cae",
@@ -6113,7 +6253,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "263b8ab5-6c6e-4f6b-ac5f-4f4b1f64719c",
@@ -6152,7 +6293,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "34ae40e1-c865-4e03-82b5-9ece225f30ea",
@@ -6189,7 +6331,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "6a33bfa2-9d86-4b72-8f13-c09c80e425e3",
@@ -6234,7 +6377,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "4b9600df-fcb1-4f77-a3a7-494ef52c356e",
@@ -6272,7 +6416,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.99
   },
   {
     "id": "91583ec5-277d-4164-868c-f1618827f09f",
@@ -6314,7 +6459,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 14.99
   },
   {
     "id": "024f65f6-198b-415a-acc5-7cfa9fbfb48c",
@@ -6357,7 +6503,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "b77d1f38-473e-4508-8bbf-7b43eb7a4400",
@@ -6395,7 +6542,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "fc734a9e-d8cc-432b-bfe9-77349c7dec1f",
@@ -6434,7 +6582,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "7ddb6ec7-15f8-4fce-946c-81e775fad168",
@@ -6474,7 +6623,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "937d856d-db56-4419-ae66-95a2c74dd092",
@@ -6516,7 +6666,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "ada0da40-eb86-40d5-aac0-48c2a0a657d5",
@@ -6557,7 +6708,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "0482f5ad-1d27-46fd-b3ec-384e6725a5a9",
@@ -6605,7 +6757,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "066c2a80-9735-45ae-89b7-ccbea90dd8ee",
@@ -6645,7 +6798,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "01d42916-2d1b-4424-b55a-085d57376554",
@@ -6685,7 +6839,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "de293f9d-a83d-49a8-8196-8ced649a3d67",
@@ -6737,7 +6892,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "c5992d5c-a17e-44e8-a055-037c7a598016",
@@ -6779,7 +6935,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "3c9fbb64-e5b3-498d-9ada-625e3c4dbfb0",
@@ -6825,7 +6982,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "b41e1c8c-0cc9-46cf-b94e-85676cbfcf1d",
@@ -6867,7 +7025,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "0acd307b-eb71-48c1-ad46-fdb7daad23a8",
@@ -6910,7 +7069,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "4a8c4c7c-c271-4b62-803d-58526462cb38",
@@ -6945,7 +7105,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": null
   },
   {
     "id": "ad29413b-7af2-4d13-bb30-8b5b5294397c",
@@ -6980,7 +7141,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "eb4d016b-a40f-45e4-9551-3e39e6edae02",
@@ -7018,7 +7180,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "9ee0a079-d70b-46a3-a38a-7b82ebdcfb5f",
@@ -7057,7 +7220,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "d8192e2d-6e63-489f-802a-d899b637485a",
@@ -7113,7 +7277,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "3c513c49-ab4f-4b4e-9290-9124fdd5365d",
@@ -7169,7 +7334,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "6acd4375-31c9-4cfe-ae09-e93df7571392",
@@ -7210,7 +7376,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "d5794725-19ec-475b-acd1-92e1af43d8fe",
@@ -7248,7 +7415,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "f64a9a9a-265f-42b0-a8ec-2e3f3218caaa",
@@ -7290,7 +7458,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "bd2b80b1-ef9d-4767-b347-aa1d55898d1a",
@@ -7335,7 +7504,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "f944f3c6-20a8-46e6-8f0a-2e95f11d863d",
@@ -7379,7 +7549,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "55636034-71c9-42d9-9016-434709952afe",
@@ -7419,7 +7590,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.59
   },
   {
     "id": "22cea1aa-ea4f-41e4-816c-80ac29d4c8e5",
@@ -7461,7 +7633,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "56eb3ce4-0c9c-49eb-80a4-3bbad6183f24",
@@ -7503,7 +7676,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "bc82bebd-75a6-4d99-8ec6-fbc66e71d93c",
@@ -7541,7 +7715,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "e8154ae5-2f86-4b9e-8f77-f560c287aa72",
@@ -7583,7 +7758,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "a9f1a3d4-f6f0-4b67-a975-79e2cde0780a",
@@ -7623,7 +7799,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "08a8d6d1-fbdb-4a08-9c6c-c134ac69a7f2",
@@ -7673,7 +7850,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "12b44533-f51d-4c5f-bdfa-4a38e254e8fc",
@@ -7712,7 +7890,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "08f2974a-9f07-4841-abd5-72ebfe0cb503",
@@ -7749,7 +7928,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "1246fcf5-8215-40c9-9b29-84148a503844",
@@ -7794,7 +7974,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "23da7684-2a0f-4ebb-858d-96f8be363bc4",
@@ -7847,7 +8028,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "8ee1a24e-4d07-4151-82fd-245804c2255c",
@@ -7891,7 +8073,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "a5a3cf5f-9fc0-4092-ab87-bba61512eba6",
@@ -7945,7 +8128,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.99
   },
   {
     "id": "44b8a5e3-0f16-447b-986c-f2351b446f0b",
@@ -7984,7 +8168,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "aa75f217-fdf9-432f-a9e8-72af99ea99a8",
@@ -8027,7 +8212,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "d2406cb5-37b2-4030-9a19-6606f4fa0ad1",
@@ -8072,7 +8258,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "d6023627-d7d1-45b6-8ca1-76e80f8a27fa",
@@ -8116,7 +8303,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "9e333578-7487-45ea-99f3-0ab93460a447",
@@ -8157,7 +8345,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "01bd0c8f-7357-442e-a381-685a4273fae1",
@@ -8195,7 +8384,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "aa5ff31d-bba4-4530-8583-018f2fd4c3be",
@@ -8234,7 +8424,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "5d149406-9b45-4539-85cb-a9fea3089dea",
@@ -8277,7 +8468,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "71d1c54c-6b70-475d-8a60-3788e3c633d7",
@@ -8321,7 +8513,8 @@
     "consumption": {
       "typicalCycleDays": 45,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "175c0d2b-160c-4a60-b50f-78fe1d135556",
@@ -8380,7 +8573,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "34ef71c9-2ae9-49dd-90ca-e46ad136a5c9",
@@ -8419,7 +8613,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "38ac5daf-5430-4783-ace8-ea179b04dbfc",
@@ -8464,7 +8659,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "b0254a4b-1983-4416-9e4d-c5de6e866053",
@@ -8505,7 +8701,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.49
   },
   {
     "id": "586a336b-ffa8-47c0-a087-106eaed7a6fd",
@@ -8546,7 +8743,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 12.99
   },
   {
     "id": "59cfa1fe-15fb-43a9-b52b-9cfbf0cdb60a",
@@ -8587,7 +8785,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "17ec2a35-bbc2-48bb-a742-6b7cb8a5f95d",
@@ -8633,7 +8832,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.29
   },
   {
     "id": "8eaa793c-8d7e-4ebf-97a6-754bcd44a902",
@@ -8672,7 +8872,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "62acecf5-8b6e-4d29-8e75-26482d9842df",
@@ -8712,7 +8913,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "352a3ace-aa90-4f73-92fd-99afd20904c0",
@@ -8755,7 +8957,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "74e31266-69bf-4ebf-83d3-725d567464fc",
@@ -8797,7 +9000,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 9.99
   },
   {
     "id": "8ddf0475-77d8-4d98-aa8d-1805d42a587c",
@@ -8834,7 +9038,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "9a316b98-10b5-49ba-8d60-2ade9e5fed0e",
@@ -8879,7 +9084,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "df0a94c0-7ec1-4717-847c-ab9be01eaa09",
@@ -8922,7 +9128,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "f6c27e1f-8a23-4a6d-91fc-fd261bd84634",
@@ -8976,7 +9183,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "a4fd25d4-4976-41d5-98fe-c340f0c42e7b",
@@ -9019,7 +9227,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "5c0239c7-528d-4fb2-86fc-be5bd9aba522",
@@ -9062,7 +9271,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "ae483a30-c334-4081-aa36-3aff8b1407d8",
@@ -9101,7 +9311,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "cc15c094-0821-4932-a3a0-684aab68b7d6",
@@ -9156,7 +9367,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "c02fdf5a-fd2b-44f5-bac8-c30ab436fc8c",
@@ -9196,7 +9408,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "94bf961b-fe86-4cb8-a149-7b48f521f4d0",
@@ -9243,7 +9456,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "e078d822-3d00-47c5-9b3f-31de596a83d7",
@@ -9291,7 +9505,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "06ac8f78-f9f0-4ae1-b620-5198c288040e",
@@ -9335,7 +9550,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "766ef682-1c30-4716-9a96-58a836b2a5b2",
@@ -9394,7 +9610,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "71523695-966a-4a2c-b4c5-06291a316ba2",
@@ -9452,7 +9669,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "03a7a72b-5e3d-41fb-b77d-3ca18a8d66c2",
@@ -9500,7 +9718,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "d76e71e2-d487-4a39-b5bc-45e1957a1272",
@@ -9546,7 +9765,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "07f55684-a1f9-486f-897a-43c04cac68f9",
@@ -9587,7 +9807,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "2a13ac48-9934-44ab-aa56-3904848757a7",
@@ -9630,7 +9851,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "073cc22d-f085-421a-833d-3f24ab9c7785",
@@ -9666,7 +9888,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "cb4dffb2-411a-4569-93b2-31d3e20f055e",
@@ -9713,7 +9936,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "1ea3c16e-0eef-44db-b165-6ee5c5c1cc6c",
@@ -9754,7 +9978,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "c05bb7fb-dfd4-4daf-9e53-03893e192c75",
@@ -9787,7 +10012,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "8f856d36-c2db-46b6-b2ab-8b807b68aada",
@@ -9834,7 +10060,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "f0cd6c97-e025-4315-aa9e-4b4d197397bc",
@@ -9879,7 +10106,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "d5860341-9694-40f6-a601-aa0a52fa1cd4",
@@ -9931,7 +10159,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "14ade856-c2c1-42eb-ad90-1fe46ce41fc0",
@@ -9969,7 +10198,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 19.99
   },
   {
     "id": "7c531cc0-c324-49c0-a300-a39d1951cb31",
@@ -10009,7 +10239,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "c4a0631f-a1cf-4a42-b573-a675b84e3ba5",
@@ -10051,7 +10282,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "41b49beb-36b2-4e65-a3ad-266619b93d2f",
@@ -10092,7 +10324,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ab087060-afbf-41b6-b04b-b2fe8841db2f",
@@ -10138,7 +10371,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "e0445841-9504-4c65-b71c-c9c21255fa23",
@@ -10182,7 +10416,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "bb2df62a-a820-42cb-ad83-edc2a9bc9bfb",
@@ -10221,7 +10456,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "8ad6d300-d9b9-46f8-ac21-ed05e64a77d6",
@@ -10267,7 +10503,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "376beb3a-f20f-4be1-ab49-5f462b171a5d",
@@ -10305,7 +10542,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "f1582936-ce24-4607-bf13-5161a47058d3",
@@ -10353,7 +10591,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "3ab57028-eb97-45c8-973b-4d5d95c6cf7d",
@@ -10392,7 +10631,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "b85a780f-6421-4914-83c7-e3282b1bb799",
@@ -10437,7 +10677,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "a62ff071-7c8b-4ab3-8437-e3b5496bea52",
@@ -10473,7 +10714,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "a7848d3e-35ad-4256-85c7-fac5f393c2f3",
@@ -10511,7 +10753,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "3a7b10aa-6f44-4194-bdf7-a5d26ea68568",
@@ -10545,7 +10788,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "9b8856b8-c615-4ad6-bccd-8a9ae513d8c2",
@@ -10590,7 +10834,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "a2a3063e-28f3-46d9-b9da-9fd45f1675c2",
@@ -10630,7 +10875,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "c83e9734-a0b0-4253-a3e9-0b4265508d37",
@@ -10671,7 +10917,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "f2b6d1c6-4dcd-48bd-9faa-76e90f5f2543",
@@ -10714,7 +10961,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "d57eae06-031a-4cc2-b1bf-4b1837d81279",
@@ -10762,7 +11010,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "d7028237-9ee7-471a-ba95-fee4fa022b45",
@@ -10797,7 +11046,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "7528fc58-bae6-457f-b82a-6107f1648d35",
@@ -10834,7 +11084,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "101cd5e4-52b6-4fe8-87dc-0622cc554ac3",
@@ -10875,7 +11126,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "abee88de-a6f5-40a1-ac24-cc0d95a3cf78",
@@ -10919,7 +11171,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "dc342faa-55e7-46de-b66e-789070d9fd08",
@@ -10968,7 +11221,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "62048572-70d4-44dc-bc1b-f70919d63b9e",
@@ -11010,7 +11264,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "00f01808-93e2-46ef-94b9-ba7f4496a204",
@@ -11060,7 +11315,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "0321bbdb-431e-4444-9fe0-a284d134a6a6",
@@ -11102,7 +11358,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "1413c58b-456c-475d-b878-b8169dc6926f",
@@ -11142,7 +11399,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "580252ad-3997-46f3-bd34-0782b973eae3",
@@ -11185,7 +11443,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.99
   },
   {
     "id": "58c89285-fa25-4d43-8d57-3cd1f409d5bb",
@@ -11229,7 +11488,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 6.49
   },
   {
     "id": "fde65bfb-d1ff-42ec-8d00-976147c38c03",
@@ -11275,7 +11535,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "32c616f8-2091-4f52-9f22-3165fb8b31e4",
@@ -11315,7 +11576,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 12.99
   },
   {
     "id": "26196e1f-abe3-4197-b5de-f826214a9e30",
@@ -11359,7 +11621,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "70b4158d-1a47-4cbb-a6fd-32be6c41174b",
@@ -11400,7 +11663,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "b7439c4d-939f-4049-8934-e884f144fb32",
@@ -11442,7 +11706,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.89
   },
   {
     "id": "b173f183-1719-4614-afa7-aadcf8dda514",
@@ -11480,7 +11745,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b0a14c9d-68e3-4de8-a033-ea12c7775c9c",
@@ -11533,7 +11799,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "486d1338-a7cb-4184-942a-24e1d143d5be",
@@ -11576,7 +11843,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "e6a04ee7-1011-4f53-9137-da9e26e0955c",
@@ -11614,7 +11882,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "f38fbb42-60b7-4f64-8cf8-eca1d6f09b62",
@@ -11658,7 +11927,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "cfd7e508-db8a-4731-99ab-6b5d494f3357",
@@ -11698,7 +11968,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "ed7ebcc2-cd9a-476d-ac79-6dc9a621b52a",
@@ -11752,7 +12023,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "0e90a2c2-0c0c-44f9-85a5-2ee2de72afbc",
@@ -11807,7 +12079,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "e24c6c85-3591-4295-9de8-4ce6a73966a3",
@@ -11844,7 +12117,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "982c1093-7b44-4938-b3c4-e8f4b496dd44",
@@ -11877,7 +12151,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "62734fbc-4cc3-43f9-a9e1-a19c4ca361c4",
@@ -11918,7 +12193,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "98721ba9-75a2-4403-9393-3df64258ee7e",
@@ -11962,7 +12238,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "c46598c1-40a2-4ad4-84a3-655649f6823f",
@@ -12006,7 +12283,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "e00e9f42-3fc8-4ad5-86d1-2ef981bab62d",
@@ -12044,7 +12322,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "656536ab-f7fa-433f-817d-19336234aba5",
@@ -12081,7 +12360,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "5007fc10-5c56-420b-be4b-aae523401944",
@@ -12127,7 +12407,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "0f918bdb-90fd-435c-9382-3f52ef9c2f1c",
@@ -12167,7 +12448,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b2099879-7163-4abb-8b0d-2ba58fe91f3a",
@@ -12212,7 +12494,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "96b37006-11c0-4b32-adfd-f8c6c208fbe4",
@@ -12250,7 +12533,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "eaeaa69c-059b-4f6e-a17a-2bfb7b8c78ad",
@@ -12290,7 +12574,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "686a3f2b-a5cd-4dd7-a32b-d69a45b245f7",
@@ -12327,7 +12612,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "a5456f2e-5829-413e-bf34-82e4ca429cb8",
@@ -12379,7 +12665,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "82990530-c120-4e0b-ad2a-047a380b95ee",
@@ -12434,7 +12721,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "204a033c-a04d-41ee-bf97-06e89fd9d27f",
@@ -12480,7 +12768,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "98b383ad-c074-4a8c-9844-335522d2bb86",
@@ -12524,7 +12813,8 @@
     "consumption": {
       "typicalCycleDays": 45,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.99
   },
   {
     "id": "2559932c-c4cd-45a5-8ebe-d963855706c9",
@@ -12572,7 +12862,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "8b6fc7bd-3641-4fe3-b6fb-9aebf645e9ce",
@@ -12618,7 +12909,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "c8609149-d49f-4790-bdc1-0342c5a9be4e",
@@ -12677,7 +12969,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "bece172d-b1d5-4f82-93a2-791428bd615d",
@@ -12714,7 +13007,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "8f7bd564-2489-49ec-ae0f-3d2d9ce5ea7b",
@@ -12776,7 +13070,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "70ea00a8-69ad-436c-b1a5-f1cd8960dbd5",
@@ -12817,7 +13112,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "3543e448-a940-4f28-a02e-74d54552998b",
@@ -12864,7 +13160,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "87497649-6b2e-415d-abab-ea22afaa8599",
@@ -12906,7 +13203,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "f6e09811-c1dc-426d-b97b-8eb4ef5bf4a2",
@@ -12948,7 +13246,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "6800336b-060e-4ae1-9186-e1d5c0eb9c85",
@@ -13003,7 +13302,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.15
   },
   {
     "id": "88729855-49a6-41c4-961c-94f372efc56d",
@@ -13044,7 +13344,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "198dd5a8-fb1b-4fb2-827e-a10ed5fc95c1",
@@ -13098,7 +13399,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "58cc0da4-9f06-49bc-a5d7-a291e2a3c522",
@@ -13154,7 +13456,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.69
   },
   {
     "id": "c8109609-3bfa-41c3-beb8-885eeaf0bd80",
@@ -13192,7 +13495,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "c07f9409-5ce9-4309-8d42-29357dd91fb9",
@@ -13235,7 +13539,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "5cf5ea22-e93a-4f5e-9f1a-f4f10430c97e",
@@ -13281,7 +13586,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "53bb3f3f-3b68-4cb2-a90f-8cf4715b77f6",
@@ -13334,7 +13640,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "29bc16d4-9c2f-40ca-a47f-9253de2096b3",
@@ -13373,7 +13680,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "c354fbc4-daa7-476d-8cee-0a66cddadb85",
@@ -13410,7 +13718,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "1cee61e1-313f-4b0d-b2a9-e2c3710903f2",
@@ -13452,7 +13761,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "86d56d46-872d-436d-b57a-364b27551aeb",
@@ -13495,7 +13805,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "6bbae751-7de1-4489-b1ed-0acd5a125586",
@@ -13545,7 +13856,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "04aaf738-6e07-4f7c-913f-56719b357226",
@@ -13579,7 +13891,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": null
   },
   {
     "id": "7d1a193f-a5b0-4834-a972-e6d671bf537d",
@@ -13638,7 +13951,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "42d55b7e-cd7c-4645-b482-53f5fe9a0275",
@@ -13686,7 +14000,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "6f63ad43-8d67-4017-941f-c5d171a56066",
@@ -13724,7 +14039,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "2706e2ce-067f-4233-9207-60070109431e",
@@ -13760,7 +14076,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "14dbbe49-1c28-4e13-8dec-d349aca4a694",
@@ -13802,7 +14119,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "8be2cb8e-3a32-4448-ac30-c9b0cd7470c2",
@@ -13844,7 +14162,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "f1bdcff3-6672-4739-89b3-7afcaae6ebd3",
@@ -13909,7 +14228,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "1f333d92-8a2b-48e1-99e3-f12ab49036da",
@@ -13966,7 +14286,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.29
   },
   {
     "id": "f2cb84f9-18b1-452f-bde0-8e51ce171180",
@@ -14002,7 +14323,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "d1ecfffd-fbb0-4afe-82d5-4c1d78b0699e",
@@ -14044,7 +14366,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "1a37e9e0-f747-4699-97a1-8f00b45675dd",
@@ -14098,7 +14421,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 7.99
   },
   {
     "id": "d6896d9b-1773-44bb-90a1-9ab525c8d3e7",
@@ -14144,7 +14468,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "f2e7841e-0302-44ac-9e72-1ea666c948a7",
@@ -14187,7 +14512,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "fcfa3fbb-e671-48ff-8144-a99ffdcece44",
@@ -14236,7 +14562,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "7b03a05d-65e0-446c-abe1-8cafc4c011ab",
@@ -14276,7 +14603,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "9dd088ea-51a7-4a16-8023-8960d6f16612",
@@ -14312,7 +14640,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "5e462805-30fa-4d1e-b34b-92754d7cdbbe",
@@ -14361,7 +14690,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "621b2001-cfd4-4594-ba0d-579bf102e04f",
@@ -14411,7 +14741,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "3c82837c-d027-4565-96fe-156b6597b539",
@@ -14459,7 +14790,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "dfef37d5-c466-4e93-b7d7-3ab197838c93",
@@ -14511,7 +14843,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "8109a1f6-3dfb-4ee8-b7f8-47949336319d",
@@ -14548,7 +14881,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "2d25a6ed-feb8-42b2-9ff1-6577ff347343",
@@ -14592,7 +14926,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "1f13a446-cb99-4eaf-a9be-ad4cf3cdade3",
@@ -14643,7 +14978,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "da2a1c58-4ed8-4b07-8624-656d05b9f950",
@@ -14684,7 +15020,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "dc7ae5c3-6262-48b7-a918-224f6df6dd69",
@@ -14720,7 +15057,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "86312162-3e43-482e-aaab-dfd5e684bd74",
@@ -14775,7 +15113,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "ea5b4a23-8b2b-4bb2-b741-c228cb79f177",
@@ -14814,7 +15153,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "afef5946-ebbd-4c88-9543-c9cea5f2d55a",
@@ -14860,7 +15200,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "600ff462-b50d-4aca-937c-2d647d98ca41",
@@ -14899,7 +15240,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 5.99
   },
   {
     "id": "0ad2099e-3ab3-4028-9870-2f0f0be98997",
@@ -14952,7 +15294,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "edb3bc69-83fc-4b3f-babf-1f3d42e7fa42",
@@ -14999,7 +15342,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "7c5cc988-7265-4502-bc47-a4679d0d5c2c",
@@ -15034,7 +15378,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "fd06b56f-afe7-40ff-be87-dc956e84da88",
@@ -15079,7 +15424,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "d0c7f2b3-0db8-460e-8a51-e0e29fc76a23",
@@ -15118,7 +15464,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "213334a8-9403-4b8e-97e4-b0c95bacbc52",
@@ -15161,7 +15508,8 @@
     "consumption": {
       "typicalCycleDays": 120,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "d2686da2-4a72-4b0d-848a-fd6ed6c39e66",
@@ -15205,7 +15553,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ebcc58c8-54eb-47a7-9f6d-55d331736b3f",
@@ -15242,7 +15591,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "16b54b1f-1919-49de-9685-ca842558af70",
@@ -15285,7 +15635,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "fb92a1de-f897-44f0-8344-aad7a23c5455",
@@ -15324,7 +15675,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "f03e9b58-8145-4e8e-8fee-61ce86fd6217",
@@ -15374,7 +15726,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "f934fdef-d154-4676-8a4d-896ae23ae0b8",
@@ -15413,7 +15766,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "661030e2-6592-441a-81d8-3addc5b01ef8",
@@ -15451,7 +15805,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "213caaf2-d22e-4731-92d3-0e6355d13f3f",
@@ -15493,7 +15848,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "b9773ba9-90b5-463e-90ff-6d70929f5a9c",
@@ -15527,7 +15883,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "e1364d62-6971-462a-bd39-68a7b781280f",
@@ -15568,7 +15925,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "a00f9e6a-ba59-48c3-9537-acea32e825ae",
@@ -15612,7 +15970,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "e8f0d35f-332d-4ae1-9aea-9c1821d26e2a",
@@ -15660,7 +16019,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "87211309-00ac-4582-8f2b-a44604a7ee29",
@@ -15701,7 +16061,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "b8e9d246-b581-46ee-968d-220025980ec2",
@@ -15738,7 +16099,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "cc8f0b63-eecc-4a85-b766-99a7be3ec4a8",
@@ -15776,7 +16138,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 8.99
   },
   {
     "id": "0af9161d-2726-4bcb-b5cb-927efdeac9d4",
@@ -15820,7 +16183,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "ee5df9d3-fb90-430c-a5e1-0d330fad294a",
@@ -15871,7 +16235,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "d8626447-b88e-4f0b-a182-679bc25b5ffc",
@@ -15924,7 +16289,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "c75fb392-8646-4941-8ac0-83d31aef0d3e",
@@ -15966,7 +16332,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "b9b54f51-c784-4949-a785-8d53b953ff2c",
@@ -16010,7 +16377,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "596c517f-15cd-4228-b409-45468f0a88c5",
@@ -16061,7 +16429,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "f3d62d66-ca14-452a-979d-759d1d3d7f73",
@@ -16116,7 +16485,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "049c801b-b116-47b5-96d3-3cb78944c1fb",
@@ -16165,7 +16535,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "eecd0dc6-3b49-42b6-b0e5-a7774fca9bfd",
@@ -16208,7 +16579,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "335c9442-ab67-4df1-9212-6dfed05e4294",
@@ -16244,7 +16616,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "5646e63e-5f28-4bc2-b08c-32345b423cc3",
@@ -16284,7 +16657,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "dc0dd280-0bef-4b28-90bc-bfa0e21c0d39",
@@ -16329,7 +16703,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "68103beb-5685-4bbf-9e6d-6621fdae3c16",
@@ -16364,7 +16739,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 14.99
   },
   {
     "id": "b630826b-cfac-4bfc-a468-9cef49eec256",
@@ -16405,7 +16781,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "0af5942e-a040-482f-b3af-e434d4e858b0",
@@ -16444,7 +16821,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "a6a6d053-d0d2-4973-abe4-ee548a90b439",
@@ -16484,7 +16862,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "063fcb70-e5d7-4a83-baff-648713c61f40",
@@ -16526,7 +16905,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "c249ba48-95b7-4e0f-b294-e7d6c40eb23e",
@@ -16585,7 +16965,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "877f0662-1551-4bdd-a19e-2fe976d3b219",
@@ -16629,7 +17010,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "4c6bcbbd-ef69-4d92-8e91-cdba0f69b302",
@@ -16677,7 +17059,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "70771c10-aa49-4746-b2cf-801d294a29b9",
@@ -16720,7 +17103,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ec0e9122-8c8e-45b1-8749-67d58908f915",
@@ -16758,7 +17142,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "21afe5d1-9d1d-4657-abaa-6c086f3b3775",
@@ -16796,7 +17181,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "e61e8369-499d-4947-bb77-4085363cff9e",
@@ -16836,7 +17222,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "bce8e2bd-65b0-49a7-98a5-bff5eea24566",
@@ -16877,7 +17264,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 9.99
   },
   {
     "id": "d64c4557-acae-4550-8eeb-36f90c5536f1",
@@ -16916,7 +17304,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "5607f7ec-a924-44bb-8c78-6583b448cac6",
@@ -16956,7 +17345,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "4a963c54-dbb0-4619-9648-05f371117aa8",
@@ -17003,7 +17393,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 6.99
   },
   {
     "id": "eef9e848-049f-4938-af97-3cd72852ebbc",
@@ -17047,7 +17438,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "dc394736-12e0-443c-bd32-c93df819d9c0",
@@ -17098,7 +17490,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 8.99
   },
   {
     "id": "a3bb17c0-f29c-4499-bcb6-0661df386f1b",
@@ -17150,7 +17543,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "3a524213-4d08-46cf-a0d6-576476c9bac7",
@@ -17187,7 +17581,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "6df21a1e-e838-4bdd-8b4f-287588047124",
@@ -17231,7 +17626,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "13f33f85-7bab-4d82-8214-a986ad085341",
@@ -17276,7 +17672,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ec25c316-c2cb-44a7-afdd-b7200cd03575",
@@ -17312,7 +17709,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "7db6d1e1-d842-4f28-9139-5515bbe7b135",
@@ -17357,7 +17755,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "dfd22b13-a5b8-4f32-abca-64ade9696b3b",
@@ -17401,7 +17800,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "93c2b7c7-12b5-4853-a611-a4cf6affafb8",
@@ -17437,7 +17837,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "885c6978-3e69-4031-a571-2cbfa0f7c523",
@@ -17478,7 +17879,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 12.99
   },
   {
     "id": "290ace6b-e513-4daf-ad00-4faf2da8aa79",
@@ -17519,7 +17921,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "c781705d-24e0-4514-bd70-da1cd25d2720",
@@ -17559,7 +17962,8 @@
     "consumption": {
       "typicalCycleDays": 120,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "f13e544f-e9e1-4a98-8411-0a21e92b0c21",
@@ -17605,7 +18009,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "61388fe7-e1b5-4ac8-930b-f34011d7d250",
@@ -17647,7 +18052,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "a665a72f-6580-4554-826d-cfcf119d2d91",
@@ -17682,7 +18088,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": null
   },
   {
     "id": "510d0752-a0cc-48be-ada2-5c9533965a98",
@@ -17741,7 +18148,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "948c1301-bd86-4243-8be6-99ef18d06351",
@@ -17788,7 +18196,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "58026c08-9afc-432b-a437-b162cf45fd55",
@@ -17826,7 +18235,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "0dc64de5-c9d1-4a5e-b3a9-80cf29d36572",
@@ -17881,7 +18291,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.79
   },
   {
     "id": "c0de5ebf-8511-46dd-9cc3-b8df7e762644",
@@ -17917,7 +18328,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "2d6ee8a7-233c-4088-98e9-0638d2f9a52a",
@@ -17963,7 +18375,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "b9e5f550-cd56-4de2-9aea-13ab312ca34d",
@@ -18002,7 +18415,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "dae3aa73-9433-4975-ae25-c6b237546b19",
@@ -18041,7 +18455,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "32d864bf-3aa8-415e-820d-0aa4ff35c88b",
@@ -18084,7 +18499,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "63b553f4-8848-41ce-8050-93ce9a88377b",
@@ -18130,7 +18546,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "bdba576c-69c2-4450-a926-ae386687e689",
@@ -18174,7 +18591,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "86811feb-b3ac-4824-9beb-20e22e46abb1",
@@ -18213,7 +18631,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.39
   },
   {
     "id": "c363118c-dbd2-42f0-9633-9983e85016cd",
@@ -18249,7 +18668,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "e62fab4c-b160-4044-bb8a-42ff069021ef",
@@ -18293,7 +18713,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.09
   },
   {
     "id": "5a156b74-ed44-48f0-ac04-02871b736bb1",
@@ -18336,7 +18757,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "9b473410-16c9-4d14-a372-3fa82ed237cc",
@@ -18379,7 +18801,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "d7d43328-3a9a-4008-92ca-a302b28a1e55",
@@ -18418,7 +18841,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "fe939b37-a255-486b-b658-110aaea8372e",
@@ -18460,7 +18884,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 9.99
   },
   {
     "id": "2b03d3c9-27af-45d6-8b77-36f747b44d4e",
@@ -18497,7 +18922,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "aa07c765-44b7-4671-a91c-4ca19b3f1f6c",
@@ -18535,7 +18961,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "5bb0795c-556f-4c24-9909-f962309f9acb",
@@ -18595,7 +19022,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "a0248c21-2ca2-42c3-9e4a-eecd15fbd771",
@@ -18648,7 +19076,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "87a2f5d3-61d0-4ad2-a172-026363fd92f7",
@@ -18686,7 +19115,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "0e7d3e81-7473-4c3d-b0bb-029715e0b802",
@@ -18732,7 +19162,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "552f53b5-e833-456c-bb74-cd795cf8704b",
@@ -18773,7 +19204,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "3d851a06-c170-4a34-9c0d-48ed57cf0660",
@@ -18822,7 +19254,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "380d0917-a82c-4c0d-b621-3264a71d3cf4",
@@ -18858,7 +19291,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "9ff1bf6e-838c-4952-ac94-1f7b7853771d",
@@ -18903,7 +19337,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "7bf90fc3-a811-41ab-9469-46b521f8c480",
@@ -18946,7 +19381,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 6.49
   },
   {
     "id": "d2005cfb-0ba4-4e0f-bfc5-d63850d5d432",
@@ -18995,7 +19431,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "39bfcf48-c301-441a-a0c9-e195629957e2",
@@ -19036,7 +19473,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "72b0aeaf-e9fc-44be-9aa9-1466e58514c5",
@@ -19076,7 +19514,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "b0bb417a-a1e2-4db1-bf38-6162404f041a",
@@ -19129,7 +19568,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "3beea4c5-2a4f-4bd9-82c9-26312dff15fb",
@@ -19168,7 +19608,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "9daab298-56aa-4521-b11d-190d2be1a8f3",
@@ -19224,7 +19665,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "f7e75d96-6273-4b72-83e1-f1e7eabf1172",
@@ -19262,7 +19704,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "19904d14-cb09-4df8-ba27-32f2354bba07",
@@ -19314,7 +19757,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "24c50976-306f-4aeb-8585-5c2d5df86ea8",
@@ -19352,7 +19796,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "13227e83-9507-42bd-b012-333cf3491cba",
@@ -19392,7 +19837,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "55448197-16d7-4ef1-adfc-8cfa76b94c14",
@@ -19436,7 +19882,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "593a034a-a5f1-4ffa-b44a-a2f5128491c1",
@@ -19474,7 +19921,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "335d9031-1060-456e-81ec-e572bdad02ed",
@@ -19516,7 +19964,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "75684091-8a29-4dbc-b30d-fc393a894230",
@@ -19558,7 +20007,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "296297bf-fb0d-4023-b658-adbf3e86cda7",
@@ -19611,7 +20061,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "60d94b2b-2983-43fb-9d1f-f642d7ff443a",
@@ -19661,7 +20112,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "2ca4a7bc-5f9f-4b97-981b-1affb59e9ffb",
@@ -19700,7 +20152,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 5.99
   },
   {
     "id": "99232004-4441-4b3d-8fc3-f04098a36813",
@@ -19737,7 +20190,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 29.99
   },
   {
     "id": "b0607ca8-55df-48a4-953d-004e0185f6e9",
@@ -19781,7 +20235,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "667c3163-ab7d-44c9-9bc9-fe0ebd9e97cf",
@@ -19829,7 +20284,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "dc7b3405-a437-4aac-9108-d8e8588375e5",
@@ -19879,7 +20335,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "9fe58540-2754-4080-96fc-c73c0fe4f78a",
@@ -19926,7 +20383,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "737bcb85-45a9-4c4d-bb9d-82d7c26af12e",
@@ -19970,7 +20428,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "d9a9848a-2712-4c4f-9c5a-aefd93d6d730",
@@ -20015,7 +20474,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "f464ee53-54a1-4cb0-89e3-a5ff453489fc",
@@ -20061,7 +20521,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "12e4c7df-3d49-42f2-9de5-acd72bd15517",
@@ -20100,7 +20561,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "023bbbce-c711-4e1d-8190-b05593d9e017",
@@ -20139,7 +20601,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "f2645aba-fd85-4cc3-8f98-fcc22ae350d9",
@@ -20179,7 +20642,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "b7c0eacc-80dc-45b8-bfe1-d3717c3dc04a",
@@ -20221,7 +20685,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "758986d9-8808-4f2c-8cb7-1f8cfcc0de1a",
@@ -20258,7 +20723,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "992e564c-ccac-470c-8ac4-5c57621920e8",
@@ -20310,7 +20776,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.49
   },
   {
     "id": "6a078549-33f5-4d61-bb20-d4adee127d57",
@@ -20363,7 +20830,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.69
   },
   {
     "id": "4ead6ea6-1563-47fd-9659-53374340ebfb",
@@ -20409,7 +20877,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "ed2d9434-872a-4e04-9118-8f9f17f73af7",
@@ -20444,7 +20913,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "fcdc5aa3-351c-43b3-b15b-d03be6e01aad",
@@ -20482,7 +20952,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "ecf6ce45-32c5-40e3-ae7b-6d95ff857dfb",
@@ -20516,7 +20987,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "e2fd7661-2c57-4d9a-9471-229a46476b39",
@@ -20552,7 +21024,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "7d5c7e99-0ca8-47f6-82fd-fcaa6a143118",
@@ -20595,7 +21068,8 @@
     "consumption": {
       "typicalCycleDays": 120,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "773d66eb-f076-46d9-acbe-cf76fe535a36",
@@ -20632,7 +21106,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "419f1ac2-41a8-4d5b-afb6-a7262f83af29",
@@ -20666,7 +21141,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "4209cf3c-0ec9-45f3-80cd-aa36d1f6f998",
@@ -20704,7 +21180,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "8afce9cd-61be-467b-b875-cd376f03423f",
@@ -20748,7 +21225,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "edeb9222-632f-4b60-931b-dea0bbbd698e",
@@ -20786,7 +21264,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 0.99
   },
   {
     "id": "5607e7f9-05dd-4f1c-ad06-d9032fb82f81",
@@ -20826,7 +21305,8 @@
     "consumption": {
       "typicalCycleDays": 45,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "9e022680-e729-49ce-841a-2ee039989e56",
@@ -20867,7 +21347,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "da286c49-76b6-44ed-aee8-6145ea11e46e",
@@ -20907,7 +21388,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "9889b789-84fa-4e69-81af-43e9303cdbfe",
@@ -20940,7 +21422,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 8.5
   },
   {
     "id": "10bd6d15-51a5-4e75-8b2f-6436cef76bc8",
@@ -20974,7 +21457,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.8
   },
   {
     "id": "73ec7663-1170-4808-9c4b-85a8633fc546",
@@ -21019,7 +21503,8 @@
     "consumption": {
       "typicalCycleDays": 45,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "28ed56ad-0acd-431e-895c-d82fd438a425",
@@ -21068,7 +21553,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "4ed3cf87-688d-463e-9093-55dd04c8d97d",
@@ -21117,7 +21603,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "a59139be-a7df-4153-991c-ccb414575da6",
@@ -21170,7 +21657,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "4ff299e1-bbdd-4d0c-b72c-4d7df7c56926",
@@ -21206,7 +21694,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "0777ae9e-ae1d-4a51-b12f-c051f3134454",
@@ -21250,7 +21739,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "30b4aab4-ef1f-481e-8332-c75f2479c1df",
@@ -21294,7 +21784,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "0fc187fe-7aa1-4b6c-9bcc-ad334869fe7c",
@@ -21342,7 +21833,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "3bd3cce6-47ee-42ec-b08e-17d8a02ea251",
@@ -21378,7 +21870,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "498a807f-1a2b-497a-82b1-b406c18251f2",
@@ -21420,7 +21913,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "7499f12c-33aa-48b3-b473-af2af62152e0",
@@ -21469,7 +21963,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "61517e04-9b58-4b7b-a873-330efc06079c",
@@ -21512,7 +22007,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "42ce2d01-7c92-42d6-bb71-7fab3c973a97",
@@ -21556,7 +22052,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 4.49
   },
   {
     "id": "8214d0c6-e058-40f4-ad50-faedc8903377",
@@ -21601,7 +22098,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "7fcd9fed-2a4a-4914-ba3f-5330afeb4ccc",
@@ -21643,7 +22141,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.29
   },
   {
     "id": "c3f2990f-5f36-491c-939c-f314846a5d83",
@@ -21688,7 +22187,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "a3ff9010-af5c-449e-838c-b1f441461c1c",
@@ -21734,7 +22234,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "b50a417f-6293-4633-841b-0fc600c5bf12",
@@ -21780,7 +22281,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "ed255c93-9da3-4243-a077-f910c322a520",
@@ -21831,7 +22333,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "11aa5bf9-a636-4574-8e20-4d044706c109",
@@ -21879,7 +22382,8 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "621b4b55-d0af-43f0-97c7-ebe8774bf887",
@@ -21933,7 +22437,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.19
   },
   {
     "id": "21e5bd08-0ac4-4e8d-b49d-3bb02e3f2368",
@@ -21978,7 +22483,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "c54259aa-d312-4ac4-ac69-d29320dffa26",
@@ -22016,7 +22522,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "b8990794-3ba3-4bb9-aba3-66cb5dcabda3",
@@ -22061,7 +22568,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "a738db02-fde7-4a3a-874f-dcbe75a664ec",
@@ -22102,7 +22610,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "2cd9bb6e-b1d8-41de-8954-5704be756c0a",
@@ -22141,7 +22650,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "999d95a9-7f35-40bf-adbd-23a237e5f4ee",
@@ -22187,7 +22697,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "f0760d98-1fed-4cd7-8410-22eb6aa771e8",
@@ -22228,7 +22739,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 3.49
   },
   {
     "id": "95142183-d96c-4b6a-926b-f714fece718d",
@@ -22263,7 +22775,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "b3b232fe-b5c5-4001-9e0b-cc87344e3d12",
@@ -22305,7 +22818,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "21a656cd-7d53-4dd2-a7db-b80e6e5484aa",
@@ -22350,7 +22864,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "8e2f7638-1341-45f4-b9a5-6a2e4cc91c9d",
@@ -22391,7 +22906,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.89
   },
   {
     "id": "51f6605b-6e82-47aa-8bb1-0a055c5d753c",
@@ -22434,7 +22950,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "5a892301-d92a-4a09-8635-84b9b9be07ae",
@@ -22476,7 +22993,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "5c6fcb9b-79e9-40ba-a7f3-c6e69613bf0c",
@@ -22514,7 +23032,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "f4a17693-032b-4574-af81-f85706c2426c",
@@ -22554,7 +23073,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "798c13fc-eb82-491f-8de2-ea676edbbb86",
@@ -22598,7 +23118,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "8101d82c-56ad-4c55-9404-2622b656f521",
@@ -22636,7 +23157,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "963a51f2-3c84-4bf7-9be9-adabd61045c8",
@@ -22674,7 +23196,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "73f0a607-3780-4558-9423-392060ef65c2",
@@ -22711,7 +23234,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "4e371029-ffbe-4d2d-8b2c-691ff072853f",
@@ -22753,7 +23277,8 @@
     "consumption": {
       "typicalCycleDays": 120,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "bd230421-da88-4b11-b662-c160563872ea",
@@ -22791,7 +23316,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "c7529732-568b-419f-910c-1a43ec40630c",
@@ -22838,7 +23364,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.99
   },
   {
     "id": "2c297613-c8cb-4d01-8903-899d86388cc1",
@@ -22896,7 +23423,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 5.49
   },
   {
     "id": "f11ad092-7675-4561-94a8-7100ace3cea0",
@@ -22939,7 +23467,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.29
   },
   {
     "id": "6190fcce-0dea-4307-bf71-d8d5505d0484",
@@ -22983,7 +23512,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 3.99
   },
   {
     "id": "8667eec0-022b-4074-93b1-0be833779454",
@@ -23020,7 +23550,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "812f155e-278e-4c6e-ba98-a54a1e0006d5",
@@ -23057,7 +23588,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "e3a9fb85-9b0f-462f-98c3-71b431dddcbd",
@@ -23099,7 +23631,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "91a07a6b-ec5f-4a03-9a5d-b63237e3a334",
@@ -23145,7 +23678,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "c8a7f715-fc08-41f5-8a41-396b26959151",
@@ -23203,7 +23737,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.99
   },
   {
     "id": "81dddf90-e8cf-4574-b283-1b3f8a37268c",
@@ -23246,7 +23781,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "b53a90ff-ecbb-420c-8557-938a2a7b3138",
@@ -23283,7 +23819,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "9f94b158-20f4-4a5d-9f7f-f54beb35d93d",
@@ -23323,7 +23860,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "403b86f8-136b-47e3-9c06-028fcbc98347",
@@ -23364,7 +23902,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 16.99
   },
   {
     "id": "2c3dd39c-b293-48fb-a118-8032413fd617",
@@ -23416,7 +23955,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "e114e9d7-0722-4c9c-9649-9951d6e155fa",
@@ -23468,7 +24008,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 9.99
   },
   {
     "id": "773efb6a-fb4f-47b4-a0d3-351697a6cc25",
@@ -23507,7 +24048,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "901b74ea-01a4-4ea7-9bcc-72f2d2c1d0d4",
@@ -23555,7 +24097,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 11.99
   },
   {
     "id": "853bc27a-40a8-4407-a485-9e938fcfbb8b",
@@ -23593,7 +24136,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.99
   },
   {
     "id": "d68e5f22-24e7-4cd6-a42e-5dcb6a88b7b7",
@@ -23631,7 +24175,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "06b8733d-a7e0-4ccf-ad6c-82108aba8575",
@@ -23682,7 +24227,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.49
   },
   {
     "id": "6a38e91b-e157-4fe7-8bf0-17ca0e221c00",
@@ -23737,7 +24283,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "6271f9c7-0248-48a8-ae2c-c1d8b0819b8f",
@@ -23772,7 +24319,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "87e3c7fc-17a7-42df-9836-a687d44da2e6",
@@ -23809,7 +24357,8 @@
     "consumption": {
       "typicalCycleDays": 30,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.79
   },
   {
     "id": "1f9f4318-21ce-46fb-84ae-4a0f3f40035b",
@@ -23842,7 +24391,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 4.5
   },
   {
     "id": "58c4ef41-a4cd-4248-8f4d-05a5d0441600",
@@ -23884,7 +24434,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.69
   },
   {
     "id": "a6ef9a64-adfe-4ecb-9fdb-adef8f0f805d",
@@ -23921,7 +24472,8 @@
     "consumption": {
       "typicalCycleDays": 60,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 6.99
   },
   {
     "id": "7ca1a39a-fac7-4f5f-8e69-5c8f69e6da02",
@@ -23967,7 +24519,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "0fe1aaf9-26e4-44be-9c62-93618aed14a7",
@@ -24009,7 +24562,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.29
   },
   {
     "id": "15810aac-3cc9-4830-bb90-24e4ad4c453d",
@@ -24052,7 +24606,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "eb5d005d-7ae1-44db-b1f1-d6ef5c5faa7d",
@@ -24108,7 +24663,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "749fd9fe-43b5-4b4e-aa1a-32700a72f8ef",
@@ -24146,7 +24702,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "00e7dbb0-4fd9-4c27-a08e-d6a1c100b601",
@@ -24185,7 +24742,8 @@
     "consumption": {
       "typicalCycleDays": 14,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.39
   },
   {
     "id": "321aaa69-ccac-4bb1-b597-c5576a60e3d9",
@@ -24229,7 +24787,8 @@
     "consumption": {
       "typicalCycleDays": 21,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 2.19
   },
   {
     "id": "9b8b7af3-55de-4f58-a92d-ccca455bc9e9",
@@ -24274,7 +24833,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "63de1a2f-f126-41d2-9980-5cf1a516bec5",
@@ -24314,7 +24874,8 @@
     "consumption": {
       "typicalCycleDays": 10,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 1.49
   },
   {
     "id": "3e71bb92-7816-4a4a-b049-df5951ec6890",
@@ -24354,7 +24915,8 @@
     "consumption": {
       "typicalCycleDays": 90,
       "perishable": false
-    }
+    },
+    "reference_price_eur": 1.79
   },
   {
     "id": "455cd713-86fd-43ba-8b1b-b010dbba8cea",
@@ -24407,6 +24969,7 @@
     "consumption": {
       "typicalCycleDays": 7,
       "perishable": true
-    }
+    },
+    "reference_price_eur": 2.49
   }
 ]

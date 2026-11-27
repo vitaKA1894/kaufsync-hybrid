@@ -7,7 +7,7 @@ from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-import models, schemas, auth, recipe_service
+import models, schemas, auth, recipe_service, price_service
 from database import engine, get_db, SessionLocal
 import json
 import secrets
@@ -39,6 +39,7 @@ def ensure_columns():
                 ("keep_screen_awake", "BOOLEAN DEFAULT 0"),
                 ("haptic_feedback_enabled", "BOOLEAN DEFAULT 1"),
                 ("show_restock_suggestions", "BOOLEAN DEFAULT 1"),
+                ("show_price_estimate", "BOOLEAN DEFAULT 1"),
             ]
             for col_name, col_type in cols_to_add:
                 if col_name not in existing_cols:
@@ -49,6 +50,7 @@ def ensure_columns():
             item_cols_to_add = [
                 ("updated_at", "DATETIME"),
                 ("is_deleted", "BOOLEAN DEFAULT 0"),
+                ("scanned_barcode", "VARCHAR"),
             ]
             for col_name, col_type in item_cols_to_add:
                 if col_name not in existing_item_cols:
@@ -574,7 +576,7 @@ def update_user_profile(
         'settings_push_members', 'settings_push_quiet_hours', 'settings_push_quiet_start',
         'settings_push_quiet_end', 'settings_sound_enabled', 'settings_vibration_enabled',
         'settings_push_admin_pending_users', 'keep_screen_awake', 'haptic_feedback_enabled',
-        'show_restock_suggestions'
+        'show_restock_suggestions', 'show_price_estimate'
     ]
     for f in fields:
         val = getattr(user_update, f, None)
@@ -732,6 +734,12 @@ def delete_account(
     user_templates = db.query(models.ShoppingTemplate).filter(models.ShoppingTemplate.user_id == user_id).all()
     for tmpl in user_templates:
         db.delete(tmpl)
+    user_prices = db.query(models.UserItemPrice).filter(models.UserItemPrice.user_id == user_id).all()
+    affected_price_keys = {(up.price_key_type, up.price_key) for up in user_prices}
+    db.query(models.UserItemPrice).filter(models.UserItemPrice.user_id == user_id).delete(synchronize_session=False)
+    db.flush()
+    for pk_type, pk_val in affected_price_keys:
+        price_service.recompute_crowd_aggregate(db, pk_type, pk_val)
 
     # 7. Nutzer löschen
     db.delete(current_user)
@@ -1814,6 +1822,7 @@ async def create_item(
         "unit": item_data.unit or "Stk",
         "note": item_data.note,
         "tags": item_data.tags,
+        "scanned_barcode": item_data.scanned_barcode,
         "last_modified_by": current_user.id,
         "updated_at": datetime.now(timezone.utc),
         "is_deleted": False
@@ -2352,7 +2361,9 @@ async def update_item(
     if item_data.quantity is not None: db_item.quantity = item_data.quantity
     if item_data.note is not None: db_item.note = item_data.note
     if hasattr(item_data, 'category') and item_data.category is not None: db_item.category = item_data.category
-    if hasattr(item_data, 'tags') and item_data.tags is not None: db_item.tags = item_data.tags
+    if item_data.tags is not None: db_item.tags = item_data.tags
+    if hasattr(item_data, 'scanned_barcode') and item_data.scanned_barcode is not None:
+        db_item.scanned_barcode = item_data.scanned_barcode
     
     db_item.last_modified_by = current_user.id # Letzte Änderung an User binden
         
@@ -2531,6 +2542,7 @@ async def sync_list(
                         unit=payload.get("unit", "Stk"),
                         note=payload.get("note"),
                         tags=payload.get("tags"),
+                        scanned_barcode=payload.get("scanned_barcode"),
                         status=payload.get("status", "active"),
                         last_modified_by=current_user.id,
                         updated_at=now,
@@ -2551,7 +2563,7 @@ async def sync_list(
                 item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
                 if item:
                     old_status = _normalize_item_status(item.status)
-                    for field in ["name", "category", "quantity", "unit", "note", "tags"]:
+                    for field in ["name", "category", "quantity", "unit", "note", "tags", "scanned_barcode"]:
                         if field in payload and payload[field] is not None:
                             setattr(item, field, payload[field])
                     if "status" in payload and payload["status"] is not None:
@@ -2848,6 +2860,194 @@ async def transfer_items(
         "moved_ids": moved_ids,
         "skipped_ids": skipped_ids,
         "target_items": resulting_target_items,
+    }
+
+
+# --- USER PRICE & CROWD INTELLIGENCE ENDPOINTS (4.x) ---
+
+def _build_price_snapshot_for_user(db: Session, user_id: str):
+    user_prices = db.query(models.UserItemPrice).filter(
+        models.UserItemPrice.user_id == user_id
+    ).all()
+    crowd_prices = db.query(models.CrowdPriceAggregate).filter(
+        ((models.CrowdPriceAggregate.source == "crowd") & (models.CrowdPriceAggregate.contributor_count >= price_service.MIN_CROWD_QUORUM))
+        | (models.CrowdPriceAggregate.source == "external_open_prices")
+    ).all()
+    return {
+        "user_prices": user_prices,
+        "crowd_prices": crowd_prices,
+    }
+
+
+def _normalize_price_key(price_key_type: str, raw_key: str) -> tuple[str, str]:
+    p_type = (price_key_type or "").strip().lower()
+    if p_type not in ("barcode", "article"):
+        raise HTTPException(status_code=400, detail="Ungültiger Preisschlüssel-Typ")
+    clean_key = (raw_key or "").strip().lower()
+    if p_type == "barcode":
+        clean_key = "".join(ch for ch in (raw_key or "") if ch.isdigit())
+    if not clean_key:
+        raise HTTPException(status_code=400, detail="Preisschlüssel darf nicht leer sein")
+    return p_type, clean_key
+
+
+@app.get("/api/prices/snapshot", response_model=schemas.PriceSnapshotResponse)
+def get_price_snapshot(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return _build_price_snapshot_for_user(db, current_user.id)
+
+
+@app.put("/api/users/me/prices", response_model=schemas.PriceSnapshotResponse)
+def upsert_my_price(
+    req: schemas.UserItemPriceUpsert,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    if req.unit_price_eur is None or req.unit_price_eur <= 0 or req.unit_price_eur > 9999:
+        raise HTTPException(status_code=400, detail="Bitte einen gültigen Preis zwischen 0,01 € und 9999 € angeben.")
+    p_type, p_key = _normalize_price_key(req.price_key_type, req.price_key)
+    rounded_price = round(float(req.unit_price_eur), 2)
+    now = datetime.now(timezone.utc)
+
+    existing = db.query(models.UserItemPrice).filter(
+        models.UserItemPrice.user_id == current_user.id,
+        models.UserItemPrice.price_key_type == p_type,
+        models.UserItemPrice.price_key == p_key,
+    ).first()
+    if existing:
+        existing.unit_price_eur = rounded_price
+        existing.is_bulk_variant = bool(req.is_bulk_variant)
+        existing.updated_at = now
+    else:
+        db.add(models.UserItemPrice(
+            id=models.generate_uuid(),
+            user_id=current_user.id,
+            price_key_type=p_type,
+            price_key=p_key,
+            unit_price_eur=rounded_price,
+            is_bulk_variant=bool(req.is_bulk_variant),
+            created_at=now,
+            updated_at=now,
+        ))
+    db.flush()
+    price_service.recompute_crowd_aggregate(db, p_type, p_key, now=now)
+    db.commit()
+    return _build_price_snapshot_for_user(db, current_user.id)
+
+
+@app.delete("/api/users/me/prices", response_model=schemas.PriceSnapshotResponse)
+def delete_my_price(
+    price_key_type: str = Query(...),
+    price_key: str = Query(...),
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    p_type, p_key = _normalize_price_key(price_key_type, price_key)
+    db.query(models.UserItemPrice).filter(
+        models.UserItemPrice.user_id == current_user.id,
+        models.UserItemPrice.price_key_type == p_type,
+        models.UserItemPrice.price_key == p_key,
+    ).delete(synchronize_session=False)
+    db.flush()
+    price_service.recompute_crowd_aggregate(db, p_type, p_key)
+    db.commit()
+    return _build_price_snapshot_for_user(db, current_user.id)
+
+
+@app.post("/api/users/me/prices/sync", response_model=schemas.PriceSnapshotResponse)
+def sync_my_prices(
+    req: schemas.UserItemPriceSyncRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    now = datetime.now(timezone.utc)
+    touched_keys = set()
+
+    for d in req.deletes:
+        p_type, p_key = _normalize_price_key(d.price_key_type, d.price_key)
+        db.query(models.UserItemPrice).filter(
+            models.UserItemPrice.user_id == current_user.id,
+            models.UserItemPrice.price_key_type == p_type,
+            models.UserItemPrice.price_key == p_key,
+        ).delete(synchronize_session=False)
+        touched_keys.add((p_type, p_key))
+
+    for u in req.upserts:
+        if u.unit_price_eur is None or u.unit_price_eur <= 0 or u.unit_price_eur > 9999:
+            continue
+        p_type, p_key = _normalize_price_key(u.price_key_type, u.price_key)
+        rounded_price = round(float(u.unit_price_eur), 2)
+        existing = db.query(models.UserItemPrice).filter(
+            models.UserItemPrice.user_id == current_user.id,
+            models.UserItemPrice.price_key_type == p_type,
+            models.UserItemPrice.price_key == p_key,
+        ).first()
+        if existing:
+            existing.unit_price_eur = rounded_price
+            existing.is_bulk_variant = bool(u.is_bulk_variant)
+            existing.updated_at = now
+        else:
+            db.add(models.UserItemPrice(
+                id=models.generate_uuid(),
+                user_id=current_user.id,
+                price_key_type=p_type,
+                price_key=p_key,
+                unit_price_eur=rounded_price,
+                is_bulk_variant=bool(u.is_bulk_variant),
+                created_at=now,
+                updated_at=now,
+            ))
+        touched_keys.add((p_type, p_key))
+
+    db.flush()
+    for pk_type, pk_val in touched_keys:
+        price_service.recompute_crowd_aggregate(db, pk_type, pk_val, now=now)
+    db.commit()
+    return _build_price_snapshot_for_user(db, current_user.id)
+
+
+@app.get("/api/prices/barcode/{barcode}")
+def lookup_barcode_community_price(
+    barcode: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    clean = "".join(ch for ch in (barcode or "") if ch.isdigit())
+    if len(clean) < 8:
+        return {"found": False}
+
+    existing = db.query(models.CrowdPriceAggregate).filter(
+        models.CrowdPriceAggregate.price_key_type == "barcode",
+        models.CrowdPriceAggregate.price_key == clean,
+    ).first()
+    if existing and (existing.source == "external_open_prices" or existing.contributor_count >= price_service.MIN_CROWD_QUORUM):
+        return {
+            "found": True,
+            "aggregate": schemas.CrowdPriceAggregateResponse.model_validate(existing).model_dump()
+        }
+
+    ext_price = price_service.lookup_external_open_price(clean)
+    if ext_price is None:
+        return {"found": False}
+
+    now = datetime.now(timezone.utc)
+    agg = models.CrowdPriceAggregate(
+        id=models.generate_uuid(),
+        price_key_type="barcode",
+        price_key=clean,
+        median_price_eur=ext_price,
+        contributor_count=1,
+        source="external_open_prices",
+        computed_at=now,
+    )
+    db.add(agg)
+    db.commit()
+    db.refresh(agg)
+    return {
+        "found": True,
+        "aggregate": schemas.CrowdPriceAggregateResponse.model_validate(agg).model_dump()
     }
 
 import pathlib

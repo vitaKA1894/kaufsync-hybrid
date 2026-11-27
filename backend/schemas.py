@@ -27,6 +27,7 @@ class UserUpdate(BaseModel):
     keep_screen_awake: Optional[bool] = None
     haptic_feedback_enabled: Optional[bool] = None
     show_restock_suggestions: Optional[bool] = None
+    show_price_estimate: Optional[bool] = None
 
 # NEU: Für die Passwort-Änderung
 class PasswordUpdate(BaseModel):
@@ -58,6 +59,7 @@ class UserResponse(BaseModel):
     keep_screen_awake: Optional[bool] = False
     haptic_feedback_enabled: Optional[bool] = True
     show_restock_suggestions: Optional[bool] = True
+    show_price_estimate: Optional[bool] = True
 
     class Config:
         from_attributes = True
@@ -101,6 +103,7 @@ class ItemBase(BaseModel):
 class ItemCreate(ItemBase):
     id: Optional[str] = None
     taxonomy_id: Optional[str] = None
+    scanned_barcode: Optional[str] = None
 
 class ItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -110,11 +113,13 @@ class ItemUpdate(BaseModel):
     note: Optional[str] = None
     category: Optional[str] = None
     tags: Optional[str] = None
+    scanned_barcode: Optional[str] = None
 
 class ItemResponse(ItemBase):
     id: str
     list_id: str
     status: str
+    scanned_barcode: Optional[str] = None
     updated_at: Optional[datetime] = None
     is_deleted: Optional[bool] = False
     
@@ -405,5 +410,47 @@ class ShoppingTemplateResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+# --- USER PRICE & CROWD MEDIAN SCHEMAS ---
+class UserItemPriceUpsert(BaseModel):
+    price_key_type: str  # "barcode" | "article"
+    price_key: str
+    unit_price_eur: float
+    is_bulk_variant: bool = False
+
+class UserItemPriceDeleteKey(BaseModel):
+    price_key_type: str
+    price_key: str
+
+class UserItemPriceSyncRequest(BaseModel):
+    upserts: List[UserItemPriceUpsert] = []
+    deletes: List[UserItemPriceDeleteKey] = []
+
+class UserItemPriceResponse(BaseModel):
+    id: str
+    price_key_type: str
+    price_key: str
+    unit_price_eur: float
+    is_bulk_variant: bool
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class CrowdPriceAggregateResponse(BaseModel):
+    price_key_type: str
+    price_key: str
+    median_price_eur: float
+    contributor_count: int
+    source: str
+    computed_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PriceSnapshotResponse(BaseModel):
+    user_prices: List[UserItemPriceResponse] = []
+    crowd_prices: List[CrowdPriceAggregateResponse] = []
+
 
 

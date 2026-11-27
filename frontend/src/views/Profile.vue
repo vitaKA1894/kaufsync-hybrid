@@ -27,6 +27,11 @@ import {
 } from '../services/userMappingService';
 import { clearLocalTemplates } from '../services/templateService';
 import { clearNativeWidgetOnLogout } from '../services/widgetBridgeService';
+import {
+  isPriceEstimateEnabled,
+  setPriceEstimateEnabled,
+  clearLocalPrices
+} from '../services/priceService';
 
 const router = useRouter();
 
@@ -39,6 +44,7 @@ const user = ref({
   keep_screen_awake: localStorage.getItem('ks_keep_screen_awake') === 'true',
   haptic_feedback_enabled: isHapticFeedbackEnabled(),
   show_restock_suggestions: isRestockSuggestionsEnabled(),
+  show_price_estimate: isPriceEstimateEnabled(),
   settings_push_async_events: true, // Master Switch
   settings_push_new_items: true,
   settings_push_completed_items: true,
@@ -103,6 +109,8 @@ const loadUserProfile = async () => {
     setHapticFeedbackEnabled(user.value.haptic_feedback_enabled);
     user.value.show_restock_suggestions = data.show_restock_suggestions ?? isRestockSuggestionsEnabled();
     setRestockSuggestionsEnabled(user.value.show_restock_suggestions);
+    user.value.show_price_estimate = data.show_price_estimate ?? isPriceEstimateEnabled();
+    setPriceEstimateEnabled(user.value.show_price_estimate);
   } catch (error) {
     console.error(error);
   }
@@ -140,7 +148,8 @@ const updateProfile = async (silent = false) => {
         settings_push_members: user.value.settings_push_members,
         keep_screen_awake: user.value.keep_screen_awake,
         haptic_feedback_enabled: user.value.haptic_feedback_enabled,
-        show_restock_suggestions: user.value.show_restock_suggestions
+        show_restock_suggestions: user.value.show_restock_suggestions,
+        show_price_estimate: user.value.show_price_estimate
       })
     });
 
@@ -298,6 +307,7 @@ const confirmDeleteAccount = async () => {
     showDeleteAccountModal.value = false;
     clearLocalUserMappings();
     clearLocalTemplates();
+    clearLocalPrices();
     await clearNativeWidgetOnLogout();
     await clearAllLocalData();
     router.push('/login?deleted=1');
@@ -311,6 +321,7 @@ const confirmDeleteAccount = async () => {
 const logout = async () => {
   clearLocalUserMappings();
   clearLocalTemplates();
+  clearLocalPrices();
   await clearNativeWidgetOnLogout();
   await clearAllLocalData();
   router.push('/login');
@@ -333,6 +344,11 @@ const handleToggleHapticFeedback = async () => {
 
 const handleToggleRestockSuggestions = async () => {
   setRestockSuggestionsEnabled(user.value.show_restock_suggestions);
+  await updateProfile(true);
+};
+
+const handleTogglePriceEstimate = async () => {
+  setPriceEstimateEnabled(user.value.show_price_estimate);
   await updateProfile(true);
 };
 
@@ -579,6 +595,19 @@ onMounted(async () => {
             </div>
             <label class="ks-switch">
               <input type="checkbox" v-model="user.show_restock_suggestions" @change="handleToggleRestockSuggestions" />
+              <span class="ks-switch-slider"></span>
+            </label>
+          </div>
+
+          <div class="master-toggle-card" style="margin-top: 10px;">
+            <div class="master-toggle-info">
+              <span class="master-toggle-title">Geschätzten Warenwert anzeigen</span>
+              <span class="master-toggle-desc">
+                Zeigt den ungefähren Kassenbetrag in geöffneten Listen an.
+              </span>
+            </div>
+            <label class="ks-switch">
+              <input type="checkbox" v-model="user.show_price_estimate" @change="handleTogglePriceEstimate" />
               <span class="ks-switch-slider"></span>
             </label>
           </div>

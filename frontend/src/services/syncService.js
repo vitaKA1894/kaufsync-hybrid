@@ -122,6 +122,7 @@ export async function saveLocalLists(lists) {
               note: item.note || '',
               status: item.status || 'active',
               tags: item.tags || '',
+              scanned_barcode: item.scanned_barcode || null,
               updated_at: item.updated_at || new Date().toISOString(),
               is_deleted: false
             });
@@ -167,6 +168,7 @@ export async function queueMutation({ listId, itemId, action, payload }) {
         note: payload.note || '',
         status: payload.status || 'active',
         tags: payload.tags || '',
+        scanned_barcode: payload.scanned_barcode || null,
         updated_at: timestamp,
         is_deleted: false
       });
@@ -294,6 +296,7 @@ export async function processSyncQueue() {
                 note: item.note || '',
                 status: item.status || 'active',
                 tags: item.tags || '',
+                scanned_barcode: item.scanned_barcode || null,
                 updated_at: item.updated_at || result.server_time,
                 is_deleted: false
               });
@@ -381,6 +384,7 @@ async function fetchServerListDelta(listId) {
               note: item.note || '',
               status: item.status || 'active',
               tags: item.tags || '',
+              scanned_barcode: item.scanned_barcode || null,
               updated_at: item.updated_at || result.server_time,
               is_deleted: false
             });

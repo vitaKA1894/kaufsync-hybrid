@@ -30,6 +30,20 @@ import {
   snoozeSuggestion,
   isRestockSuggestionsEnabled
 } from '../services/consumptionService';
+import {
+  isPriceEstimateEnabled,
+  getPriceContext,
+  savePersonalPrice,
+  removePersonalPrice,
+  fetchExternalBarcodePriceBackground,
+  priceSnapshotVersion
+} from '../services/priceService';
+import {
+  parseGermanPriceInput,
+  formatEurExact,
+  resolveItemPrice,
+  resolveBaseEstimatePrice
+} from '../utils/priceEstimator';
 
 // --- KATEGORIE DEFINITIONEN ---
 const predefinedCategories = [
@@ -95,6 +109,11 @@ const editIncrementNotice = ref('');
 const pendingBarcode = ref(null);
 const categoryChangedInModal = ref(false);
 const isCustomNewItem = ref(false);
+
+// Optional Per-Unit Price Input State
+const priceInput = ref('');
+const priceError = ref('');
+const priceTouchedInModal = ref(false);
 
 // Restock Suggestions State ("Bald wieder leer")
 const dueSuggestions = ref([]);
@@ -259,6 +278,118 @@ const selectUnit = (u) => {
   liveAutoSave();
 };
 
+const showPriceInput = computed(() => {
+  priceSnapshotVersion.value;
+  return isPriceEstimateEnabled();
+});
+
+const priceContextItem = computed(() => {
+  if (!selectedItem.value) return null;
+  return {
+    name: selectedItem.value.name,
+    taxonomy_id: selectedItem.value.taxonomyId || null,
+    scanned_barcode: selectedItem.value.scanned_barcode || null,
+    tags: JSON.stringify(activeTags.value),
+    quantity: currentQuantity.value
+  };
+});
+
+const pricePlaceholder = computed(() => {
+  priceSnapshotVersion.value;
+  const ctxItem = priceContextItem.value;
+  if (!ctxItem) return 'z. B. 1,49';
+  const base = resolveBaseEstimatePrice(ctxItem, getPriceContext());
+  if (base && base.unitPriceEur > 0) {
+    return `~${formatEurExact(base.unitPriceEur)}`;
+  }
+  return 'z. B. 1,49';
+});
+
+const effectiveTotalPreview = computed(() => {
+  priceSnapshotVersion.value;
+  if (currentQuantity.value <= 1 || !priceContextItem.value) return '';
+  const parsed = parseGermanPriceInput(priceInput.value);
+  let unitPrice = parsed.valid ? parsed.value : null;
+  if (unitPrice === null) {
+    if (priceInput.value.trim() !== '') return '';
+    const resolved = resolveItemPrice(priceContextItem.value, getPriceContext());
+    if (resolved && resolved.unitPriceEur > 0) {
+      unitPrice = resolved.unitPriceEur;
+    }
+  }
+  if (!unitPrice || unitPrice <= 0) return '';
+  return `Gesamt: ${formatEurExact(unitPrice * currentQuantity.value)}`;
+});
+
+const populatePriceFieldFromContext = (ctxItem) => {
+  priceError.value = '';
+  priceTouchedInModal.value = false;
+  if (!ctxItem) {
+    priceInput.value = '';
+    return;
+  }
+  const { userPricesMap } = getPriceContext();
+  const resolvedUserOnly = resolveItemPrice(ctxItem, { userPricesMap, crowdPricesMap: new Map() });
+  if (resolvedUserOnly.source === 'user' && resolvedUserOnly.unitPriceEur > 0) {
+    priceInput.value = resolvedUserOnly.unitPriceEur.toFixed(2).replace('.', ',');
+  } else {
+    priceInput.value = '';
+  }
+};
+
+const handlePriceInputChange = (e) => {
+  priceInput.value = e.target.value;
+  priceTouchedInModal.value = true;
+  const parsed = parseGermanPriceInput(priceInput.value);
+  if (parsed.isEmpty || parsed.valid) {
+    priceError.value = '';
+    // Existing items auto-save valid inputs immediately
+    if (!openedFromNewAdd.value && parsed.valid && priceContextItem.value) {
+      savePersonalPrice({ item: priceContextItem.value, unitPriceEur: parsed.value });
+    }
+  }
+};
+
+const handlePriceBlur = async () => {
+  if (!priceContextItem.value) return;
+  const parsed = parseGermanPriceInput(priceInput.value);
+  if (parsed.isEmpty) {
+    priceError.value = '';
+    if (!openedFromNewAdd.value && priceTouchedInModal.value) {
+      await removePersonalPrice({ item: priceContextItem.value });
+    }
+    return;
+  }
+  if (!parsed.valid) {
+    priceError.value = 'Bitte gültigen Preis (z. B. 1,49) eingeben.';
+    return;
+  }
+  priceError.value = '';
+  if (!openedFromNewAdd.value) {
+    await savePersonalPrice({ item: priceContextItem.value, unitPriceEur: parsed.value });
+  }
+};
+
+const clearPersonalPriceField = async () => {
+  priceInput.value = '';
+  priceError.value = '';
+  priceTouchedInModal.value = true;
+  triggerLightHaptic();
+  if (!openedFromNewAdd.value && priceContextItem.value) {
+    await removePersonalPrice({ item: priceContextItem.value });
+  }
+};
+
+const commitPendingPrice = async () => {
+  if (!openedFromNewAdd.value || !priceTouchedInModal.value || !priceContextItem.value) return;
+  const parsed = parseGermanPriceInput(priceInput.value);
+  if (parsed.valid) {
+    await savePersonalPrice({ item: priceContextItem.value, unitPriceEur: parsed.value });
+  } else if (parsed.isEmpty) {
+    await removePersonalPrice({ item: priceContextItem.value });
+  }
+};
+
 // Live Auto-Save
 const liveAutoSave = () => {
   if (!selectedItem.value || !selectedItem.value.id) return;
@@ -269,7 +400,8 @@ const liveAutoSave = () => {
     quantity: currentQuantity.value,
     unit: currentUnit.value,
     tags: JSON.stringify(activeTags.value),
-    note: ''
+    note: '',
+    scanned_barcode: selectedItem.value.scanned_barcode || null
   });
 };
 
@@ -384,6 +516,9 @@ const handleCancel = () => {
   pendingBarcode.value = null;
   categoryChangedInModal.value = false;
   isCustomNewItem.value = false;
+  priceInput.value = '';
+  priceError.value = '';
+  priceTouchedInModal.value = false;
   if (selectedItem.value && selectedItem.value.id) {
     emit('delete', selectedItem.value.id);
   }
@@ -395,6 +530,9 @@ const handleDelete = () => {
   pendingBarcode.value = null;
   categoryChangedInModal.value = false;
   isCustomNewItem.value = false;
+  priceInput.value = '';
+  priceError.value = '';
+  priceTouchedInModal.value = false;
   if (selectedItem.value && selectedItem.value.id) {
     emit('delete', selectedItem.value.id);
   }
@@ -445,12 +583,14 @@ const selectTransferTarget = async (targetList) => {
 const handleDone = async () => {
   commitPendingCustomNote();
   await commitLearnedMappings();
+  await commitPendingPrice();
   closeModal();
 };
 
 const handleDismiss = async () => {
   commitPendingCustomNote();
   await commitLearnedMappings();
+  await commitPendingPrice();
   closeModal();
 };
 
@@ -465,6 +605,7 @@ const setupEditItem = (item) => {
     status: item.status || 'active',
     subcategory: taxonomyMatch?.subcategory || '',
     taxonomyId: item.taxonomy_id || taxonomyMatch?.id || null,
+    scanned_barcode: item.scanned_barcode || null,
     icon: taxonomyMatch?.icon || null,
     unit: item.unit || taxonomyMatch?.defaultUnit || 'Stk',
     allowedUnits: taxonomyMatch?.allowedUnits || ['Stk'],
@@ -493,6 +634,12 @@ const setupEditItem = (item) => {
   customNoteInput.value = '';
   isSliderExpanded.value = false;
   localNotesVersion.value++;
+  populatePriceFieldFromContext({
+    name: selectedItem.value.name,
+    taxonomy_id: selectedItem.value.taxonomyId,
+    scanned_barcode: selectedItem.value.scanned_barcode,
+    tags: JSON.stringify(activeTags.value)
+  });
 };
 
 // Scanner Logic
@@ -534,6 +681,10 @@ const handleScan = async (barcode) => {
   isBarcodeLoading.value = true;
   barcodeError.value = '';
   pendingBarcode.value = String(barcode || '').trim();
+  if (isOnline.value && pendingBarcode.value) {
+    // Non-blocking Tier 3 open community price lookup (silent on failure)
+    fetchExternalBarcodePriceBackground(pendingBarcode.value);
+  }
 
   try {
     // 1. Layer 1 Personal Barcode Mapping (100% instant & offline)
@@ -778,12 +929,14 @@ const selectItem = (item) => {
 
   const defUnit = resolved.defaultUnit || item.defaultUnit || item.unit || 'Stk';
   const taxSource = resolved.taxItem || item;
+  const activeBarcode = item.scanned_barcode || pendingBarcode.value || null;
   selectedItem.value = {
     id: newId,
     name: primaryName,
     category: resolved.category || item.category || 'Sonstiges',
     subcategory: taxSource.subcategory || '',
     taxonomyId: resolved.taxonomyId || item.id || null,
+    scanned_barcode: activeBarcode,
     icon: resolved.icon || item.icon || null,
     unit: defUnit,
     allowedUnits: resolved.allowedUnits || item.allowedUnits || ['Stk'],
@@ -803,6 +956,13 @@ const selectItem = (item) => {
     activeTags.value.push(matchedAlias);
   }
 
+  populatePriceFieldFromContext({
+    name: selectedItem.value.name,
+    taxonomy_id: selectedItem.value.taxonomyId,
+    scanned_barcode: activeBarcode,
+    tags: JSON.stringify(activeTags.value)
+  });
+
   // Emit 'add' immediately
   emit('add', {
     id: newId,
@@ -812,7 +972,8 @@ const selectItem = (item) => {
     unit: currentUnit.value,
     tags: JSON.stringify(activeTags.value),
     note: '',
-    taxonomy_id: selectedItem.value.taxonomyId
+    taxonomy_id: selectedItem.value.taxonomyId,
+    scanned_barcode: activeBarcode
   });
 };
 
@@ -1255,6 +1416,39 @@ watch(() => props.editItem, (newVal) => {
               >
                 {{ u }}
               </button>
+            </div>
+
+            <!-- Optional Per-Unit Price Input -->
+            <div v-if="showPriceInput" class="price-input-card">
+              <div class="price-input-row">
+                <div class="price-input-label-group">
+                  <span class="price-input-label">Preis (pro Stück)</span>
+                  <span v-if="effectiveTotalPreview" class="price-total-hint">{{ effectiveTotalPreview }}</span>
+                </div>
+                <div class="price-input-box" :class="{ 'has-error': !!priceError }">
+                  <input
+                    :value="priceInput"
+                    type="text"
+                    inputmode="decimal"
+                    class="price-field"
+                    :placeholder="pricePlaceholder"
+                    aria-label="Preis pro Stück in Euro"
+                    @input="handlePriceInputChange"
+                    @blur="handlePriceBlur"
+                    @keyup.enter="handlePriceBlur"
+                    @touchstart.stop
+                  />
+                  <span class="price-currency-suffix">€</span>
+                  <button
+                    v-if="priceInput.trim() !== ''"
+                    type="button"
+                    class="price-clear-btn"
+                    aria-label="Eigenen Preis entfernen"
+                    @click="clearPersonalPriceField"
+                  >×</button>
+                </div>
+              </div>
+              <p v-if="priceError" class="price-error-msg">{{ priceError }}</p>
             </div>
 
             <!-- Compact Variant & Notes Slider -->
@@ -2441,5 +2635,101 @@ watch(() => props.editItem, (newVal) => {
   border-radius: 9999px;
   background: rgba(56, 189, 248, 0.18);
   color: #7dd3fc;
+}
+
+.price-input-card {
+  padding: 10px 14px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(51, 65, 85, 0.65);
+  border-radius: 14px;
+  margin-bottom: 14px;
+}
+
+.price-input-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.price-input-label-group {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.price-input-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.price-total-hint {
+  font-size: 12px;
+  font-weight: 600;
+  color: #94a3b8;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-input-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(71, 85, 105, 0.8);
+  border-radius: 10px;
+  padding: 6px 10px;
+  width: 124px;
+  flex-shrink: 0;
+}
+
+.price-input-box.has-error {
+  border-color: rgba(248, 113, 113, 0.85);
+}
+
+.price-field {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.price-field::placeholder {
+  color: #64748b;
+  font-weight: 500;
+}
+
+.price-currency-suffix {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+
+.price-clear-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(148, 163, 184, 0.2);
+  color: #cbd5e1;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+}
+
+.price-error-msg {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: #f87171;
 }
 </style>
