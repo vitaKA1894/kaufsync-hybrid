@@ -25,7 +25,8 @@ export function getCanonicalArticle(name, fallbackCategory = 'Sonstiges') {
       articleKey: idMatch.id,
       displayName: idMatch.name,
       category: idMatch.category || fallbackCategory,
-      icon: idMatch.icon || null
+      icon: idMatch.icon || null,
+      typicalCycleDays: idMatch.consumption?.typicalCycleDays ?? null
     };
   }
 
@@ -38,7 +39,8 @@ export function getCanonicalArticle(name, fallbackCategory = 'Sonstiges') {
       articleKey: nameMatch.id,
       displayName: nameMatch.name,
       category: nameMatch.category || fallbackCategory,
-      icon: nameMatch.icon || null
+      icon: nameMatch.icon || null,
+      typicalCycleDays: nameMatch.consumption?.typicalCycleDays ?? null
     };
   }
 
@@ -51,7 +53,8 @@ export function getCanonicalArticle(name, fallbackCategory = 'Sonstiges') {
       articleKey: aliasMatch.id,
       displayName: aliasMatch.name,
       category: aliasMatch.category || fallbackCategory,
-      icon: aliasMatch.icon || null
+      icon: aliasMatch.icon || null,
+      typicalCycleDays: aliasMatch.consumption?.typicalCycleDays ?? null
     };
   }
 
@@ -60,7 +63,8 @@ export function getCanonicalArticle(name, fallbackCategory = 'Sonstiges') {
     articleKey: lower,
     displayName: trimmed,
     category: fallbackCategory,
-    icon: null
+    icon: null,
+    typicalCycleDays: null
   };
 }
 
@@ -121,7 +125,7 @@ export function toDateString(d) {
  * Calculates interval statistical properties for an article's distinct purchase dates.
  * Returns null if thresholds or filters are not met.
  */
-export function calculateArticleCycle(distinctDates, todayStr) {
+export function calculateArticleCycle(distinctDates, todayStr, typicalCycleDays = null) {
   if (!Array.isArray(distinctDates)) return null;
 
   // Deduplicate and sort ascending
@@ -174,8 +178,8 @@ export function calculateArticleCycle(distinctDates, todayStr) {
     return null;
   }
 
-  // Staleness / Seasonal Cutoff: days_since_last_purchase > max(median_cycle_days * 3, 60 days)
-  const maxStaleDays = Math.max(medianCycleDays * 3, 60);
+  // Staleness / Seasonal Cutoff: days_since_last_purchase > max(median_cycle_days * 3, typicalCycleDays * 2, 60 days)
+  const maxStaleDays = Math.max(medianCycleDays * 3, (typicalCycleDays || 0) * 2, 60);
   if (daysSinceLastPurchase > maxStaleDays) {
     return null;
   }
@@ -266,6 +270,7 @@ export function computeDueSuggestions({
         displayName: canon.displayName || displayName || groupKey,
         category: (canon.category && canon.category !== 'Sonstiges') ? canon.category : category,
         icon: canon.icon || icon,
+        typicalCycleDays: canon.typicalCycleDays ?? null,
         dates: []
       });
     }
@@ -303,7 +308,7 @@ export function computeDueSuggestions({
     }
 
     // 3. Compute cycle
-    const cycle = calculateArticleCycle(data.dates, todayStr);
+    const cycle = calculateArticleCycle(data.dates, todayStr, data.typicalCycleDays);
     if (!cycle) {
       continue;
     }

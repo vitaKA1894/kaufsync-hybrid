@@ -117,7 +117,7 @@ const restockSuggestion = (sug) => {
   const sugName = sug.display_name || sug.name;
   const sugKey = sug.article_key || sug.articleKey;
   const searchMatch = findTaxonomyItem(sugName);
-  const unit = searchMatch?.unit || 'Stk';
+  const unit = searchMatch?.defaultUnit || searchMatch?.unit || 'Stk';
 
   recentlyAddedKeys.value.push(sugKey);
 
@@ -172,18 +172,31 @@ const defaultChipStyle = {
   borderColor: '#334155'
 };
 
-// Pills computation: Custom notes first, then constellations, then global meta
+// Pills computation: Custom notes first, then v2 variants -> attributes -> packSizes (with legacy constellations fallback)
+const getTaxonomySuggestions = (item) => {
+  if (!item) return [];
+  if (Array.isArray(item.variants) || Array.isArray(item.attributes) || Array.isArray(item.packSizes)) {
+    const merged = [
+      ...(item.variants || []),
+      ...(item.attributes || []),
+      ...(item.packSizes || [])
+    ];
+    return Array.from(new Set(merged));
+  }
+  return item.tags?.constellations || [];
+};
+
 const allCustomNotes = computed(() => {
   localNotesVersion.value; // Reactivity dependency
   const remembered = getRememberedNotes(props.listId, selectedItem.value?.name);
   const result = [...remembered];
 
   const urgencyTags = ['Dringend', 'Angebot', "Wenn's passt"];
-  const consts = selectedItem.value?.tags?.constellations || [];
+  const taxPills = getTaxonomySuggestions(selectedItem.value);
   const meta = selectedItem.value?.tags?.global_meta || [];
 
   for (const tag of activeTags.value) {
-    if (!urgencyTags.includes(tag) && !consts.includes(tag) && !meta.includes(tag)) {
+    if (!urgencyTags.includes(tag) && !taxPills.includes(tag) && !meta.includes(tag)) {
       if (!result.includes(tag)) {
         result.push(tag);
       }
@@ -194,13 +207,12 @@ const allCustomNotes = computed(() => {
 
 const constellationPills = computed(() => {
   const custom = allCustomNotes.value;
-  const consts = selectedItem.value?.tags?.constellations || [];
-  return consts.filter(c => !custom.includes(c));
+  return getTaxonomySuggestions(selectedItem.value).filter(c => !custom.includes(c));
 });
 
 const metaPills = computed(() => {
   const custom = allCustomNotes.value;
-  const consts = selectedItem.value?.tags?.constellations || [];
+  const consts = getTaxonomySuggestions(selectedItem.value);
   const meta = selectedItem.value?.tags?.global_meta || [];
   const urgencyTags = ['Dringend', 'Angebot', "Wenn's passt"];
   return meta.filter(m => !urgencyTags.includes(m) && !custom.includes(m) && !consts.includes(m));
@@ -209,6 +221,23 @@ const metaPills = computed(() => {
 const totalSliderPillsCount = computed(() => {
   return allCustomNotes.value.length + constellationPills.value.length + metaPills.value.length;
 });
+
+const availableUnits = computed(() => {
+  const units = Array.isArray(selectedItem.value?.allowedUnits) && selectedItem.value.allowedUnits.length > 0
+    ? [...selectedItem.value.allowedUnits]
+    : ['Stk'];
+  if (currentUnit.value && !units.includes(currentUnit.value)) {
+    units.unshift(currentUnit.value);
+  }
+  return units;
+});
+
+const selectUnit = (u) => {
+  if (currentUnit.value === u) return;
+  currentUnit.value = u;
+  triggerLightHaptic();
+  liveAutoSave();
+};
 
 // Live Auto-Save
 const liveAutoSave = () => {
@@ -331,12 +360,17 @@ const setupEditItem = (item) => {
     id: item.id,
     name: item.name,
     category: mappedCategory,
-    unit: item.unit || 'Stk',
-    tags: taxonomyMatch?.tags || { quantities: [], constellations: [], global_meta: [] }
+    subcategory: taxonomyMatch?.subcategory || '',
+    unit: item.unit || taxonomyMatch?.defaultUnit || 'Stk',
+    allowedUnits: taxonomyMatch?.allowedUnits || ['Stk'],
+    variants: taxonomyMatch?.variants || null,
+    attributes: taxonomyMatch?.attributes || null,
+    packSizes: taxonomyMatch?.packSizes || null,
+    tags: taxonomyMatch?.tags || { constellations: [] }
   };
 
   currentQuantity.value = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
-  currentUnit.value = item.unit || 'Stk';
+  currentUnit.value = item.unit || taxonomyMatch?.defaultUnit || 'Stk';
 
   let parsedTags = [];
   try {
@@ -527,15 +561,21 @@ const selectItem = (item) => {
   const newId = crypto.randomUUID();
   openedFromNewAdd.value = true;
 
+  const defUnit = item.defaultUnit || item.unit || 'Stk';
   selectedItem.value = {
     id: newId,
     name: primaryName,
     category: item.category || 'Sonstiges',
-    unit: item.unit || 'Stk',
-    tags: item.tags || { quantities: [], constellations: [], global_meta: [] }
+    subcategory: item.subcategory || '',
+    unit: defUnit,
+    allowedUnits: item.allowedUnits || ['Stk'],
+    variants: item.variants || null,
+    attributes: item.attributes || null,
+    packSizes: item.packSizes || null,
+    tags: item.tags || { constellations: [] }
   };
   currentQuantity.value = 1;
-  currentUnit.value = item.unit || 'Stk';
+  currentUnit.value = defUnit;
   activeTags.value = [];
   customNoteInput.value = '';
   isSliderExpanded.value = false;
@@ -885,6 +925,21 @@ watch(() => props.editItem, (newVal) => {
                   </svg>
                 </button>
               </div>
+            </div>
+
+            <!-- Compact Unit Selector Pills (only shown when item defines multiple allowed units) -->
+            <div v-if="availableUnits.length > 1" class="unit-pill-row" @touchstart.stop>
+              <button
+                v-for="u in availableUnits"
+                :key="'unit-' + u"
+                type="button"
+                class="unit-pill-btn"
+                :class="{ active: currentUnit === u }"
+                :style="currentUnit === u ? activeChipStyle : defaultChipStyle"
+                @click="selectUnit(u)"
+              >
+                {{ u }}
+              </button>
             </div>
 
             <!-- Compact Variant & Notes Slider -->
@@ -1366,6 +1421,32 @@ watch(() => props.editItem, (newVal) => {
   color: #f8fafc;
   min-width: 28px;
   text-align: center;
+}
+
+.unit-pill-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  white-space: nowrap;
+  margin-top: -6px;
+  margin-bottom: 14px;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.unit-pill-row::-webkit-scrollbar {
+  display: none;
+}
+
+.unit-pill-btn {
+  padding: 4px 10px;
+  border-radius: 9999px;
+  border: 1px solid #334155;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
 
 /* Variant Slider */

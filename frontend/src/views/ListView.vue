@@ -40,6 +40,7 @@ import {
   syncPurchases,
   backfillFromChangelog
 } from '../services/consumptionService';
+import { findTaxonomyItem } from '../utils/search';
 import { db } from '../db/index';
 
 const route = useRoute();
@@ -411,12 +412,12 @@ const chainsConfig = {
   kaufland: { marketType: "supermarket", defaultOrder: ["Obst & Gemüse", "Brot & Backwaren", "Fleisch & Fisch", "Milchprodukte & Tiefkühlkost", "Vorratskammer", "Getränke & Genussmittel", "Drogerie, Haushalt & Tierbedarf", "Sonstiges"] },
   dm: { 
     marketType: "drugstore", 
-    defaultOrder: ["Drogerie, Haushalt & Tierbedarf", "Sonstiges", "Getränke & Genussmittel", "Milchprodukte & Tiefkühlkost", "Brot & Backwaren", "Obst & Gemüse", "Fleisch & Fisch"],
+    defaultOrder: ["Drogerie, Haushalt & Tierbedarf", "Sonstiges", "Getränke & Genussmittel", "Vorratskammer", "Milchprodukte & Tiefkühlkost", "Brot & Backwaren", "Obst & Gemüse", "Fleisch & Fisch"],
     categoryMeta: { "Obst & Gemüse": { deprioritized: true }, "Fleisch & Fisch": { deprioritized: true }, "Brot & Backwaren": { deprioritized: true }, "Milchprodukte & Tiefkühlkost": { deprioritized: true } }
   },
   rossmann: { 
     marketType: "drugstore", 
-    defaultOrder: ["Drogerie, Haushalt & Tierbedarf", "Sonstiges", "Getränke & Genussmittel", "Milchprodukte & Tiefkühlkost", "Brot & Backwaren", "Obst & Gemüse", "Fleisch & Fisch"],
+    defaultOrder: ["Drogerie, Haushalt & Tierbedarf", "Sonstiges", "Getränke & Genussmittel", "Vorratskammer", "Milchprodukte & Tiefkühlkost", "Brot & Backwaren", "Obst & Gemüse", "Fleisch & Fisch"],
     categoryMeta: { "Obst & Gemüse": { deprioritized: true }, "Fleisch & Fisch": { deprioritized: true }, "Brot & Backwaren": { deprioritized: true }, "Milchprodukte & Tiefkühlkost": { deprioritized: true } }
   },
   metro: { marketType: "wholesale", defaultOrder: ["Obst & Gemüse", "Fleisch & Fisch", "Milchprodukte & Tiefkühlkost", "Brot & Backwaren", "Vorratskammer", "Getränke & Genussmittel", "Drogerie, Haushalt & Tierbedarf", "Sonstiges"] },
@@ -1448,9 +1449,22 @@ const groupedActiveItems = computed(() => {
     return indexA - indexB;
   });
 
-  // Stabile Sortierung der Artikel innerhalb jeder Kategorie, um Springen bei Cache/API-Updates zu verhindern
+  // Sortiere innerhalb jeder Kategorie nach Lagerung (Kühlregal vor Tiefkühltruhe) und Unterkategorie, dann stabil nach Erstellungszeit
+  const storageOrder = { ambient: 0, chilled: 1, frozen: 2 };
   sortedGroups.forEach(group => {
     group.items.sort((a, b) => {
+      const taxA = findTaxonomyItem(a.name);
+      const taxB = findTaxonomyItem(b.name);
+      const storA = storageOrder[taxA?.storage] ?? 0;
+      const storB = storageOrder[taxB?.storage] ?? 0;
+      if (storA !== storB) return storA - storB;
+
+      const subA = taxA?.subcategory || '';
+      const subB = taxB?.subcategory || '';
+      if (subA && subB && subA !== subB) {
+        return subA.localeCompare(subB, 'de');
+      }
+
       const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
       const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
       if (timeA !== timeB) return timeA - timeB;

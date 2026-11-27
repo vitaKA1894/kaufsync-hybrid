@@ -257,3 +257,25 @@ def test_structured_error_handling_no_failed_to_fetch():
         assert exc_info.value.code == "timeout_or_network"
         assert "unterbrochen" in exc_info.value.user_message
         assert "Failed to fetch" not in exc_info.value.user_message
+
+
+def test_schema_v2_staples_and_new_items():
+    """Verify Schema v2 recipe.pantryStaple and newly added staples in recipe import."""
+    lines = [
+        "1 TL Kreuzkümmel",
+        "1 Dose Kidneybohnen",
+        "6 Schraubgläser",
+        "200 g Cheddar",
+    ]
+    items = recipe_service.process_ingredient_lines(lines)
+    by_name = {it["name"]: it for it in items}
+
+    assert by_name["Kreuzkümmel"]["category"] == "Vorratskammer"
+    assert by_name["Kreuzkümmel"]["is_pantry_staple"] is True
+    assert by_name["Kreuzkümmel"]["selected"] is False
+
+    assert by_name["Kidneybohnen"]["category"] == "Vorratskammer"
+    assert by_name["Kidneybohnen"]["is_pantry_staple"] is False
+
+    assert by_name["Schraubgläser"]["category"] == "Drogerie, Haushalt & Tierbedarf"
+    assert by_name["Cheddar"]["category"] == "Milchprodukte & Tiefkühlkost"

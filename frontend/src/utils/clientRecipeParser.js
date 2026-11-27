@@ -396,22 +396,26 @@ export function matchIngredientToTaxonomy(name) {
 
   // 4. Token-based / Substring match
   let bestMatch = null;
-  let longestLen = 0;
+  let bestLen = -1;
+  let bestPrio = -1;
   let conf = 0.0;
 
   for (const [candidate, item] of itemsByName.entries()) {
     if (candidate.length >= 4) {
       if (shouldRejectCompoundPrefix(clean, candidate)) continue;
+      const prio = item.recipe?.matchPriority ?? 80;
 
       if (clean.includes(candidate)) {
-        if (candidate.length > longestLen) {
-          longestLen = candidate.length;
+        if (candidate.length > bestLen || (candidate.length === bestLen && prio > bestPrio)) {
+          bestLen = candidate.length;
+          bestPrio = prio;
           bestMatch = item;
           conf = 0.8;
         }
       } else if (candidate.includes(clean) && clean.length >= 6) {
-        if (candidate.length > longestLen) {
-          longestLen = candidate.length;
+        if (candidate.length > bestLen || (candidate.length === bestLen && prio > bestPrio)) {
+          bestLen = candidate.length;
+          bestPrio = prio;
           bestMatch = item;
           conf = 0.75;
         }
@@ -478,7 +482,7 @@ const STAPLES_KEYWORDS = [
   'muskat', 'muskatnuss'
 ];
 
-export function isPantryStaple(name, rawLine, qty, unit) {
+export function isPantryStaple(name, rawLine, qty, unit, matchedTax = null) {
   const clean = (name || '').toLowerCase().trim();
   const rawClean = (rawLine || '').toLowerCase().trim();
 
@@ -502,6 +506,16 @@ export function isPantryStaple(name, rawLine, qty, unit) {
   if (clean.includes('gelierzucker')) return false;
   if (clean.includes('zucker') && qty !== null && qty >= 100) return false;
   if (clean.includes('öl') && qty !== null && qty >= 100) return false;
+
+  // Schema v2 data-driven pantryStaple rule
+  const taxPantry = matchedTax?.recipe?.pantryStaple;
+  if (taxPantry === 'always') return true;
+  if (taxPantry === 'small_amounts') {
+    if (['EL', 'TL', 'Msp.', 'Spritzer', 'Schuss', 'Prise'].includes(unit) && (qty === null || qty <= 3.0)) {
+      return true;
+    }
+    if (qty === null && ['Stk', null, undefined].includes(unit)) return true;
+  }
 
   // Standard pantry staples
   for (const s of STAPLES_KEYWORDS) {
@@ -661,7 +675,7 @@ export function processIngredientLines(rawLines) {
       }
     }
 
-    const stapleFlag = isPantryStaple(itemName, itemData.raw, qty, unit);
+    const stapleFlag = isPantryStaple(itemName, itemData.raw, qty, unit, matchedTax);
     const displayQty = formatGermanQuantity(qty, unit);
 
     const itemTags = [];

@@ -49,6 +49,9 @@ def build_taxonomy_lookups(taxonomy_data: List[Dict[str, Any]]) -> Tuple[Dict[st
         for alias in item.get('aliases', []):
             if alias:
                 alias_to_item[alias.lower().strip()] = item
+        for variant in item.get('variants', []):
+            if variant:
+                constellation_to_item[variant.lower().strip()] = item
         tags = item.get('tags', {})
         if isinstance(tags, dict):
             for c in tags.get('constellations', []):
@@ -428,23 +431,24 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
 
     # 4. Token-based match (e.g. "Weizenmehl" -> "Mehl", "Hähnchenbrust" -> "Hähnchenbrustfilet")
     best_match = None
-    longest_len = 0
+    best_score = (-1, -1)
     conf = 0.0
 
     for candidate_name, item in items_by_name.items():
         if len(candidate_name) >= 4:
             if should_reject_compound_prefix(clean, candidate_name):
                 continue
-            # Either candidate is inside clean (e.g. Weizenmehl contains Mehl)
-            # or clean is inside candidate (e.g. Hähnchenbrust is inside Hähnchenbrustfilet)
+            prio = (item.get('recipe') or {}).get('matchPriority', 80)
             if candidate_name in clean:
-                if len(candidate_name) > longest_len:
-                    longest_len = len(candidate_name)
+                score = (len(candidate_name), prio)
+                if score > best_score:
+                    best_score = score
                     best_match = item
                     conf = 0.8
             elif clean in candidate_name and len(clean) >= 6:
-                if len(candidate_name) > longest_len:
-                    longest_len = len(candidate_name)
+                score = (len(candidate_name), prio)
+                if score > best_score:
+                    best_score = score
                     best_match = item
                     conf = 0.75
 
@@ -513,7 +517,7 @@ STAPLES_KEYWORDS = [
     'muskat', 'muskatnuss'
 ]
 
-def is_pantry_staple(item_name: str, raw_line: str, qty: Optional[float], unit: Optional[str]) -> bool:
+def is_pantry_staple(item_name: str, raw_line: str, qty: Optional[float], unit: Optional[str], matched_tax: Optional[Dict[str, Any]] = None) -> bool:
     clean = item_name.lower().strip()
     raw_clean = raw_line.lower().strip()
 
@@ -543,7 +547,17 @@ def is_pantry_staple(item_name: str, raw_line: str, qty: Optional[float], unit: 
     if 'öl' in clean and qty is not None and qty >= 100:
         return False
 
-    # Standard pantry staples
+    # Schema v2 data-driven pantryStaple rule
+    tax_pantry = (matched_tax or {}).get('recipe', {}).get('pantryStaple') if isinstance(matched_tax, dict) else None
+    if tax_pantry == 'always':
+        return True
+    if tax_pantry == 'small_amounts':
+        if unit in ['EL', 'TL', 'Msp.', 'Spritzer', 'Schuss', 'Prise'] and (qty is None or qty <= 3.0):
+            return True
+        if qty is None and unit in ['Stk', None]:
+            return True
+
+    # Fallback: Standard pantry staples
     for s in STAPLES_KEYWORDS:
         if clean == s or re.search(r'\b' + re.escape(s) + r'\b', clean):
             return True
@@ -1005,7 +1019,7 @@ def process_ingredient_lines(raw_lines: List[str]) -> List[Dict[str, Any]]:
                 spec = candidate_note
 
         # Determine pantry staple status
-        staple_flag = is_pantry_staple(item_name, item_data['raw'], qty, unit)
+        staple_flag = is_pantry_staple(item_name, item_data['raw'], qty, unit, matched_tax=matched_tax)
         selected_by_default = not staple_flag
 
         display_qty = format_german_quantity(qty, unit)

@@ -70,6 +70,8 @@ const byLowerName = new Map();
 const byNormName = new Map();
 const byLowerAlias = new Map();
 const byNormAlias = new Map();
+const byLowerBrand = new Map();
+const byNormBrand = new Map();
 
 const indexedTaxonomy = taxonomy.map(item => {
   const name = item.name || '';
@@ -77,6 +79,10 @@ const indexedTaxonomy = taxonomy.map(item => {
   const normName = normalizeSearchText(name);
   const aliases = Array.isArray(item.aliases) ? item.aliases.filter(Boolean) : [];
   const normAliases = aliases.map(a => normalizeSearchText(a));
+  const brands = Array.isArray(item.brands) ? item.brands.filter(Boolean) : [];
+  const normBrands = brands.map(b => normalizeSearchText(b));
+  const searchKeywords = Array.isArray(item.searchKeywords) ? item.searchKeywords.filter(Boolean) : [];
+  const normKeywords = searchKeywords.map(k => normalizeSearchText(k));
 
   if (item.id) byId.set(item.id, item);
   if (lowerName) byLowerName.set(lowerName, item);
@@ -89,21 +95,36 @@ const indexedTaxonomy = taxonomy.map(item => {
     if (na && !byNormAlias.has(na)) byNormAlias.set(na, { item, alias });
   });
 
+  brands.forEach((brand, idx) => {
+    const lb = brand.toLowerCase().trim();
+    const nb = normBrands[idx];
+    if (lb && !byLowerBrand.has(lb)) byLowerBrand.set(lb, { item, brand });
+    if (nb && !byNormBrand.has(nb)) byNormBrand.set(nb, { item, brand });
+  });
+
   return {
     item,
     name,
     _normName: normName,
     aliases,
-    _normAliases: normAliases
+    _normAliases: normAliases,
+    brands,
+    _normBrands: normBrands,
+    searchKeywords,
+    _normKeywords: normKeywords
   };
 });
 
 const fuseOptions = {
   keys: [
-    { name: 'name', weight: 0.45 },
-    { name: '_normName', weight: 0.3 },
-    { name: 'aliases', weight: 0.15 },
-    { name: '_normAliases', weight: 0.1 }
+    { name: 'name', weight: 0.42 },
+    { name: '_normName', weight: 0.28 },
+    { name: 'aliases', weight: 0.14 },
+    { name: '_normAliases', weight: 0.08 },
+    { name: 'brands', weight: 0.04 },
+    { name: '_normBrands', weight: 0.02 },
+    { name: 'searchKeywords', weight: 0.01 },
+    { name: '_normKeywords', weight: 0.01 }
   ],
   threshold: 0.3,
   ignoreLocation: true,
@@ -139,6 +160,14 @@ export function findTaxonomyItem(nameOrId) {
     const { item, alias } = byNormAlias.get(norm);
     return { ...item, matchedAlias: alias };
   }
+  if (byLowerBrand.has(lower)) {
+    const { item, brand } = byLowerBrand.get(lower);
+    return { ...item, matchedAlias: brand };
+  }
+  if (byNormBrand.has(norm)) {
+    const { item, brand } = byNormBrand.get(norm);
+    return { ...item, matchedAlias: brand };
+  }
 
   return null;
 }
@@ -159,22 +188,23 @@ export function searchTaxonomy(query, limit = 12) {
   const upsert = (item, tier, score, matchedAlias = null) => {
     const key = item.id || item.name;
     const prev = ranked.get(key);
+    const cleanAlias = (tier <= 2 || tier === 4.8 || tier === 4.9 || tier >= 6) ? null : matchedAlias;
     if (!prev || tier < prev.tier || (tier === prev.tier && score < prev.score)) {
       ranked.set(key, {
         item,
         tier,
         score,
-        matchedAlias: tier <= 2 ? null : matchedAlias
+        matchedAlias: cleanAlias
       });
-    } else if (tier <= 2 && prev.matchedAlias !== null) {
-      // Name-based match takes precedence over alias tag injection
+    } else if ((tier <= 2 || tier === 4.8 || tier === 4.9) && prev.matchedAlias !== null) {
+      // Name-based or keyword-exact match takes precedence over alias tag injection
       prev.matchedAlias = null;
     }
   };
 
-  // 1. Deterministic Exact, Prefix, and Word-Prefix matches on name & aliases
+  // 1. Deterministic Exact, Prefix, and Word-Prefix matches on name, aliases, brands, and searchKeywords
   for (const entry of indexedTaxonomy) {
-    const { item, name, _normName, aliases, _normAliases } = entry;
+    const { item, name, _normName, aliases, _normAliases, brands, _normBrands, searchKeywords, _normKeywords } = entry;
     const lowerName = name.toLowerCase();
 
     if (lowerName === lower || _normName === norm) {
@@ -194,16 +224,51 @@ export function searchTaxonomy(query, limit = 12) {
       continue;
     }
 
+    let aliasMatched = false;
     for (let i = 0; i < aliases.length; i++) {
       const alias = aliases[i];
       const la = alias.toLowerCase();
       const na = _normAliases[i];
       if (la === lower || na === norm) {
         upsert(item, 3, 0, alias);
+        aliasMatched = true;
         break;
       }
       if (la.startsWith(lower) || na.startsWith(norm)) {
         upsert(item, 4, la.length - lower.length, alias);
+        aliasMatched = true;
+        break;
+      }
+    }
+    if (aliasMatched) continue;
+
+    let brandMatched = false;
+    for (let i = 0; i < brands.length; i++) {
+      const brand = brands[i];
+      const lb = brand.toLowerCase();
+      const nb = _normBrands[i];
+      if (lb === lower || nb === norm) {
+        upsert(item, 3.5, 0, brand);
+        brandMatched = true;
+        break;
+      }
+      if (lb.startsWith(lower) || nb.startsWith(norm)) {
+        upsert(item, 4.5, lb.length - lower.length, brand);
+        brandMatched = true;
+        break;
+      }
+    }
+    if (brandMatched) continue;
+
+    for (let i = 0; i < searchKeywords.length; i++) {
+      const kw = searchKeywords[i].toLowerCase();
+      const nkw = _normKeywords[i];
+      if (kw === lower || nkw === norm) {
+        upsert(item, 4.8, kw.length, null);
+        break;
+      }
+      if (kw.startsWith(lower) || nkw.startsWith(norm)) {
+        upsert(item, 4.9, kw.length, null);
         break;
       }
     }
@@ -216,12 +281,15 @@ export function searchTaxonomy(query, limit = 12) {
   }
 
   for (const hit of fuseHits) {
-    const { item, aliases } = hit.item;
+    const { item, aliases, brands } = hit.item;
     const matches = hit.matches || [];
     const matchedOnName = matches.some(m => m.key === 'name' || m.key === '_normName');
+    const matchedOnKeywordOnly =
+      !matchedOnName &&
+      !matches.some(m => m.key === 'aliases' || m.key === '_normAliases' || m.key === 'brands' || m.key === '_normBrands');
 
     let matchedAlias = null;
-    if (!matchedOnName) {
+    if (!matchedOnName && !matchedOnKeywordOnly) {
       const aliasMatch = matches.find(m => m.key === 'aliases' || m.key === '_normAliases');
       if (aliasMatch) {
         if (aliasMatch.key === '_normAliases' && typeof aliasMatch.refIndex === 'number') {
@@ -229,10 +297,19 @@ export function searchTaxonomy(query, limit = 12) {
         } else {
           matchedAlias = aliasMatch.value || null;
         }
+      } else {
+        const brandMatch = matches.find(m => m.key === 'brands' || m.key === '_normBrands');
+        if (brandMatch) {
+          if (brandMatch.key === '_normBrands' && typeof brandMatch.refIndex === 'number') {
+            matchedAlias = brands[brandMatch.refIndex] || null;
+          } else {
+            matchedAlias = brandMatch.value || null;
+          }
+        }
       }
     }
 
-    upsert(item, 5, hit.score ?? 0.5, matchedAlias);
+    upsert(item, matchedOnKeywordOnly ? 6.5 : 5, hit.score ?? 0.5, matchedAlias);
   }
 
   return Array.from(ranked.values())

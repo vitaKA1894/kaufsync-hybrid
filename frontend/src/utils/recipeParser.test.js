@@ -76,4 +76,13 @@ console.assert(sugar && !sugar.is_pantry_staple && sugar.selected, 'Gelierzucker
 const ribs = res.ingredients.find(i => i.name.toLowerCase().includes('rippchen'));
 console.assert(ribs && ribs.category === 'Fleisch & Fisch', `Rippchen category should be Fleisch & Fisch, got ${ribs?.category}`);
 
+// Test 6: Schema v2 staples & new items
+const v2Res = parseTextRecipe('1 TL Kreuzkümmel\n1 Dose Kidneybohnen\n6 Schraubgläser', 'Chili');
+const cumin = v2Res.ingredients.find(i => i.name === 'Kreuzkümmel');
+const kidney = v2Res.ingredients.find(i => i.name === 'Kidneybohnen');
+const jars = v2Res.ingredients.find(i => i.name === 'Schraubgläser');
+console.assert(cumin && cumin.is_pantry_staple === true && cumin.selected === false, 'Kreuzkümmel (1 TL) should be pantry staple');
+console.assert(kidney && kidney.category === 'Vorratskammer' && !kidney.is_pantry_staple, 'Kidneybohnen should be Vorratskammer');
+console.assert(jars && jars.category === 'Drogerie, Haushalt & Tierbedarf', 'Schraubgläser should be Drogerie, Haushalt & Tierbedarf');
+
 console.log('All clientRecipeParser tests PASSED successfully!');

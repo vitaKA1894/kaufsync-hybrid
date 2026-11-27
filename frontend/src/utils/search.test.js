@@ -102,6 +102,32 @@ function runTests() {
          throw new Error("Expected findTaxonomyItem('Broetchen') to resolve to 'Brötchen'");
     }
 
+    // Schema v2: Brand lookup sets matchedAlias without polluting recipe aliases
+    const brandSearch = searchTaxonomy("Weihenstephan");
+    if (brandSearch.length === 0 || brandSearch[0].name !== "Milch" || brandSearch[0].matchedAlias !== "Weihenstephan") {
+         throw new Error("Expected 'Weihenstephan' to match 'Milch' with matchedAlias='Weihenstephan', got: " + JSON.stringify(brandSearch[0]));
+    }
+
+    // Schema v2: searchKeywords find matching items at top without injecting keyword as tag
+    const keywordSearch = searchTaxonomy("Putzen");
+    if (
+      keywordSearch.length === 0 ||
+      keywordSearch[0].category !== "Drogerie, Haushalt & Tierbedarf" ||
+      !keywordSearch.slice(0, 5).every(r => r.matchedAlias === null)
+    ) {
+         throw new Error("Expected searchKeywords search 'Putzen' to rank cleaning items first without matchedAlias tag injection");
+    }
+
+    // Schema v2: Newly added staples & defaultUnit
+    const cumin = findTaxonomyItem("Kreuzkümmel");
+    if (!cumin || cumin.category !== "Vorratskammer" || cumin.recipe?.pantryStaple !== "small_amounts") {
+         throw new Error("Expected newly added Kreuzkümmel with pantryStaple='small_amounts'");
+    }
+    const jars = findTaxonomyItem("Schraubgläser");
+    if (!jars || jars.category !== "Drogerie, Haushalt & Tierbedarf" || jars.defaultUnit !== "Stk") {
+         throw new Error("Expected newly added Schraubgläser in Drogerie, Haushalt & Tierbedarf");
+    }
+
     console.log("Search tests passed!");
 
     // Basic debounce test (synchronous check is hard without proper test runner,
