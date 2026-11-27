@@ -3,13 +3,25 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { App as CapApp } from '@capacitor/app';
 import { apiUrl, wsUrl } from './config/api';
-import { isOnline } from './services/syncService';
+import { isOnline, getLocalLists } from './services/syncService';
 import ShareLoyaltyCardModal from './components/ShareLoyaltyCardModal.vue';
 import {
   showIncomingNotification,
   ensurePushSubscription,
   setupNotificationListeners
 } from './utils/notificationService';
+import {
+  parseShortcutIntent,
+  savePendingShortcut,
+  consumePendingShortcut,
+  resolveShortcutRoute,
+  getLastOpenedListId
+} from './utils/shortcutRouter';
+import {
+  syncSnapshotToNativeWidget,
+  reconcileNativeWidgetCheckoffs,
+  consumeNativePendingShortcut
+} from './services/widgetBridgeService';
 
 const router = useRouter();
 
@@ -129,8 +141,66 @@ const checkUnreadNotifications = async () => {
   }
 };
 
+let lastHandledShortcutKey = '';
+let lastHandledShortcutAt = 0;
+
+const handleIncomingShortcut = async (rawShortcut) => {
+  const input = (rawShortcut && typeof rawShortcut === 'object' && rawShortcut.url)
+    ? rawShortcut.url
+    : rawShortcut;
+  const parsed = parseShortcutIntent(input);
+  if (!parsed) return;
+
+  const dedupeKey = `${parsed.action}:${parsed.listId || ''}`;
+  const now = Date.now();
+  if (dedupeKey === lastHandledShortcutKey && (now - lastHandledShortcutAt) < 500) {
+    return;
+  }
+  lastHandledShortcutKey = dedupeKey;
+  lastHandledShortcutAt = now;
+
+  const token = localStorage.getItem('token');
+  const isLoggedIn = Boolean(token && token !== 'undefined');
+  if (!isLoggedIn) {
+    savePendingShortcut(parsed);
+    router.push('/login');
+    return;
+  }
+
+  let lists = [];
+  try {
+    const cached = JSON.parse(localStorage.getItem('cachedLists') || '[]');
+    if (Array.isArray(cached) && cached.length > 0) lists = cached;
+  } catch {}
+  if (lists.length === 0) {
+    lists = await getLocalLists();
+  }
+  if (lists.length === 0 && isOnline.value) {
+    try {
+      const res = await fetch(apiUrl('/api/lists'), {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) lists = await res.json();
+    } catch {}
+  }
+
+  const dest = resolveShortcutRoute({
+    action: parsed.action,
+    listId: parsed.listId,
+    lists,
+    lastListId: getLastOpenedListId()
+  });
+  router.push(dest);
+};
+
 const handleAppResume = async () => {
   connectUserWs();
+  await reconcileNativeWidgetCheckoffs();
+  await syncSnapshotToNativeWidget();
+  const nativeShortcut = await consumeNativePendingShortcut();
+  if (nativeShortcut) {
+    await handleIncomingShortcut(nativeShortcut);
+  }
   await checkUnreadNotifications();
   await ensurePushSubscription();
 };
@@ -225,10 +295,34 @@ onMounted(() => {
     window.__pendingShareImage = null;
   }
 
+  // Listen for native Android app shortcut / widget deep-link events
+  window.addEventListener('appShortcutAction', (e) => {
+    if (e.detail) {
+      handleIncomingShortcut(e.detail);
+    }
+  });
+
+  if (window.__pendingAppShortcut) {
+    handleIncomingShortcut(window.__pendingAppShortcut);
+    window.__pendingAppShortcut = null;
+  }
+
+  if (window.location?.search) {
+    const initialUrlShortcut = parseShortcutIntent(window.location.href);
+    if (initialUrlShortcut) {
+      handleIncomingShortcut(initialUrlShortcut);
+    }
+  }
+
   // Listen for deep link URLs opened via Capacitor App plugin
   try {
     CapApp.addListener('appUrlOpen', (data) => {
       if (data && data.url) {
+        const sc = parseShortcutIntent(data.url);
+        if (sc) {
+          handleIncomingShortcut(sc);
+          return;
+        }
         handleIncomingShare(data.url);
       }
     });

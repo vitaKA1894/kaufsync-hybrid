@@ -5,6 +5,8 @@ import { apiUrl } from '../config/api';
 import { clearAllLocalData } from '../db/index';
 import { clearAllNoteHistories } from '../utils/articleNoteHistory';
 import { clearLocalUserMappings } from '../services/userMappingService';
+import { clearLocalTemplates } from '../services/templateService';
+import { clearNativeWidgetOnLogout } from '../services/widgetBridgeService';
 import { isOnline } from '../services/syncService';
 
 const router = useRouter();
@@ -111,6 +113,8 @@ const executeAccountDeletion = async () => {
 
     showConfirmModal.value = false;
     clearLocalUserMappings();
+    clearLocalTemplates();
+    await clearNativeWidgetOnLogout();
     await clearAllLocalData();
     clearAllNoteHistories();
     router.push('/login?deleted=1');

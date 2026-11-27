@@ -729,6 +729,9 @@ def delete_account(
     db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).delete(synchronize_session=False)
     db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.user_id == user_id).delete(synchronize_session=False)
     db.query(models.UserItemMapping).filter(models.UserItemMapping.user_id == user_id).delete(synchronize_session=False)
+    user_templates = db.query(models.ShoppingTemplate).filter(models.ShoppingTemplate.user_id == user_id).all()
+    for tmpl in user_templates:
+        db.delete(tmpl)
 
     # 7. Nutzer löschen
     db.delete(current_user)
@@ -1316,6 +1319,109 @@ def reset_my_item_mappings(
     db.commit()
     return {"status": "ok", "deleted": deleted}
 
+# --- REUSABLE SHOPPING TEMPLATES (3.4) ---
+
+def _validate_and_build_template_items(template_id: str, items_input: List[schemas.TemplateItemInput]):
+    if not items_input or len(items_input) == 0:
+        raise HTTPException(status_code=400, detail="Eine Vorlage benötigt mindestens einen Artikel.")
+    rows = []
+    for idx, item in enumerate(items_input):
+        name = (item.name or "").strip()
+        if not name:
+            continue
+        variants = [str(v).strip() for v in (item.variants or []) if str(v).strip()]
+        meta_tags = [str(m).strip() for m in (item.meta_tags or []) if str(m).strip()]
+        rows.append(models.TemplateItem(
+            id=item.id or models.generate_uuid(),
+            template_id=template_id,
+            name=name,
+            quantity=max(1.0, float(item.quantity or 1.0)),
+            unit=(item.unit or "Stk").strip() or "Stk",
+            category=(item.category or "Sonstiges").strip() or "Sonstiges",
+            icon=item.icon,
+            taxonomy_id=item.taxonomy_id,
+            variants_json=json.dumps(variants, ensure_ascii=False) if variants else None,
+            meta_tags_json=json.dumps(meta_tags, ensure_ascii=False) if meta_tags else None,
+            order_index=idx
+        ))
+    if not rows:
+        raise HTTPException(status_code=400, detail="Eine Vorlage benötigt mindestens einen gültigen Artikel.")
+    return rows
+
+@app.get("/api/templates", response_model=List[schemas.ShoppingTemplateResponse])
+def get_my_templates(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return db.query(models.ShoppingTemplate).filter(
+        models.ShoppingTemplate.user_id == current_user.id
+    ).order_by(models.ShoppingTemplate.updated_at.desc()).all()
+
+@app.post("/api/templates", response_model=schemas.ShoppingTemplateResponse)
+def create_template(
+    req: schemas.ShoppingTemplateUpsert,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    clean_name = (req.name or "").strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Bitte gib einen Namen für die Vorlage ein.")
+    tmpl = models.ShoppingTemplate(
+        id=models.generate_uuid(),
+        user_id=current_user.id,
+        name=clean_name,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc)
+    )
+    tmpl.items = _validate_and_build_template_items(tmpl.id, req.items)
+    db.add(tmpl)
+    db.commit()
+    db.refresh(tmpl)
+    return tmpl
+
+@app.put("/api/templates/{template_id}", response_model=schemas.ShoppingTemplateResponse)
+def update_template(
+    template_id: str,
+    req: schemas.ShoppingTemplateUpsert,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    tmpl = db.query(models.ShoppingTemplate).filter(
+        models.ShoppingTemplate.id == template_id,
+        models.ShoppingTemplate.user_id == current_user.id
+    ).first()
+    if not tmpl:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden.")
+    clean_name = (req.name or "").strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Bitte gib einen Namen für die Vorlage ein.")
+
+    tmpl.name = clean_name
+    tmpl.updated_at = datetime.now(timezone.utc)
+    tmpl.items.clear()
+    db.flush()
+    new_items = _validate_and_build_template_items(tmpl.id, req.items)
+    tmpl.items.extend(new_items)
+    db.commit()
+    db.refresh(tmpl)
+    return tmpl
+
+@app.delete("/api/templates/{template_id}")
+def delete_template(
+    template_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    tmpl = db.query(models.ShoppingTemplate).filter(
+        models.ShoppingTemplate.id == template_id,
+        models.ShoppingTemplate.user_id == current_user.id
+    ).first()
+    if not tmpl:
+        raise HTTPException(status_code=404, detail="Vorlage nicht gefunden.")
+    db.delete(tmpl)
+    db.commit()
+    return {"status": "ok"}
+
 # --- READONLY PUBLIC SHARING ---
 
 @app.get("/api/public/list/{readonly_token}", response_model=schemas.PublicListResponse)
@@ -1806,6 +1912,95 @@ def _parse_tags_split(tags_raw: Optional[str]):
                 variants.append(t)
     return variants, meta
 
+def _normalize_item_status(raw_status: Optional[str]) -> str:
+    """Normalizes logical status enums (open/checked/unavailable) to canonical DB values."""
+    s = (raw_status or "active").strip().lower()
+    if s in ("open", "active"):
+        return "active"
+    if s in ("checked", "completed"):
+        return "completed"
+    if s == "unavailable":
+        return "unavailable"
+    return "active"
+
+
+def _add_or_merge_target_item(
+    db: Session,
+    list_id: str,
+    open_items: List[models.Item],
+    *,
+    name: str,
+    category: Optional[str],
+    quantity: float,
+    unit: Optional[str],
+    note: Optional[str],
+    tags: Optional[str],
+    taxonomy_id: Optional[str],
+    user_id: str,
+    status: str = "active",
+    now: Optional[datetime] = None,
+):
+    """Creates a new item or merges onto a compatible existing open/unavailable item."""
+    now = now or datetime.now(timezone.utc)
+    in_name_lower = name.strip().lower()
+    in_canon = _resolve_taxonomy_canonical(name)
+    in_tax_id = taxonomy_id or (in_canon.get("id") if in_canon else None)
+    in_variants, in_meta = _parse_tags_split(tags)
+    in_variant_set = {v.lower() for v in in_variants}
+
+    candidates = []
+    for ex in open_items:
+        ex_canon = _resolve_taxonomy_canonical(ex.name)
+        ex_tax_id = ex_canon.get("id") if ex_canon else None
+        if (in_tax_id and ex_tax_id and in_tax_id == ex_tax_id) or (ex.name.strip().lower() == in_name_lower):
+            candidates.append(ex)
+
+    merge_target = None
+    for cand in candidates:
+        c_vars, _ = _parse_tags_split(cand.tags)
+        if {v.lower() for v in c_vars} == in_variant_set:
+            merge_target = cand
+            break
+    if not merge_target and len(candidates) == 1:
+        c_vars, _ = _parse_tags_split(candidates[0].tags)
+        if len(c_vars) == 0 or len(in_variants) == 0:
+            merge_target = candidates[0]
+
+    if merge_target:
+        c_vars, c_meta = _parse_tags_split(merge_target.tags)
+        merged_tags = list(c_vars)
+        for v in in_variants:
+            if not any(x.lower() == v.lower() for x in merged_tags):
+                merged_tags.append(v)
+        for m in c_meta + in_meta:
+            if not any(x.lower() == m.lower() for x in merged_tags):
+                merged_tags.append(m)
+        merge_target.quantity = (merge_target.quantity or 1.0) + (quantity or 1.0)
+        merge_target.tags = json.dumps(merged_tags, ensure_ascii=False) if merged_tags else merge_target.tags
+        if note and not merge_target.note:
+            merge_target.note = note
+        merge_target.last_modified_by = user_id
+        merge_target.updated_at = now
+        return merge_target, True
+
+    new_item = models.Item(
+        list_id=list_id,
+        name=name,
+        category=category or "Sonstiges",
+        quantity=quantity or 1.0,
+        unit=unit or "Stk",
+        note=note,
+        tags=tags,
+        status=_normalize_item_status(status),
+        last_modified_by=user_id,
+        updated_at=now,
+        is_deleted=False,
+    )
+    db.add(new_item)
+    open_items.append(new_item)
+    return new_item, False
+
+
 @app.post("/api/lists/{list_id}/items/bulk", response_model=List[schemas.ItemResponse])
 async def create_items_bulk(
     list_id: str,
@@ -1823,67 +2018,28 @@ async def create_items_bulk(
 
     open_items = db.query(models.Item).filter(
         models.Item.list_id == list_id,
-        models.Item.status == "active",
+        models.Item.status.in_(["active", "open", "unavailable"]),
         models.Item.is_deleted == False
     ).all()
 
+    now = datetime.now(timezone.utc)
     created_items = []
     for item_data in bulk_data.items:
-        in_name_lower = item_data.name.strip().lower()
-        in_canon = _resolve_taxonomy_canonical(item_data.name)
-        in_tax_id = item_data.taxonomy_id or (in_canon.get("id") if in_canon else None)
-        in_variants, in_meta = _parse_tags_split(item_data.tags)
-        in_variant_set = {v.lower() for v in in_variants}
-
-        # Find compatible open item on the list
-        candidates = []
-        for ex in open_items:
-            ex_canon = _resolve_taxonomy_canonical(ex.name)
-            ex_tax_id = ex_canon.get("id") if ex_canon else None
-            if (in_tax_id and ex_tax_id and in_tax_id == ex_tax_id) or (ex.name.strip().lower() == in_name_lower):
-                candidates.append(ex)
-
-        merge_target = None
-        # First pass: exact variant set equality
-        for cand in candidates:
-            c_vars, _ = _parse_tags_split(cand.tags)
-            if {v.lower() for v in c_vars} == in_variant_set:
-                merge_target = cand
-                break
-        # Second pass: empty pills on either side with single unambiguous candidate
-        if not merge_target and len(candidates) == 1:
-            c_vars, _ = _parse_tags_split(candidates[0].tags)
-            if len(c_vars) == 0 or len(in_variants) == 0:
-                merge_target = candidates[0]
-
-        if merge_target:
-            c_vars, c_meta = _parse_tags_split(merge_target.tags)
-            merged_tags = list(c_vars)
-            for v in in_variants:
-                if not any(x.lower() == v.lower() for x in merged_tags):
-                    merged_tags.append(v)
-            for m in c_meta + in_meta:
-                if not any(x.lower() == m.lower() for x in merged_tags):
-                    merged_tags.append(m)
-            merge_target.quantity = (merge_target.quantity or 1.0) + (item_data.quantity or 1.0)
-            merge_target.tags = json.dumps(merged_tags, ensure_ascii=False) if merged_tags else merge_target.tags
-            merge_target.last_modified_by = current_user.id
-            merge_target.updated_at = datetime.now(timezone.utc)
-            created_items.append(merge_target)
-        else:
-            new_item = models.Item(
-                list_id=list_id,
-                name=item_data.name,
-                category=item_data.category or "Sonstiges",
-                quantity=item_data.quantity,
-                unit=item_data.unit or "Stk",
-                note=item_data.note,
-                tags=item_data.tags,
-                last_modified_by=current_user.id
-            )
-            db.add(new_item)
-            open_items.append(new_item)
-            created_items.append(new_item)
+        res_item, _ = _add_or_merge_target_item(
+            db,
+            list_id,
+            open_items,
+            name=item_data.name,
+            category=item_data.category,
+            quantity=item_data.quantity,
+            unit=item_data.unit,
+            note=item_data.note,
+            tags=item_data.tags,
+            taxonomy_id=item_data.taxonomy_id,
+            user_id=current_user.id,
+            now=now,
+        )
+        created_items.append(res_item)
 
     db.commit()
     for it in created_items:
@@ -2189,8 +2345,10 @@ async def update_item(
     
     if item_data.name is not None: db_item.name = item_data.name
     if item_data.unit is not None: db_item.unit = item_data.unit
-    old_status = db_item.status
-    if item_data.status is not None: db_item.status = item_data.status
+    old_status = _normalize_item_status(db_item.status)
+    new_status_norm = _normalize_item_status(item_data.status) if item_data.status is not None else old_status
+    if item_data.status is not None:
+        db_item.status = new_status_norm
     if item_data.quantity is not None: db_item.quantity = item_data.quantity
     if item_data.note is not None: db_item.note = item_data.note
     if hasattr(item_data, 'category') and item_data.category is not None: db_item.category = item_data.category
@@ -2201,13 +2359,19 @@ async def update_item(
     db.commit()
     db.refresh(db_item)
 
-    # LOG ACTIVITY (if status changed)
-    if item_data.status is not None and old_status != item_data.status:
-        action = "completed" if item_data.status == "completed" else "reactivated"
-        if item_data.status == "completed":
+    # LOG ACTIVITY (if status changed) - never record PurchaseEvent for unavailable
+    if item_data.status is not None and old_status != new_status_norm:
+        if new_status_norm == "completed":
+            action = "completed"
             record_purchase_event(db, db_item.list_id, db_item.name, db_item.category, db_item.id)
-        elif item_data.status == "active" and old_status == "completed":
-            retract_purchase_event(db, db_item.list_id, db_item.id)
+        elif new_status_norm == "unavailable":
+            action = "unavailable"
+            if old_status == "completed":
+                retract_purchase_event(db, db_item.list_id, db_item.id)
+        else:
+            action = "reactivated"
+            if old_status == "completed":
+                retract_purchase_event(db, db_item.list_id, db_item.id)
         log_entry = models.ActivityLog(
             list_id=db_item.list_id,
             user_id=current_user.id,
@@ -2217,8 +2381,8 @@ async def update_item(
         db.add(log_entry)
         db.commit()
 
-        # Push Notification an Mitglieder bei Abhaken
-        if item_data.status == "completed":
+        # Push Notification an Mitglieder nur bei Abhaken
+        if new_status_norm == "completed":
             db_list = db_item.shopping_list
             members_list = db_list.members + ([db_list.creator] if db_list.creator else [])
             members = {member.id: member for member in members_list if member}.values()
@@ -2386,50 +2550,64 @@ async def sync_list(
             if item_id:
                 item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
                 if item:
-                    old_status = item.status
-                    for field in ["name", "category", "quantity", "unit", "note", "status", "tags"]:
+                    old_status = _normalize_item_status(item.status)
+                    for field in ["name", "category", "quantity", "unit", "note", "tags"]:
                         if field in payload and payload[field] is not None:
                             setattr(item, field, payload[field])
+                    if "status" in payload and payload["status"] is not None:
+                        item.status = _normalize_item_status(payload["status"])
                     item.updated_at = now
                     item.last_modified_by = current_user.id
-                    if "status" in payload and payload["status"] != old_status:
-                        log_action = "completed" if payload["status"] == "completed" else "reactivated"
-                        if log_action == "completed":
+                    if "status" in payload and item.status != old_status:
+                        if item.status == "completed":
+                            log_action = "completed"
                             record_purchase_event(db, list_id, item.name, item.category, item.id)
-                        elif log_action == "reactivated":
-                            retract_purchase_event(db, list_id, item.id)
+                            completed_item_names.append(item.name)
+                        elif item.status == "unavailable":
+                            log_action = "unavailable"
+                            if old_status == "completed":
+                                retract_purchase_event(db, list_id, item.id)
+                        else:
+                            log_action = "reactivated"
+                            if old_status == "completed":
+                                retract_purchase_event(db, list_id, item.id)
                         activity_logs_to_add.append(models.ActivityLog(
                             list_id=list_id,
                             user_id=current_user.id,
                             action_type=log_action,
                             item_name=item.name
                         ))
-                        if log_action == "completed":
-                            completed_item_names.append(item.name)
                     processed += 1
 
         elif action == "TOGGLE_STATUS":
             if item_id:
                 item = db.query(models.Item).filter(models.Item.id == item_id, models.Item.list_id == list_id).first()
                 if item:
-                    old_status = item.status
-                    new_status = payload.get("status", "completed" if old_status == "active" else "active")
+                    old_status = _normalize_item_status(item.status)
+                    default_next = "completed" if old_status in ("active", "unavailable") else "active"
+                    new_status = _normalize_item_status(payload.get("status", default_next))
                     item.status = new_status
                     item.updated_at = now
                     item.last_modified_by = current_user.id
-                    log_action = "completed" if new_status == "completed" else "reactivated"
-                    if log_action == "completed":
-                        record_purchase_event(db, list_id, item.name, item.category, item.id)
-                    elif log_action == "reactivated":
-                        retract_purchase_event(db, list_id, item.id)
-                    activity_logs_to_add.append(models.ActivityLog(
-                        list_id=list_id,
-                        user_id=current_user.id,
-                        action_type=log_action,
-                        item_name=item.name
-                    ))
-                    if log_action == "completed":
-                        completed_item_names.append(item.name)
+                    if new_status != old_status:
+                        if new_status == "completed":
+                            log_action = "completed"
+                            record_purchase_event(db, list_id, item.name, item.category, item.id)
+                            completed_item_names.append(item.name)
+                        elif new_status == "unavailable":
+                            log_action = "unavailable"
+                            if old_status == "completed":
+                                retract_purchase_event(db, list_id, item.id)
+                        else:
+                            log_action = "reactivated"
+                            if old_status == "completed":
+                                retract_purchase_event(db, list_id, item.id)
+                        activity_logs_to_add.append(models.ActivityLog(
+                            list_id=list_id,
+                            user_id=current_user.id,
+                            action_type=log_action,
+                            item_name=item.name
+                        ))
                     processed += 1
 
         elif action == "DELETE_ITEM":
@@ -2449,7 +2627,7 @@ async def sync_list(
         elif action == "CLEAR_COMPLETED":
             completed_items = db.query(models.Item).filter(
                 models.Item.list_id == list_id,
-                models.Item.status == "completed",
+                models.Item.status.in_(["completed", "checked"]),
                 models.Item.is_deleted == False
             ).all()
             for it in completed_items:
@@ -2576,6 +2754,100 @@ async def sync_list(
         "processed_count": processed,
         "items": active_items,
         "deleted_item_ids": deleted_ids
+    }
+
+
+@app.post("/api/items/transfer", response_model=schemas.ItemTransferResponse)
+async def transfer_items(
+    req: schemas.ItemTransferRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    """Transfers one or more items atomically between two lists, merging compatible open items."""
+    if req.source_list_id == req.target_list_id:
+        raise HTTPException(status_code=400, detail="Quell- und Zielliste müssen unterschiedlich sein.")
+    if not req.item_ids:
+        return {"status": "ok", "moved_count": 0, "skipped_count": 0, "moved_ids": [], "target_items": []}
+
+    src_list = db.query(models.List).filter(models.List.id == req.source_list_id).first()
+    tgt_list = db.query(models.List).filter(models.List.id == req.target_list_id).first()
+    if not src_list or not tgt_list:
+        raise HTTPException(status_code=404, detail="Quell- oder Zielliste nicht gefunden.")
+    if (src_list.created_by != current_user.id and current_user not in src_list.members) or (
+        tgt_list.created_by != current_user.id and current_user not in tgt_list.members
+    ):
+        raise HTTPException(status_code=403, detail="Keine Berechtigung für eine der Listen.")
+
+    target_open_items = db.query(models.Item).filter(
+        models.Item.list_id == req.target_list_id,
+        models.Item.status.in_(["active", "open", "unavailable"]),
+        models.Item.is_deleted == False
+    ).all()
+
+    now = datetime.now(timezone.utc)
+    desired_status = _normalize_item_status(req.target_status)
+    moved_ids = []
+    skipped_ids = []
+    resulting_target_items = []
+
+    for item_id in req.item_ids:
+        src_item = db.query(models.Item).filter(
+            models.Item.id == item_id,
+            models.Item.list_id == req.source_list_id,
+            models.Item.is_deleted == False
+        ).first()
+        if not src_item:
+            skipped_ids.append(item_id)
+            continue
+        # Concurrent check-off protection: if another member already bought it, skip safely
+        if _normalize_item_status(src_item.status) == "completed":
+            skipped_ids.append(item_id)
+            continue
+
+        tgt_item, _ = _add_or_merge_target_item(
+            db,
+            req.target_list_id,
+            target_open_items,
+            name=src_item.name,
+            category=src_item.category,
+            quantity=src_item.quantity or 1.0,
+            unit=src_item.unit or "Stk",
+            note=src_item.note,
+            tags=src_item.tags,
+            taxonomy_id=None,
+            user_id=current_user.id,
+            status=desired_status,
+            now=now,
+        )
+        src_item.is_deleted = True
+        src_item.updated_at = now
+        src_item.last_modified_by = current_user.id
+
+        db.add(models.ActivityLog(
+            list_id=req.target_list_id,
+            user_id=current_user.id,
+            action_type="added",
+            item_name=src_item.name
+        ))
+        moved_ids.append(item_id)
+        resulting_target_items.append(tgt_item)
+
+    db.commit()
+    for it in resulting_target_items:
+        db.refresh(it)
+
+    if moved_ids:
+        await manager.broadcast(req.source_list_id, {"event": "LIST_SYNCED", "payload": {"list_id": req.source_list_id}})
+        await manager.broadcast(req.target_list_id, {"event": "LIST_SYNCED", "payload": {"list_id": req.target_list_id}})
+        await manager.broadcast(req.target_list_id, {"event": "CHANGELOG_UPDATED", "payload": {}})
+
+    return {
+        "status": "ok",
+        "moved_count": len(moved_ids),
+        "skipped_count": len(skipped_ids),
+        "moved_ids": moved_ids,
+        "skipped_ids": skipped_ids,
+        "target_items": resulting_target_items,
     }
 
 import pathlib

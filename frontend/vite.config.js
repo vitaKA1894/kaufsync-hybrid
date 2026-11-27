@@ -23,6 +23,29 @@ export default defineConfig({
         background_color: '#0f1115',
         display: 'standalone',
         orientation: 'portrait',
+        shortcuts: [
+          {
+            name: 'Artikel hinzufügen',
+            short_name: 'Hinzufügen',
+            description: 'Direkt einen Artikel zur zuletzt geöffneten Liste hinzufügen',
+            url: '/?shortcut=add',
+            icons: [{ src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' }]
+          },
+          {
+            name: 'Barcode scannen',
+            short_name: 'Scannen',
+            description: 'Direkt den Barcode-Scanner öffnen',
+            url: '/?shortcut=scan',
+            icons: [{ src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' }]
+          },
+          {
+            name: 'Rezept importieren',
+            short_name: 'Rezept',
+            description: 'Zutaten per Link oder Text importieren',
+            url: '/?shortcut=recipe',
+            icons: [{ src: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' }]
+          }
+        ],
         share_target: {
           action: '/share-target',
           method: 'GET',

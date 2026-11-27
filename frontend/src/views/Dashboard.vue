@@ -3,10 +3,13 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
+import TemplatesModal from '../components/TemplatesModal.vue';
 import SyncStatusBadge from '../components/SyncStatusBadge.vue';
 import StoreLogo from '../components/StoreLogo.vue';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import { getLocalLists, saveLocalLists, isOnline } from '../services/syncService';
+import { syncTemplates } from '../services/templateService';
+import { syncSnapshotToNativeWidget } from '../services/widgetBridgeService';
 import { clearListNoteHistory } from '../utils/articleNoteHistory';
 import { clearListConsumptionData } from '../services/consumptionService';
 
@@ -53,6 +56,18 @@ const showScanner = ref(false);
 
 const showRecipeModal = ref(false);
 const pendingRecipeUrl = ref('');
+const showTemplatesModal = ref(false);
+
+const handleTemplateApplied = async (info) => {
+  await loadLists();
+  successMessage.value = `${info.count} Artikel aus „${info.templateName}“ zu ${info.listName} hinzugefügt`;
+  setTimeout(() => { successMessage.value = ''; }, 3500);
+};
+
+const handleTemplateSaved = (saved) => {
+  successMessage.value = `Vorlage „${saved.name}“ gespeichert`;
+  setTimeout(() => { successMessage.value = ''; }, 3000);
+};
 
 const checkPendingRecipeImport = () => {
   const pending = localStorage.getItem('pending_recipe_import');
@@ -268,6 +283,7 @@ const loadLists = async () => {
       localStorage.setItem('cachedLists', JSON.stringify(data));
     } catch (e) {}
     await saveLocalLists(data);
+    syncSnapshotToNativeWidget();
     setupWebSockets();
     checkPendingRecipeImport();
   } catch (error) {
@@ -381,6 +397,8 @@ const deleteList = async () => {
     
     const deletedListId = selectedListForOptions.value.id;
     shoppingLists.value = shoppingLists.value.filter(l => l.id !== deletedListId);
+    try { localStorage.setItem('cachedLists', JSON.stringify(shoppingLists.value)); } catch {}
+    syncSnapshotToNativeWidget();
     clearListNoteHistory(deletedListId);
     clearListConsumptionData(deletedListId);
     successMessage.value = "Liste entfernt.";
@@ -457,11 +475,34 @@ const loadUserProfile = async () => {
   }
 };
 
+const handleDashboardShortcutQuery = () => {
+  const q = router.currentRoute.value.query || {};
+  if (q.shortcut === 'recipe') {
+    openRecipeImportModal();
+    router.replace({ path: '/' });
+  } else if (q.shortcutNotice) {
+    infoToastMessageSafe(String(q.shortcutNotice));
+    router.replace({ path: '/' });
+  }
+};
+
+const infoToastMessageSafe = (msg) => {
+  successMessage.value = msg;
+  setTimeout(() => {
+    if (successMessage.value === msg) successMessage.value = '';
+  }, 4000);
+};
+
 onMounted(() => {
   loadLists();
   loadInvitations();
   loadUserProfile();
+  syncTemplates();
   handlePendingJoinCode();
+  handleDashboardShortcutQuery();
+  watch(() => router.currentRoute.value.query, () => {
+    handleDashboardShortcutQuery();
+  });
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
 });
@@ -482,6 +523,17 @@ onUnmounted(() => {
         <h1 style="margin: 0; font-size: 22px;">Meine Listen</h1>
       </div>
       <div style="display: flex; align-items: center; gap: 8px;">
+        <button
+          type="button"
+          class="ks-topbar-templates-btn"
+          @click.stop="showTemplatesModal = true"
+          aria-label="Vorlagen öffnen"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+          </svg>
+          <span>Vorlagen</span>
+        </button>
         <SyncStatusBadge />
         <button class="ks-icon-btn profile-btn" @click.stop="goToProfile" aria-label="Profil">
           <div v-if="currentUser" class="member-avatar creator" style="width: 32px; height: 32px; font-size: 14px;">
@@ -669,6 +721,14 @@ onUnmounted(() => {
       @close="showRecipeModal = false; pendingRecipeUrl = '';"
       @imported="handleRecipeImported"
       @list-created="handleNewListCreatedFromRecipe"
+    />
+
+    <TemplatesModal
+      :is-open="showTemplatesModal"
+      :available-lists="shoppingLists"
+      @close="showTemplatesModal = false"
+      @applied="handleTemplateApplied"
+      @saved="handleTemplateSaved"
     />
 
   </div>
@@ -1020,5 +1080,25 @@ onUnmounted(() => {
   background: rgba(56, 189, 248, 0.08);
   border-color: rgba(56, 189, 248, 0.4);
   transform: translateY(-1px);
+}
+
+.ks-topbar-templates-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.14);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.ks-topbar-templates-btn:active {
+  transform: scale(0.95);
+  background: rgba(56, 189, 248, 0.24);
 }
 </style>

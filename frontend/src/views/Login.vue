@@ -3,6 +3,11 @@ import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { Capacitor } from '@capacitor/core';
 import { apiUrl, getApiBaseUrl, setCustomBackendUrl } from '../config/api';
+import {
+  consumePendingShortcut,
+  resolveShortcutRoute,
+  getLastOpenedListId
+} from '../utils/shortcutRouter';
 
 const router = useRouter();
 
@@ -120,6 +125,27 @@ const submitForm = async () => {
         } catch (e) {
           console.error("Failed to join pending list", e);
         }
+      }
+
+      const pendingShortcut = consumePendingShortcut();
+      if (pendingShortcut) {
+        let lists = [];
+        try {
+          const listsRes = await fetch(apiUrl('/api/lists'), {
+            headers: { 'Authorization': `Bearer ${data.access_token}` }
+          });
+          if (listsRes.ok) {
+            lists = await listsRes.json();
+            try { localStorage.setItem('cachedLists', JSON.stringify(lists)); } catch {}
+          }
+        } catch {}
+        router.push(resolveShortcutRoute({
+          action: pendingShortcut.action,
+          listId: pendingShortcut.listId,
+          lists,
+          lastListId: getLastOpenedListId()
+        }));
+        return;
       }
 
       router.push('/');

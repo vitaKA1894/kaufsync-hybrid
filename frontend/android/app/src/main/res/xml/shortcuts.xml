@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="shortcut_add_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_widget_plus"
+        android:shortcutShortLabel="@string/shortcut_add_short"
+        android:shortcutLongLabel="@string/shortcut_add_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kaufsync.app"
+            android:targetClass="com.kaufsync.app.MainActivity"
+            android:data="kaufsync://shortcut?action=add" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_scan_barcode"
+        android:enabled="true"
+        android:icon="@drawable/ic_widget_barcode"
+        android:shortcutShortLabel="@string/shortcut_scan_short"
+        android:shortcutLongLabel="@string/shortcut_scan_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kaufsync.app"
+            android:targetClass="com.kaufsync.app.MainActivity"
+            android:data="kaufsync://shortcut?action=scan" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shortcut_import_recipe"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_recipe"
+        android:shortcutShortLabel="@string/shortcut_recipe_short"
+        android:shortcutLongLabel="@string/shortcut_recipe_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.kaufsync.app"
+            android:targetClass="com.kaufsync.app.MainActivity"
+            android:data="kaufsync://shortcut?action=recipe" />
+    </shortcut>
+</shortcuts>

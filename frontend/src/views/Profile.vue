@@ -25,6 +25,8 @@ import {
   syncUserMappings,
   clearLocalUserMappings
 } from '../services/userMappingService';
+import { clearLocalTemplates } from '../services/templateService';
+import { clearNativeWidgetOnLogout } from '../services/widgetBridgeService';
 
 const router = useRouter();
 
@@ -295,6 +297,8 @@ const confirmDeleteAccount = async () => {
     }
     showDeleteAccountModal.value = false;
     clearLocalUserMappings();
+    clearLocalTemplates();
+    await clearNativeWidgetOnLogout();
     await clearAllLocalData();
     router.push('/login?deleted=1');
   } catch (err) {
@@ -306,6 +310,8 @@ const confirmDeleteAccount = async () => {
 
 const logout = async () => {
   clearLocalUserMappings();
+  clearLocalTemplates();
+  await clearNativeWidgetOnLogout();
   await clearAllLocalData();
   router.push('/login');
 };

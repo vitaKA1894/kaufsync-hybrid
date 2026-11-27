@@ -15,6 +15,7 @@ import {
 } from '../services/userMappingService';
 import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
+import StoreLogo from './StoreLogo.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
 import { Capacitor, CapacitorHttp } from '@capacitor/core';
 import { scanBarcodeNative } from '../utils/nativeBarcode';
@@ -59,10 +60,11 @@ const props = defineProps({
   startWithScanner: { type: Boolean, default: false },
   editItem: { type: Object, default: null },
   activeItems: { type: Array, default: () => [] },
-  listId: { type: String, default: '' }
+  listId: { type: String, default: '' },
+  availableLists: { type: Array, default: () => [] }
 });
 
-const emit = defineEmits(['close', 'add', 'update', 'delete']);
+const emit = defineEmits(['close', 'add', 'update', 'delete', 'transfer-item']);
 const route = useRoute();
 
 const query = ref('');
@@ -83,6 +85,7 @@ const openedFromNewAdd = ref(false);
 const isSliderExpanded = ref(false);
 const localNotesVersion = ref(0);
 const showCategorySelector = ref(false);
+const showTransferSelector = ref(false);
 const activeTags = ref([]);
 
 const parsedQuickInput = ref(null);
@@ -398,6 +401,47 @@ const handleDelete = () => {
   closeModal();
 };
 
+const otherTargetLists = computed(() => {
+  return (props.availableLists || []).filter(l => l && l.id && l.id !== props.listId);
+});
+
+const getListOpenCount = (list) => {
+  if (!Array.isArray(list?.items)) return 0;
+  return list.items.filter(it => !it.is_deleted && (it.status === 'active' || it.status === 'open' || it.status === 'unavailable')).length;
+};
+
+const isSelectedUnavailable = computed(() => {
+  return selectedItem.value?.status === 'unavailable';
+});
+
+const toggleUnavailableStatus = () => {
+  if (!selectedItem.value || !selectedItem.value.id) return;
+  const nextStatus = isSelectedUnavailable.value ? 'active' : 'unavailable';
+  selectedItem.value.status = nextStatus;
+  triggerLightHaptic();
+  emit('update', {
+    id: selectedItem.value.id,
+    status: nextStatus
+  });
+};
+
+const selectTransferTarget = async (targetList) => {
+  if (!selectedItem.value || !selectedItem.value.id || !targetList) return;
+  triggerLightHaptic();
+  commitPendingCustomNote();
+  await commitLearnedMappings();
+  emit('transfer-item', {
+    item: {
+      ...selectedItem.value,
+      quantity: currentQuantity.value,
+      unit: currentUnit.value,
+      tags: JSON.stringify(activeTags.value)
+    },
+    targetList
+  });
+  closeModal();
+};
+
 const handleDone = async () => {
   commitPendingCustomNote();
   await commitLearnedMappings();
@@ -418,6 +462,7 @@ const setupEditItem = (item) => {
     id: item.id,
     name: item.name,
     category: mappedCategory,
+    status: item.status || 'active',
     subcategory: taxonomyMatch?.subcategory || '',
     taxonomyId: item.taxonomy_id || taxonomyMatch?.id || null,
     icon: taxonomyMatch?.icon || null,
@@ -866,6 +911,7 @@ const closeModal = () => {
   activeTags.value = [];
   customNoteInput.value = '';
   isSliderExpanded.value = false;
+  showTransferSelector.value = false;
   openedFromNewAdd.value = false;
   duplicateWarning.value = false;
   barcodeError.value = '';
@@ -1323,6 +1369,54 @@ watch(() => props.editItem, (newVal) => {
                 </svg>
                 <span class="meta-tag-text">{{ tag }}</span>
               </button>
+            </div>
+
+            <!-- Existing Item Status & Transfer Action Row (above footer) -->
+            <div v-if="!openedFromNewAdd" class="detail-secondary-actions-wrap">
+              <div class="detail-secondary-actions-row">
+                <button
+                  type="button"
+                  class="detail-action-btn"
+                  :class="{ 'is-unavailable-active': isSelectedUnavailable }"
+                  @click="toggleUnavailableStatus"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                  </svg>
+                  <span>Ausverkauft</span>
+                </button>
+                <button
+                  type="button"
+                  class="detail-action-btn"
+                  :class="{ 'is-transfer-expanded': showTransferSelector }"
+                  @click="showTransferSelector = !showTransferSelector"
+                >
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/>
+                  </svg>
+                  <span>Verschieben</span>
+                </button>
+              </div>
+
+              <!-- Inline Compact Target List Selector -->
+              <div v-if="showTransferSelector" class="inline-transfer-picker">
+                <div v-if="otherTargetLists.length === 0" class="inline-transfer-empty">
+                  Erstelle zuerst eine zweite Liste, um Artikel zu verschieben.
+                </div>
+                <div v-else class="inline-transfer-chips" @touchstart.stop>
+                  <button
+                    v-for="tList in otherTargetLists"
+                    :key="'tr-' + tList.id"
+                    type="button"
+                    class="inline-transfer-chip"
+                    @click="selectTransferTarget(tList)"
+                  >
+                    <StoreLogo :name="tList.name" :size="20" />
+                    <span class="inline-transfer-name">{{ tList.name }}</span>
+                    <span class="inline-transfer-count">{{ getListOpenCount(tList) }}</span>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Two-Button Footer -->
@@ -2244,5 +2338,108 @@ watch(() => props.editItem, (newVal) => {
   font-size: 13px;
   font-weight: 600;
   margin-bottom: 10px;
+}
+
+.detail-secondary-actions-wrap {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.detail-secondary-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.detail-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(30, 41, 59, 0.72);
+  color: #cbd5e1;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.detail-action-btn:active {
+  transform: scale(0.97);
+}
+
+.detail-action-btn.is-unavailable-active {
+  background: rgba(245, 158, 11, 0.18);
+  border-color: rgba(245, 158, 11, 0.55);
+  color: #fbbf24;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.15);
+}
+
+.detail-action-btn.is-transfer-expanded {
+  background: rgba(56, 189, 248, 0.14);
+  border-color: rgba(56, 189, 248, 0.45);
+  color: #7dd3fc;
+}
+
+.inline-transfer-picker {
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+}
+
+.inline-transfer-empty {
+  font-size: 12px;
+  color: #94a3b8;
+  text-align: center;
+  padding: 4px 0;
+}
+
+.inline-transfer-chips {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.inline-transfer-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.inline-transfer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border-radius: 9999px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  color: #f8fafc;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.inline-transfer-chip:active {
+  transform: scale(0.96);
+  border-color: rgba(56, 189, 248, 0.6);
+}
+
+.inline-transfer-count {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 9999px;
+  background: rgba(56, 189, 248, 0.18);
+  color: #7dd3fc;
 }
 </style>

@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, DateTime, Table, Boolean, and_, UniqueConstraint
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Table, Boolean, and_, UniqueConstraint
+import json
 from sqlalchemy.orm import relationship
 from datetime import datetime, timezone
 import uuid
@@ -224,4 +225,58 @@ class UserItemMapping(Base):
     user = relationship("User", backref="item_mappings")
 
 
+class ShoppingTemplate(Base):
+    __tablename__ = "shopping_templates"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    name = Column(String, nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    items = relationship(
+        "TemplateItem",
+        back_populates="template",
+        order_by="TemplateItem.order_index",
+        cascade="all, delete-orphan"
+    )
+    user = relationship("User", backref="shopping_templates")
+
+
+class TemplateItem(Base):
+    __tablename__ = "template_items"
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    template_id = Column(String, ForeignKey("shopping_templates.id", ondelete="CASCADE"), index=True, nullable=False)
+    name = Column(String, nullable=False)
+    quantity = Column(Float, default=1.0, nullable=False)
+    unit = Column(String, default="Stk", nullable=False)
+    category = Column(String, default="Sonstiges", nullable=False)
+    icon = Column(String, nullable=True)
+    taxonomy_id = Column(String, nullable=True)
+    variants_json = Column(String, nullable=True)
+    meta_tags_json = Column(String, nullable=True)
+    order_index = Column(Integer, default=0, nullable=False)
+
+    template = relationship("ShoppingTemplate", back_populates="items")
+
+    @property
+    def variants(self):
+        if not self.variants_json:
+            return []
+        try:
+            parsed = json.loads(self.variants_json)
+            return parsed if isinstance(parsed, list) else []
+        except Exception:
+            return []
+
+    @property
+    def meta_tags(self):
+        if not self.meta_tags_json:
+            return []
+        try:
+            parsed = json.loads(self.meta_tags_json)
+            return parsed if isinstance(parsed, list) else []
+        except Exception:
+            return []
 

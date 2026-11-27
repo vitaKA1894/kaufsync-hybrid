@@ -3,9 +3,11 @@ import { ref, onMounted, onUnmounted, computed, nextTick, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiUrl, wsUrl } from '../config/api';
 import CategoryIcon from '../components/CategoryIcon.vue';
+import StoreLogo from '../components/StoreLogo.vue';
 import AddItemModal from '../components/AddItemModal.vue';
 import ConfirmModal from '../components/ConfirmModal.vue';
 import RecipeImportModal from '../components/RecipeImportModal.vue';
+import TemplatesModal from '../components/TemplatesModal.vue';
 import Sortable from 'sortablejs';
 import QrcodeVue from 'qrcode.vue';
 import LoyaltyCardModal from '../components/LoyaltyCardModal.vue';
@@ -32,8 +34,15 @@ import {
   saveLocalLists,
   queueMutation,
   processSyncQueue,
-  triggerSync
+  triggerSync,
+  transferItemsOfflineFirst
 } from '../services/syncService';
+import {
+  isItemOpenOnly,
+  isItemUnavailable,
+  isItemVisibleActive,
+  isItemCompleted
+} from '../utils/itemTransfer';
 import {
   recordPurchase,
   retractPurchase,
@@ -44,6 +53,16 @@ import {
   resolveArticleWithUserLayer,
   syncUserMappings
 } from '../services/userMappingService';
+import {
+  buildTemplateItemsFromList,
+  buildTemplateItemsFromActivityBatch,
+  syncTemplates
+} from '../services/templateService';
+import { setLastOpenedListId } from '../utils/shortcutRouter';
+import {
+  scheduleWidgetSnapshotSync,
+  syncSnapshotToNativeWidget
+} from '../services/widgetBridgeService';
 import { findMergeCandidate, buildMergedItemUpdate } from '../utils/itemMerge';
 import { findTaxonomyItem } from '../utils/search';
 import { db } from '../db/index';
@@ -66,9 +85,71 @@ const initCachedList = () => {
 };
 
 const cachedListInitial = initCachedList();
+const initCachedAllLists = () => {
+  try {
+    const cachedData = localStorage.getItem('cachedLists');
+    if (cachedData) {
+      const parsed = JSON.parse(cachedData);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch (e) {}
+  return [];
+};
+const allUserLists = ref(initCachedAllLists());
+const otherAvailableLists = computed(() => {
+  return (allUserLists.value || []).filter(l => l && l.id && l.id !== listId);
+});
 const currentList = ref(cachedListInitial);
 const items = ref(cachedListInitial?.items ? [...cachedListInitial.items] : []);
 const isInitialLoad = ref(true);
+
+const showTransferSheet = ref(false);
+const transferPendingItems = ref([]);
+const transferDrag = useBottomSheetDrag(() => { showTransferSheet.value = false; });
+
+// Templates State (3.4)
+const showTemplatesModal = ref(false);
+const templateModalMode = ref('overview');
+const templateInitialDraft = ref(null);
+
+const openTemplatesForList = () => {
+  showSettingsSheet.value = false;
+  templateModalMode.value = 'overview';
+  templateInitialDraft.value = null;
+  showTemplatesModal.value = true;
+};
+
+const saveCurrentListAsTemplate = () => {
+  showSettingsSheet.value = false;
+  templateModalMode.value = 'create';
+  templateInitialDraft.value = {
+    name: currentList.value?.name || 'Einkaufsliste',
+    items: buildTemplateItemsFromList(openActiveItems.value)
+  };
+  showTemplatesModal.value = true;
+};
+
+const saveActivitySessionAsTemplate = (dayGroup, actionGroup) => {
+  showChangelogSheet.value = false;
+  templateModalMode.value = 'create';
+  const dayLabel = dayGroup?.day ? ` (${dayGroup.day.split(',')[0]})` : '';
+  templateInitialDraft.value = {
+    name: `${currentList.value?.name || 'Einkauf'}${dayLabel}`,
+    items: buildTemplateItemsFromActivityBatch(actionGroup?.items || [])
+  };
+  showTemplatesModal.value = true;
+};
+
+const handleTemplateApplied = async (info) => {
+  await loadItems();
+  successMessage.value = `${info.count} Artikel aus „${info.templateName}“ zu ${info.listName} hinzugefügt`;
+  setTimeout(() => { successMessage.value = ''; }, 3500);
+};
+
+const handleTemplateSaved = (saved) => {
+  successMessage.value = `Vorlage „${saved.name}“ gespeichert`;
+  setTimeout(() => { successMessage.value = ''; }, 3000);
+};
 
 // Synchronisiere Items laufend in cachedLists, damit das Dashboard beim Zurückgehen sofort die exakte Anzahl hat
 watch(items, (newItems) => {
@@ -330,7 +411,15 @@ const itemHasMetaTag = (item, filterKey) => {
 };
 
 const openActiveItems = computed(() => {
-  return items.value.filter(i => i.status === 'active');
+  return items.value.filter(i => isItemVisibleActive(i));
+});
+
+const openOnlyItems = computed(() => {
+  return items.value.filter(i => isItemOpenOnly(i));
+});
+
+const unavailableItems = computed(() => {
+  return items.value.filter(i => isItemUnavailable(i));
 });
 
 const totalOpenCount = computed(() => openActiveItems.value.length);
@@ -382,8 +471,8 @@ const clearMetaFilter = () => {
   }
 };
 
-// Automatisches Zurücksetzen der Abschlussaufforderung, sobald wieder offene Artikel existieren
-watch(totalOpenCount, (newCount) => {
+// Automatisches Zurücksetzen der Abschlussaufforderung, sobald wieder echte offene Artikel existieren
+watch(() => openOnlyItems.value.length, (newCount) => {
   if (newCount > 0) {
     showCompletionPrompt.value = false;
   }
@@ -466,11 +555,13 @@ loadCategoryOrder();
 const saveCategoryOrder = () => {
   localStorage.setItem(`ks_sort_${listId}`, JSON.stringify(categoryOrder.value));
   isCustomOrder.value = true;
+  scheduleWidgetSnapshotSync();
 };
 
 const resetCategoryOrder = () => {
   localStorage.removeItem(`ks_sort_${listId}`);
   loadCategoryOrder();
+  scheduleWidgetSnapshotSync();
   showSortSheet.value = false;
   successMessage.value = "Sortierung auf Markt-Standard zurückgesetzt.";
   setTimeout(() => successMessage.value = '', 3000);
@@ -546,6 +637,7 @@ const loadItems = async () => {
     const lists = await response.json();
 
     localStorage.setItem('cachedLists', JSON.stringify(lists));
+    allUserLists.value = lists;
     await saveLocalLists(lists);
 
     currentList.value = lists.find(l => l.id === listId);
@@ -610,6 +702,8 @@ const setupWebSocket = () => {
         }
       } else if (data.event === 'ITEM_DELETED') {
         items.value = items.value.filter(i => i.id !== data.payload.item_id);
+      } else if (data.event === 'LIST_SYNCED') {
+        loadItems();
       } else if (data.event === 'CHANGELOG_UPDATED') {
         if (showChangelogSheet.value) {
           loadChangelog();
@@ -732,12 +826,14 @@ const toggleItemStatus = async (item) => {
     longPressTriggered = false;
     return;
   }
-  const newStatus = item.status === 'active' ? 'completed' : 'active';
+  const previousStatus = item.status || 'active';
+  const wasCompleted = isItemCompleted(item);
+  const newStatus = wasCompleted ? 'active' : 'completed';
 
   // Prevent duplicate reactivation
   if (newStatus === 'active') {
     const existingActiveItem = items.value.find(
-      i => i.name.toLowerCase() === item.name.toLowerCase() && i.status === 'active'
+      i => i.name.toLowerCase() === item.name.toLowerCase() && isItemVisibleActive(i)
     );
     if (existingActiveItem) {
       // Highlight existing item
@@ -750,7 +846,7 @@ const toggleItemStatus = async (item) => {
     }
   }
 
-  const previousOpenCount = openActiveItems.value.length;
+  const previousOpenCount = openOnlyItems.value.length;
 
   // Optimistisches sofortiges Update für 0ms Verzögerung in der UI
   item.status = newStatus;
@@ -781,6 +877,7 @@ const toggleItemStatus = async (item) => {
     const snapshot = {
       id: item.id,
       name: item.name,
+      previousStatus,
       quantity: item.quantity,
       unit: item.unit,
       category: item.category,
@@ -793,16 +890,20 @@ const toggleItemStatus = async (item) => {
 
     undoSnackbar.value = {
       visible: true,
+      type: 'checkoff',
+      message: '',
       itemSnapshot: snapshot,
+      transferSnapshot: null,
       timer: setTimeout(() => {
         undoSnackbar.value.visible = false;
         undoSnackbar.value.itemSnapshot = null;
+        undoSnackbar.value.transferSnapshot = null;
         undoSnackbar.value.timer = null;
       }, 4000)
     };
 
-    // 4. Completion Prompt Check (ausschließlich beim Übergang von >0 auf 0 offene Artikel der gesamten Liste)
-    const currentOpenCount = openActiveItems.value.length;
+    // 4. Completion Prompt Check (beim Übergang von >0 auf 0 echte offene Artikel)
+    const currentOpenCount = openOnlyItems.value.length;
     if (previousOpenCount > 0 && currentOpenCount === 0 && !completionPromptDismissed.value) {
       showCompletionPrompt.value = true;
     }
@@ -838,8 +939,85 @@ const dismissUndoSnackbar = () => {
   undoSnackbar.value.visible = false;
 };
 
+const openQuickTransferSheet = (itemOrItems) => {
+  triggerLightHaptic();
+  transferPendingItems.value = Array.isArray(itemOrItems) ? [...itemOrItems] : [itemOrItems];
+  showTransferSheet.value = true;
+};
+
+const getListOpenCountForPicker = (list) => {
+  if (!Array.isArray(list?.items)) return 0;
+  return list.items.filter(it => !it.is_deleted && isItemVisibleActive(it)).length;
+};
+
+const performItemsTransfer = async (itemsToMove, targetList) => {
+  if (!targetList || !itemsToMove || itemsToMove.length === 0) return;
+  const movedIds = itemsToMove.map(i => i.id);
+  const res = await transferItemsOfflineFirst({
+    sourceListId: listId,
+    targetListId: targetList.id,
+    sourceItems: items.value,
+    itemIdsToMove: movedIds,
+    targetStatus: 'active'
+  });
+
+  if (res.movedRecords.length === 0) {
+    return;
+  }
+
+  items.value = res.updatedSourceItems;
+  allUserLists.value = (allUserLists.value || []).map(l => {
+    if (l.id === listId) return { ...l, items: res.updatedSourceItems };
+    if (l.id === targetList.id) return { ...l, items: res.updatedTargetItems };
+    return l;
+  });
+
+  triggerConfirmationHaptic();
+
+  if (undoSnackbar.value.timer) {
+    clearTimeout(undoSnackbar.value.timer);
+  }
+  const msg = res.movedRecords.length === 1
+    ? `„${res.movedRecords[0].sourceItem.name}“ nach ${targetList.name} verschoben`
+    : `${res.movedRecords.length} Artikel nach ${targetList.name} verschoben`;
+
+  undoSnackbar.value = {
+    visible: true,
+    type: 'transfer',
+    message: msg,
+    itemSnapshot: null,
+    transferSnapshot: {
+      sourceListId: listId,
+      targetListId: targetList.id,
+      targetListName: targetList.name,
+      movedRecords: res.movedRecords
+    },
+    timer: setTimeout(() => {
+      undoSnackbar.value.visible = false;
+      undoSnackbar.value.itemSnapshot = null;
+      undoSnackbar.value.transferSnapshot = null;
+      undoSnackbar.value.timer = null;
+    }, 4000)
+  };
+};
+
+const executeQuickTransfer = async (targetList) => {
+  const listToMove = [...transferPendingItems.value];
+  showTransferSheet.value = false;
+  transferPendingItems.value = [];
+  await performItemsTransfer(listToMove, targetList);
+  if (listToMove.length > 1 && openOnlyItems.value.length === 0 && unavailableItems.value.length === 0) {
+    // All remaining unavailable items moved out
+  }
+};
+
+const handleDetailTransfer = async ({ item, targetList }) => {
+  await performItemsTransfer([item], targetList);
+};
+
 const executeUndo = async () => {
-  if (isUndoing.value || !undoSnackbar.value.itemSnapshot) return;
+  if (isUndoing.value) return;
+  if (!undoSnackbar.value.itemSnapshot && !undoSnackbar.value.transferSnapshot) return;
   isUndoing.value = true;
 
   if (undoSnackbar.value.timer) {
@@ -847,12 +1025,51 @@ const executeUndo = async () => {
     undoSnackbar.value.timer = null;
   }
 
+  if (undoSnackbar.value.type === 'transfer' && undoSnackbar.value.transferSnapshot) {
+    const snap = undoSnackbar.value.transferSnapshot;
+    for (const rec of snap.movedRecords) {
+      const restored = { ...rec.sourceItem, list_id: snap.sourceListId, is_deleted: false };
+      items.value.push(restored);
+      await queueMutation({
+        listId: snap.sourceListId,
+        itemId: restored.id,
+        action: 'ADD_ITEM',
+        payload: restored
+      });
+      if (rec.createdItemId) {
+        await queueMutation({
+          listId: snap.targetListId,
+          itemId: rec.createdItemId,
+          action: 'DELETE_ITEM',
+          payload: {}
+        });
+      } else if (rec.mergedTargetId) {
+        await queueMutation({
+          listId: snap.targetListId,
+          itemId: rec.mergedTargetId,
+          action: 'UPDATE_ITEM',
+          payload: {
+            quantity: rec.mergedPrevQuantity,
+            tags: rec.mergedPrevTags,
+            note: rec.mergedPrevNote
+          }
+        });
+      }
+    }
+    triggerConfirmationHaptic();
+    undoSnackbar.value.visible = false;
+    undoSnackbar.value.transferSnapshot = null;
+    isUndoing.value = false;
+    return;
+  }
+
   const snapshot = undoSnackbar.value.itemSnapshot;
   const item = items.value.find(i => i.id === snapshot.id);
 
   if (item) {
     retractPurchase(listId, snapshot.id);
-    item.status = 'active';
+    const restoreStatus = snapshot.previousStatus === 'unavailable' ? 'unavailable' : 'active';
+    item.status = restoreStatus;
     item.quantity = snapshot.quantity;
     item.unit = snapshot.unit;
     item.category = snapshot.category;
@@ -871,7 +1088,7 @@ const executeUndo = async () => {
       listId,
       itemId: item.id,
       action: 'TOGGLE_STATUS',
-      payload: { status: 'active' }
+      payload: { status: restoreStatus }
     });
   }
 
@@ -915,7 +1132,7 @@ const clearCompleted = async () => {
 
   confirmMessage.value = `Möchtest du wirklich alle ${completedIds.length} erledigten Artikel löschen?`;
   confirmAction.value = async () => {
-    items.value = items.value.filter(i => i.status !== 'completed');
+    items.value = items.value.filter(i => !isItemCompleted(i));
     await queueMutation({
       listId,
       action: 'CLEAR_COMPLETED',
@@ -1511,7 +1728,7 @@ const sortedActiveItems = computed(() => {
 });
 
 const completedItems = computed(() => {
-  const list = items.value.filter(i => i.status === 'completed').map(item => {
+  const list = items.value.filter(i => isItemCompleted(i)).map(item => {
     let catName = item.category || 'Sonstiges';
     return { ...item, category: mapLegacyCategory(catName) };
   });
@@ -1563,7 +1780,28 @@ const vMarquee = {
 };
 
 
+const handleListShortcutQuery = (q) => {
+  const query = q || route.query || {};
+  if (!query.shortcut) return;
+  const sc = String(query.shortcut);
+  if (sc === 'add') {
+    openAddModal();
+    router.replace({ path: route.path });
+  } else if (sc === 'scan') {
+    openScannerModal();
+    router.replace({ path: route.path });
+  } else if (sc === 'recipe') {
+    openRecipeModal();
+    router.replace({ path: route.path });
+  }
+};
+
+watch(() => route.query.shortcut, () => {
+  handleListShortcutQuery(route.query);
+});
+
 onMounted(() => {
+  setLastOpenedListId(listId);
   activeMetaFilter.value = 'all';
   loadItems(); // loadItems ruft am Ende loadCategoryOrder() auf
   loadCurrentUser();
@@ -1571,7 +1809,10 @@ onMounted(() => {
   processOfflineQueue();
   syncPurchases(listId);
   syncUserMappings();
+  syncTemplates();
   backfillFromChangelog(listId);
+  syncSnapshotToNativeWidget();
+  handleListShortcutQuery(route.query);
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);
   document.addEventListener('visibilitychange', handleWakeLockVisibility);
@@ -1767,6 +2008,34 @@ onUnmounted(() => {
             </div>
             <div class="settings-menu-arrow">›</div>
           </button>
+
+          <!-- 5. VORLAGE ANWENDEN -->
+          <button class="settings-menu-item" @click="openTemplatesForList">
+            <div class="settings-menu-icon" style="background: rgba(56, 189, 248, 0.16); color: #38bdf8;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Vorlage anwenden</div>
+              <div class="settings-menu-desc">Gespeicherte Einkaufsvorlagen direkt übernehmen</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
+
+          <!-- 6. LISTE ALS VORLAGE SPEICHERN -->
+          <button v-if="openActiveItems.length > 0" class="settings-menu-item" @click="saveCurrentListAsTemplate">
+            <div class="settings-menu-icon" style="background: rgba(168, 85, 247, 0.16); color: #c084fc;">
+              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+              </svg>
+            </div>
+            <div class="settings-menu-content">
+              <div class="settings-menu-title">Liste als Vorlage speichern</div>
+              <div class="settings-menu-desc">{{ openActiveItems.length }} offene Artikel als Vorlage sichern</div>
+            </div>
+            <div class="settings-menu-arrow">›</div>
+          </button>
         </div>
       </div>
     </transition>
@@ -1951,6 +2220,19 @@ onUnmounted(() => {
                             <span class="ks-activity-item-name">{{ itemName }}</span>
                         </div>
                     </div>
+
+                    <div v-if="actionGroup.actionType === 'completed' && actionGroup.items?.length" class="ks-activity-card-footer">
+                        <button
+                          type="button"
+                          class="ks-activity-save-template-btn"
+                          @click.stop="saveActivitySessionAsTemplate(dayGroup, actionGroup)"
+                        >
+                          <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                            <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+                          </svg>
+                          <span>Als Vorlage speichern</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -2032,7 +2314,7 @@ onUnmounted(() => {
               </h2>
 
             <transition-group name="list" tag="div" :class="['ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full', { 'is-hydrating': isInitialLoad }]">
-              <div v-for="item in group.items" :key="item.id" class="grid-card active" :id="'item-' + item.id"
+              <div v-for="item in group.items" :key="item.id" :class="['grid-card active', { 'is-unavailable': isItemUnavailable(item) }]" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
                    @touchstart="startPress(item, $event)"
@@ -2040,8 +2322,9 @@ onUnmounted(() => {
                    @mouseleave="cancelPress"
                    @touchend="cancelPress"
                    @touchmove="cancelPress">
-              <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: group.def.color }"></div>
-              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: group.def.color }">
+              <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: isItemUnavailable(item) ? '#f59e0b' : group.def.color }"></div>
+              <span v-if="isItemUnavailable(item)" class="unavailable-badge">Ausverkauft</span>
+              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">
                 <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="66" />
               </div>
               <div v-if="getUrgencyTags(item.tags).length > 0" class="item-tags" style="position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 2;">
@@ -2063,10 +2346,20 @@ onUnmounted(() => {
                   <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
+              <button
+                v-if="isItemUnavailable(item)"
+                type="button"
+                class="quick-transfer-pill"
+                @mousedown.stop
+                @touchstart.stop
+                @click.stop="openQuickTransferSheet(item)"
+              >
+                → Markt
+              </button>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
                 <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
-                <span class="qty-val" :style="{ color: group.def.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: group.def.color }">+</button>
+                <span class="qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">+</button>
               </div>
               </div>
             </transition-group>
@@ -2076,7 +2369,7 @@ onUnmounted(() => {
         <!-- 2. KOMPAKTE LISTE -->
         <template v-else-if="viewMode === 'compact'">
           <transition-group name="list" tag="div" :class="['ks-grid items-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2.5 w-full', { 'is-hydrating': isInitialLoad }]" style="padding-top: 0;">
-            <div v-for="item in sortedActiveItems" :key="item.id" class="grid-card active" :id="'item-' + item.id"
+            <div v-for="item in sortedActiveItems" :key="item.id" :class="['grid-card active', { 'is-unavailable': isItemUnavailable(item) }]" :id="'item-' + item.id"
                    @click="toggleItemStatus(item)"
                    @mousedown="startPress(item, $event)"
                    @touchstart="startPress(item, $event)"
@@ -2084,8 +2377,9 @@ onUnmounted(() => {
                    @mouseleave="cancelPress"
                    @touchend="cancelPress"
                    @touchmove="cancelPress">
-              <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: item._groupDef.color }"></div>
-              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: item._groupDef.color }">
+              <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: isItemUnavailable(item) ? '#f59e0b' : item._groupDef.color }"></div>
+              <span v-if="isItemUnavailable(item)" class="unavailable-badge">Ausverkauft</span>
+              <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : item._groupDef.color }">
                 <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="66" />
               </div>
               <div v-if="getUrgencyTags(item.tags).length > 0" class="item-tags" style="position: absolute; top: 8px; left: 8px; display: flex; gap: 4px; z-index: 2;">
@@ -2107,10 +2401,20 @@ onUnmounted(() => {
                   <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
+              <button
+                v-if="isItemUnavailable(item)"
+                type="button"
+                class="quick-transfer-pill"
+                @mousedown.stop
+                @touchstart.stop
+                @click.stop="openQuickTransferSheet(item)"
+              >
+                → Markt
+              </button>
               <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
                 <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
-                <span class="qty-val" :style="{ color: item._groupDef.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: item._groupDef.color }">+</button>
+                <span class="qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : item._groupDef.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : item._groupDef.color }">+</button>
               </div>
             </div>
           </transition-group>
@@ -2132,7 +2436,7 @@ onUnmounted(() => {
                 <div
                   v-for="item in group.items"
                   :key="item.id"
-                  class="row-item-card"
+                  :class="['row-item-card', { 'is-unavailable': isItemUnavailable(item) }]"
                   :id="'item-' + item.id"
                   @click="toggleItemStatus(item)"
                   @mousedown="startPress(item, $event)"
@@ -2143,7 +2447,7 @@ onUnmounted(() => {
                   @touchmove="cancelPress"
                 >
                   <!-- Left: Category Icon (40-42px) -->
-                  <div class="row-item-icon-box" :style="{ color: group.def.color, borderColor: 'color-mix(in srgb, ' + group.def.color + ' 30%, transparent)', background: 'color-mix(in srgb, ' + group.def.color + ' 12%, rgba(15, 23, 42, 0.7))' }">
+                  <div class="row-item-icon-box" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color, borderColor: isItemUnavailable(item) ? 'rgba(245,158,11,0.45)' : 'color-mix(in srgb, ' + group.def.color + ' 30%, transparent)', background: isItemUnavailable(item) ? 'rgba(245,158,11,0.12)' : 'color-mix(in srgb, ' + group.def.color + ' 12%, rgba(15, 23, 42, 0.7))' }">
                     <CategoryIcon class="row-icon-svg" :name="item.name" :category="item.category" size="38" />
                   </div>
 
@@ -2151,6 +2455,7 @@ onUnmounted(() => {
                   <div class="row-item-content">
                     <div class="row-item-title-wrap">
                       <span class="row-item-name">{{ item.name }}</span>
+                      <span v-if="isItemUnavailable(item)" class="unavailable-badge unavailable-badge--inline">Ausverkauft</span>
                     </div>
 
                     <!-- Subtitle / Notes / Regular tags -->
@@ -2178,11 +2483,23 @@ onUnmounted(() => {
                     </div>
                   </div>
 
-                  <!-- Right: Quantity Controls -->
-                  <div class="row-quantity-controls" @click.stop>
-                    <button @click.stop="updateItemQuantity(item, -1)" class="row-qty-btn row-qty-btn-minus">-</button>
-                    <span class="row-qty-val" :style="{ color: group.def.color }">{{ formatQuantity(item) }}</span>
-                    <button @click.stop="updateItemQuantity(item, 1)" class="row-qty-btn row-qty-btn-plus" :style="{ backgroundColor: group.def.color }">+</button>
+                  <!-- Right: Quick transfer pill + Quantity Controls -->
+                  <div class="row-right-controls" @click.stop>
+                    <button
+                      v-if="isItemUnavailable(item)"
+                      type="button"
+                      class="quick-transfer-pill quick-transfer-pill--row"
+                      @mousedown.stop
+                      @touchstart.stop
+                      @click.stop="openQuickTransferSheet(item)"
+                    >
+                      → Markt
+                    </button>
+                    <div class="row-quantity-controls">
+                      <button @click.stop="updateItemQuantity(item, -1)" class="row-qty-btn row-qty-btn-minus">-</button>
+                      <span class="row-qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">{{ formatQuantity(item) }}</span>
+                      <button @click.stop="updateItemQuantity(item, 1)" class="row-qty-btn row-qty-btn-plus" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">+</button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2212,31 +2529,47 @@ onUnmounted(() => {
             <span class="prompt-card-sparkle">✨</span>
           </div>
           <div class="prompt-card-content">
-            <h3 class="prompt-card-title">Alles im Einkaufswagen!</h3>
+            <h3 class="prompt-card-title">
+              {{ unavailableItems.length > 0 ? 'Offene Artikel erledigt!' : 'Alles im Einkaufswagen!' }}
+            </h3>
             <p class="prompt-card-desc">
-              {{ isSharedList 
-                ? 'Alle Artikel sind abgehakt. Möchtest du den Einkauf abschließen und die Gruppe benachrichtigen?' 
-                : 'Alle Artikel dieser Liste sind abgehakt. Möchtest du den Einkauf jetzt abschließen?' }}
+              <template v-if="unavailableItems.length > 0">
+                Alle verfügbaren Artikel sind abgehakt. {{ unavailableItems.length }} als „Ausverkauft“ markierte{{ unavailableItems.length === 1 ? 'r Artikel bleibt' : ' Artikel bleiben' }} auf dieser Liste erhalten.
+              </template>
+              <template v-else>
+                {{ isSharedList
+                  ? 'Alle Artikel sind abgehakt. Möchtest du den Einkauf abschließen und die Gruppe benachrichtigen?'
+                  : 'Alle Artikel dieser Liste sind abgehakt. Möchtest du den Einkauf jetzt abschließen?' }}
+              </template>
             </p>
             <p v-if="!isOnline && isSharedList" class="prompt-offline-notice">
               ℹ️ Du bist offline – Gruppen-Benachrichtigungen können aktuell nicht gesendet werden.
             </p>
           </div>
-          <div class="prompt-card-actions">
+          <div class="prompt-card-actions" :class="{ 'prompt-card-actions--col': unavailableItems.length > 0 }">
             <button
-              class="prompt-btn-primary"
-              :disabled="isSubmittingCompletion"
-              @click="handlePromptCompleteShopping"
+              v-if="unavailableItems.length > 0 && otherAvailableLists.length > 0"
+              class="prompt-btn-transfer"
+              @click="openQuickTransferSheet(unavailableItems)"
             >
-              <span v-if="isSubmittingCompletion" class="prompt-spinner"></span>
-              <span>{{ isSubmittingCompletion ? 'Wird beendet...' : 'Einkauf abschließen' }}</span>
+              <span>Ausverkauftes verschieben ({{ unavailableItems.length }})</span>
             </button>
-            <button
-              class="prompt-btn-secondary"
-              @click="dismissCompletionPrompt"
-            >
-              Später
-            </button>
+            <div class="prompt-card-actions">
+              <button
+                class="prompt-btn-primary"
+                :disabled="isSubmittingCompletion"
+                @click="handlePromptCompleteShopping"
+              >
+                <span v-if="isSubmittingCompletion" class="prompt-spinner"></span>
+                <span>{{ isSubmittingCompletion ? 'Wird beendet...' : 'Einkauf abschließen' }}</span>
+              </button>
+              <button
+                class="prompt-btn-secondary"
+                @click="dismissCompletionPrompt"
+              >
+                Später
+              </button>
+            </div>
           </div>
         </div>
         <div v-else-if="groupedActiveItems.length === 0 && completedItems.length > 0" class="all-done-banner text-center bg-green-100 text-green-700 p-4 rounded-xl mb-4 flex items-center justify-center gap-3" style="background-color: #d1fae5; color: #15803d; padding: 16px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 12px;">
@@ -2290,17 +2623,20 @@ onUnmounted(() => {
     <!-- Add Item Trigger & Thumb-Zone Meta-Tag Filter Bar -->
     <div class="input-container">
       <div class="bottom-action-inner">
-        <!-- Smart Undo Snackbar -->
-        <transition name="undo-snack">
+        <!-- Smart Undo Snackbar (floating above thumb bar) -->
+        <transition name="undo-snack-slide">
           <div
-            v-if="undoSnackbar.visible && undoSnackbar.itemSnapshot"
+            v-if="undoSnackbar.visible && (undoSnackbar.itemSnapshot || undoSnackbar.transferSnapshot)"
             class="ks-undo-snackbar"
-            @touchstart="handleUndoTouchStart"
-            @touchend="handleUndoTouchEnd"
+            @touchstart.passive="handleUndoTouchStart"
+            @touchend.passive="handleUndoTouchEnd"
           >
             <div class="undo-snack-info">
-              <span class="undo-snack-check">✓</span>
-              <span class="undo-snack-text">
+              <span class="undo-snack-check">{{ undoSnackbar.type === 'transfer' ? '→' : '✓' }}</span>
+              <span class="undo-snack-text" v-if="undoSnackbar.type === 'transfer'">
+                {{ undoSnackbar.message }}
+              </span>
+              <span class="undo-snack-text" v-else-if="undoSnackbar.itemSnapshot">
                 <strong class="undo-item-name">„{{ undoSnackbar.itemSnapshot.name }}“</strong> abgehakt
               </span>
             </div>
@@ -2412,17 +2748,56 @@ onUnmounted(() => {
       @cancel="showConfirmModal = false"
     />
 
+    <!-- Quick Transfer Target-List Sheet -->
+    <transition name="scrim-fade">
+      <div v-if="showTransferSheet" class="ks-sheet-scrim" @click="showTransferSheet = false"></div>
+    </transition>
+    <transition name="sheet-slide">
+      <div v-if="showTransferSheet" class="ks-sheet" :style="transferDrag.sheetStyle" @click.stop>
+        <div class="ks-sheet-drag-header" @touchstart="transferDrag.onTouchStart" @touchmove="transferDrag.onTouchMove" @touchend="transferDrag.onTouchEnd" style="touch-action: none; cursor: grab;">
+          <div class="ks-sheet__handle"></div>
+          <h3 class="sheet-heading">
+            {{ transferPendingItems.length > 1
+              ? `${transferPendingItems.length} Artikel in anderen Markt verschieben`
+              : `„${transferPendingItems[0]?.name || 'Artikel'}“ verschieben` }}
+          </h3>
+          <p class="sheet-support">Wähle die Ziel-Einkaufsliste. Bereits dort vorhandene Artikel werden zusammengeführt.</p>
+        </div>
+        <div v-if="otherAvailableLists.length === 0" class="transfer-empty-state">
+          Noch keine weitere Einkaufsliste vorhanden. Erstelle zuerst eine zweite Liste im Dashboard.
+        </div>
+        <div v-else class="transfer-target-list">
+          <button
+            v-for="tList in otherAvailableLists"
+            :key="'picker-' + tList.id"
+            type="button"
+            class="transfer-target-btn"
+            @click="executeQuickTransfer(tList)"
+          >
+            <div class="transfer-target-left">
+              <StoreLogo :name="tList.name" :size="28" />
+              <span class="transfer-target-name">{{ tList.name }}</span>
+            </div>
+            <span class="transfer-target-count">{{ getListOpenCountForPicker(tList) }} offen ›</span>
+          </button>
+        </div>
+        <button class="ks-btn-pill-secondary full-width mt-3" @click="showTransferSheet = false">Abbrechen</button>
+      </div>
+    </transition>
+
     <!-- Modal -->
     <AddItemModal
         :is-open="isAddModalOpen"
         :start-with-scanner="startScanner"
         :edit-item="itemToEdit"
-        :active-items="items.filter(i => i.status === 'active')"
+        :active-items="openActiveItems"
         :list-id="listId"
+        :available-lists="allUserLists"
         @close="isAddModalOpen = false; itemToEdit = null; startScanner = false"
         @add="handleAddItem"
         @update="handleUpdateItem"
         @delete="deleteItem"
+        @transfer-item="handleDetailTransfer"
     />
 
     <!-- Recipe Import Modal -->
@@ -2432,6 +2807,18 @@ onUnmounted(() => {
         :initial-url="recipeInitialUrl"
         @close="isRecipeModalOpen = false; recipeInitialUrl = ''"
         @imported="handleRecipeImported"
+    />
+
+    <!-- Shopping Templates Modal -->
+    <TemplatesModal
+        :is-open="showTemplatesModal"
+        :available-lists="allUserLists"
+        :default-list-id="listId"
+        :initial-mode="templateModalMode"
+        :initial-draft="templateInitialDraft"
+        @close="showTemplatesModal = false"
+        @applied="handleTemplateApplied"
+        @saved="handleTemplateSaved"
     />
 
     <!-- Loyalty Card Modal -->
@@ -3799,5 +4186,166 @@ onUnmounted(() => {
 .prompt-fade-leave-to {
   opacity: 0;
   transform: translateY(-8px);
+}
+
+/* OUT-OF-STOCK & 1-TAP TRANSFER STYLES (4.1) */
+.grid-card.is-unavailable {
+  border-color: rgba(245, 158, 11, 0.55) !important;
+  background: linear-gradient(160deg, rgba(45, 34, 16, 0.92), rgba(30, 41, 59, 0.96)) !important;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.14);
+}
+
+.row-item-card.is-unavailable {
+  border-color: rgba(245, 158, 11, 0.5) !important;
+  background: linear-gradient(90deg, rgba(245, 158, 11, 0.09), rgba(30, 41, 59, 0.85)) !important;
+}
+
+.unavailable-badge {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 3;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: rgba(245, 158, 11, 0.22);
+  border: 1px solid rgba(251, 191, 36, 0.5);
+  color: #fbbf24;
+  pointer-events: none;
+}
+
+.unavailable-badge--inline {
+  position: static;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+.quick-transfer-pill {
+  width: 100%;
+  margin-bottom: 5px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  background: rgba(245, 158, 11, 0.18);
+  color: #fde68a;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.quick-transfer-pill:active {
+  transform: scale(0.95);
+  background: rgba(245, 158, 11, 0.3);
+}
+
+.quick-transfer-pill--row {
+  width: auto;
+  margin-bottom: 0;
+  padding: 5px 10px;
+  white-space: nowrap;
+}
+
+.row-right-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.prompt-card-actions--col {
+  flex-direction: column;
+}
+
+.prompt-btn-transfer {
+  width: 100%;
+  background: rgba(245, 158, 11, 0.16);
+  border: 1px solid rgba(245, 158, 11, 0.48);
+  color: #fbbf24;
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.transfer-target-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 45vh;
+  overflow-y: auto;
+  margin-top: 8px;
+}
+
+.transfer-target-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  color: #f8fafc;
+  cursor: pointer;
+}
+
+.transfer-target-btn:active {
+  transform: scale(0.98);
+  border-color: rgba(56, 189, 248, 0.5);
+}
+
+.transfer-target-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.transfer-target-name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.transfer-target-count {
+  font-size: 12px;
+  color: #7dd3fc;
+  font-weight: 600;
+}
+
+.transfer-empty-state {
+  padding: 16px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 13px;
+}
+
+.ks-activity-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ks-activity-save-template-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  background: rgba(56, 189, 248, 0.12);
+  color: #7dd3fc;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ks-activity-save-template-btn:active {
+  transform: scale(0.96);
 }
 </style>

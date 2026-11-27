@@ -4,4 +4,12 @@
     <string name="title_activity_main">KaufSync</string>
     <string name="package_name">com.kaufsync.app</string>
     <string name="custom_url_scheme">com.kaufsync.app</string>
+    <string name="shortcut_add_short">Hinzufügen</string>
+    <string name="shortcut_add_long">Artikel hinzufügen</string>
+    <string name="shortcut_scan_short">Scannen</string>
+    <string name="shortcut_scan_long">Barcode scannen</string>
+    <string name="shortcut_recipe_short">Rezept</string>
+    <string name="shortcut_recipe_long">Rezept importieren</string>
+    <string name="widget_name">KaufSync Einkaufsliste</string>
+    <string name="widget_description">Aktuelle Einkaufsliste direkt vom Startbildschirm abhaken und öffnen</string>
 </resources>

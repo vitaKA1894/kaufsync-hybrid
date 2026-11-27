@@ -350,3 +350,60 @@ class UserItemMappingResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# --- ITEM TRANSFER SCHEMAS (4.1) ---
+class ItemTransferRequest(BaseModel):
+    source_list_id: str
+    target_list_id: str
+    item_ids: List[str]
+    target_status: Optional[str] = "active"
+
+class ItemTransferResponse(BaseModel):
+    status: str = "ok"
+    moved_count: int = 0
+    skipped_count: int = 0
+    moved_ids: List[str] = []
+    skipped_ids: List[str] = []
+    target_items: List[ItemResponse] = []
+
+# --- SHOPPING TEMPLATE SCHEMAS (3.4) ---
+class TemplateItemInput(BaseModel):
+    id: Optional[str] = None
+    name: str
+    quantity: float = 1.0
+    unit: Optional[str] = "Stk"
+    category: str = "Sonstiges"
+    icon: Optional[str] = None
+    taxonomy_id: Optional[str] = None
+    variants: List[str] = []
+    meta_tags: List[str] = []
+
+class TemplateItemResponse(BaseModel):
+    id: str
+    name: str
+    quantity: float
+    unit: Optional[str] = "Stk"
+    category: str
+    icon: Optional[str] = None
+    taxonomy_id: Optional[str] = None
+    variants: List[str] = []
+    meta_tags: List[str] = []
+
+    class Config:
+        from_attributes = True
+
+class ShoppingTemplateUpsert(BaseModel):
+    name: str
+    items: List[TemplateItemInput]
+
+class ShoppingTemplateResponse(BaseModel):
+    id: str
+    user_id: str
+    name: str
+    items: List[TemplateItemResponse] = []
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+

@@ -14,16 +14,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URLEncoder;
+import org.json.JSONObject;
 
 public class MainActivity extends BridgeActivity {
     private String pendingSharedText = null;
     private String pendingSharedImageData = null;
     private String pendingSharedImagePath = null;
+    private String pendingShortcutUri = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(KaufSyncWidgetPlugin.class);
         super.onCreate(savedInstanceState);
         handleSendIntent(getIntent());
+        handleShortcutIntent(getIntent());
     }
 
     @Override
@@ -31,6 +35,45 @@ public class MainActivity extends BridgeActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         handleSendIntent(intent);
+        handleShortcutIntent(intent);
+    }
+
+    private void handleShortcutIntent(Intent intent) {
+        if (intent == null) return;
+        Uri data = intent.getData();
+        if (data != null && "kaufsync".equalsIgnoreCase(data.getScheme())) {
+            String uriStr = data.toString();
+            pendingShortcutUri = uriStr;
+            try {
+                JSONObject obj = new JSONObject();
+                obj.put("url", uriStr);
+                KaufSyncWidgetPlugin.setPendingShortcutJson(obj.toString());
+            } catch (Exception ignored) {}
+            dispatchPendingShortcut();
+        }
+    }
+
+    private void dispatchPendingShortcut() {
+        if (pendingShortcutUri == null) return;
+        if (this.bridge != null && this.bridge.getWebView() != null) {
+            final String uriToDispatch = pendingShortcutUri;
+            pendingShortcutUri = null;
+            this.bridge.getWebView().post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String quoted = JSONObject.quote(uriToDispatch);
+                        String js = "(function() {" +
+                            "window.__pendingAppShortcut = " + quoted + ";" +
+                            "window.dispatchEvent(new CustomEvent('appShortcutAction', { detail: " + quoted + " }));" +
+                            "})();";
+                        bridge.getWebView().evaluateJavascript(js, null);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        }
     }
 
     private void handleSendIntent(Intent intent) {
@@ -159,6 +202,7 @@ public class MainActivity extends BridgeActivity {
             this.bridge.getWebView().setOverScrollMode(View.OVER_SCROLL_NEVER);
             this.bridge.getWebView().getSettings().setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
             dispatchPendingShare();
+            dispatchPendingShortcut();
         }
     }
 }

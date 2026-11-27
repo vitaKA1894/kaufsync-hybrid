@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_row_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#1A334155"
+    android:gravity="center_vertical"
+    android:minHeight="36dp"
+    android:orientation="horizontal"
+    android:paddingStart="8dp"
+    android:paddingTop="6dp"
+    android:paddingEnd="8dp"
+    android:paddingBottom="6dp">
+
+    <ImageView
+        android:id="@+id/widget_row_cat_dot"
+        android:layout_width="4dp"
+        android:layout_height="20dp"
+        android:contentDescription=""
+        android:src="@drawable/widget_cat_dot" />
+
+    <ImageView
+        android:id="@+id/widget_row_checkbox"
+        android:layout_width="18dp"
+        android:layout_height="18dp"
+        android:layout_marginStart="8dp"
+        android:contentDescription="Abhaken"
+        android:src="@drawable/widget_checkbox_bg" />
+
+    <ImageView
+        android:id="@+id/widget_row_urgent_dot"
+        android:layout_width="7dp"
+        android:layout_height="7dp"
+        android:layout_marginStart="7dp"
+        android:contentDescription="Dringend"
+        android:src="@drawable/widget_urgent_dot"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/widget_row_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Milch"
+        android:textColor="#F8FAFC"
+        android:textSize="13sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/widget_row_unavail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/widget_unavailable_bg"
+        android:paddingStart="5dp"
+        android:paddingTop="1dp"
+        android:paddingEnd="5dp"
+        android:paddingBottom="1dp"
+        android:text="Ausverkauft"
+        android:textColor="#FBBF24"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/widget_row_qty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="6dp"
+        android:background="@drawable/widget_pill_bg"
+        android:paddingStart="6dp"
+        android:paddingTop="1dp"
+        android:paddingEnd="6dp"
+        android:paddingBottom="1dp"
+        android:text="2×"
+        android:textColor="#7DD3FC"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+</LinearLayout>

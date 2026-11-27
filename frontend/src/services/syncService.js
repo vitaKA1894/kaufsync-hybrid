@@ -1,11 +1,25 @@
 import { ref } from 'vue';
 import { db } from '../db/index.js';
 import { apiUrl } from '../config/api.js';
+import { applyTransferOptimistically, isItemCompleted } from '../utils/itemTransfer.js';
 
 // Reactive states for UI
 export const isOnline = ref(typeof navigator !== 'undefined' ? navigator.onLine : true);
 export const syncStatus = ref('synced'); // 'synced' | 'syncing' | 'offline' | 'error'
 export const pendingCount = ref(0);
+
+const widgetSyncHooks = new Set();
+export function registerWidgetSyncHook(fn) {
+  if (typeof fn === 'function') {
+    widgetSyncHooks.add(fn);
+  }
+  return () => widgetSyncHooks.delete(fn);
+}
+export function notifyWidgetSyncHooks() {
+  for (const fn of widgetSyncHooks) {
+    try { fn(); } catch {}
+  }
+}
 
 let isSyncing = false;
 let syncTimeout = null;
@@ -118,6 +132,7 @@ export async function saveLocalLists(lists) {
   } catch (e) {
     console.warn('Error saving local lists:', e);
   }
+  notifyWidgetSyncHooks();
 }
 
 /**
@@ -168,7 +183,7 @@ export async function queueMutation({ listId, itemId, action, payload }) {
         await db.items.delete(itemId);
       }
     } else if (action === 'CLEAR_COMPLETED') {
-      const completed = await db.items.where('list_id').equals(listId).filter(it => it.status === 'completed').toArray();
+      const completed = await db.items.where('list_id').equals(listId).filter(it => isItemCompleted(it)).toArray();
       const ids = completed.map(c => c.id);
       await db.items.bulkDelete(ids);
     }
@@ -191,6 +206,7 @@ export async function queueMutation({ listId, itemId, action, payload }) {
   }
 
   await updatePendingCount();
+  notifyWidgetSyncHooks();
 
   // 3. Trigger background sync if online
   if (isOnline.value) {
@@ -303,6 +319,7 @@ export async function processSyncQueue() {
   } finally {
     isSyncing = false;
     await updatePendingCount();
+    notifyWidgetSyncHooks();
   }
 }
 
@@ -373,8 +390,172 @@ async function fetchServerListDelta(listId) {
       if (result.server_time) {
         localStorage.setItem(`last_synced_${listId}`, result.server_time);
       }
+      notifyWidgetSyncHooks();
     }
   } catch (e) {
     // Silent fail if network drops
   }
+}
+
+function updateCachedListsItems(listId, nextItems) {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const raw = localStorage.getItem('cachedLists');
+    if (!raw) return;
+    const lists = JSON.parse(raw);
+    if (!Array.isArray(lists)) return;
+    const idx = lists.findIndex(l => l.id === listId);
+    if (idx !== -1) {
+      lists[idx].items = nextItems;
+      localStorage.setItem('cachedLists', JSON.stringify(lists));
+    }
+  } catch {}
+}
+
+/**
+ * Offline-first transfer of 1 or more items between sourceListId and targetListId.
+ * Returns { updatedSourceItems, updatedTargetItems, movedRecords, skippedIds }.
+ */
+export async function transferItemsOfflineFirst({
+  sourceListId,
+  targetListId,
+  sourceItems,
+  itemIdsToMove,
+  targetStatus = 'active'
+}) {
+  const currentSource = Array.isArray(sourceItems) ? sourceItems : await getLocalListItems(sourceListId);
+  const currentTarget = await getLocalListItems(targetListId);
+
+  const transferResult = applyTransferOptimistically({
+    sourceListId,
+    targetListId,
+    sourceItems: currentSource,
+    targetItems: currentTarget,
+    itemIdsToMove,
+    targetStatus
+  });
+
+  if (transferResult.movedRecords.length === 0) {
+    return transferResult;
+  }
+
+  // Persist optimistic local DB updates for both lists immediately
+  try {
+    const movedIdsSet = new Set(transferResult.movedRecords.map(r => r.sourceItem.id));
+    await db.transaction('rw', db.items, async () => {
+      for (const id of movedIdsSet) {
+        await db.items.delete(id);
+      }
+      for (const rec of transferResult.movedRecords) {
+        if (rec.createdItemId) {
+          const createdItem = transferResult.updatedTargetItems.find(it => it.id === rec.createdItemId);
+          if (createdItem) await db.items.put(createdItem);
+        } else if (rec.mergedTargetId) {
+          const mergedItem = transferResult.updatedTargetItems.find(it => it.id === rec.mergedTargetId);
+          if (mergedItem) await db.items.put(mergedItem);
+        }
+      }
+    });
+  } catch (e) {
+    console.warn('Local Dexie transfer update failed:', e);
+  }
+
+  updateCachedListsItems(sourceListId, transferResult.updatedSourceItems);
+  updateCachedListsItems(targetListId, transferResult.updatedTargetItems);
+
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+  let syncedOnline = false;
+
+  if (isOnline.value && token) {
+    try {
+      const pendingForLists = await db.syncQueue
+        .filter(m => m.list_id === sourceListId || m.list_id === targetListId)
+        .count();
+      if (pendingForLists === 0) {
+        const res = await fetch(apiUrl('/api/items/transfer'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            source_list_id: sourceListId,
+            target_list_id: targetListId,
+            item_ids: transferResult.movedRecords.map(r => r.sourceItem.id),
+            target_status: targetStatus
+          })
+        });
+        if (res.ok) {
+          syncedOnline = true;
+          const serverData = await res.json();
+          // Sync authoritative target items back to Dexie if server merged/created them
+          if (Array.isArray(serverData.target_items) && serverData.target_items.length > 0) {
+            await fetchServerListDelta(sourceListId);
+            await fetchServerListDelta(targetListId);
+          }
+        }
+      }
+    } catch {
+      syncedOnline = false;
+    }
+  }
+
+  if (!syncedOnline) {
+    // Queue per-list offline mutations so offline mode works 100% consistently
+    const nowIso = new Date().toISOString();
+    for (const rec of transferResult.movedRecords) {
+      await db.syncQueue.add({
+        list_id: sourceListId,
+        item_id: rec.sourceItem.id,
+        action: 'DELETE_ITEM',
+        payload: {},
+        timestamp: nowIso,
+        status: 'pending'
+      });
+      if (rec.createdItemId) {
+        const created = transferResult.updatedTargetItems.find(it => it.id === rec.createdItemId);
+        if (created) {
+          await db.syncQueue.add({
+            list_id: targetListId,
+            item_id: created.id,
+            action: 'ADD_ITEM',
+            payload: {
+              id: created.id,
+              name: created.name,
+              category: created.category,
+              quantity: created.quantity,
+              unit: created.unit,
+              note: created.note,
+              tags: created.tags,
+              status: created.status
+            },
+            timestamp: nowIso,
+            status: 'pending'
+          });
+        }
+      } else if (rec.mergedTargetId) {
+        const merged = transferResult.updatedTargetItems.find(it => it.id === rec.mergedTargetId);
+        if (merged) {
+          await db.syncQueue.add({
+            list_id: targetListId,
+            item_id: merged.id,
+            action: 'UPDATE_ITEM',
+            payload: {
+              quantity: merged.quantity,
+              tags: merged.tags,
+              note: merged.note,
+              status: merged.status
+            },
+            timestamp: nowIso,
+            status: 'pending'
+          });
+        }
+      }
+    }
+    await updatePendingCount();
+    if (isOnline.value) triggerSync(50);
+  }
+
+  notifyWidgetSyncHooks();
+  return transferResult;
 }
