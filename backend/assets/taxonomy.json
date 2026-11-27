@@ -2,7 +2,7 @@
   {
     "id": "6b435488-7094-41c8-8ffd-476aabd62538",
     "name": "Agavendicksaft",
-    "category": "Getränke & Genussmittel",
+    "category": "Vorratskammer",
     "aliases": [
       "Agavensirup",
       "Agavensaft"
@@ -18,7 +18,7 @@
       "constellations": [
         "Klassisch mild",
         "Bio",
-        "Süungsmittel",
+        "Süßungsmittel",
         "Vegan"
       ],
       "global_meta": [
@@ -32,7 +32,7 @@
   {
     "id": "bcef3af7-2e7a-4b57-b00f-2171b79f0408",
     "name": "Ahornsirup",
-    "category": "Getränke & Genussmittel",
+    "category": "Vorratskammer",
     "aliases": [
       "Ahornsirup Flasche",
       "Kanadischer Ahornsirup"
@@ -175,7 +175,6 @@
     "category": "Obst & Gemüse",
     "aliases": [
       "Del Monte",
-      "Ananas",
       "Ananasse"
     ],
     "tags": {
@@ -1046,7 +1045,7 @@
         "20er Kasten",
         "24er",
         "5 L",
-        "33 L",
+        "0,33 L",
         "5.0 Original",
         "Augustiner",
         "Alkoholfreies Bier"
@@ -1228,7 +1227,7 @@
     "id": "65428e32-37ab-4e3e-afdf-d5621e192bf8",
     "name": "Blumenstrauß",
     "aliases": [
-      "Topfpflanze"
+      "Schnittblumen"
     ],
     "category": "Sonstiges",
     "tags": {
@@ -1575,7 +1574,6 @@
       "Lieken Urkorn",
       "Weltmeisterbrot",
       "Mischbrot",
-      "Graubrot",
       "Harry Brot",
       "Paderborner"
     ],
@@ -1887,7 +1885,7 @@
     "category": "Vorratskammer",
     "aliases": [
       "Cashewcreme",
-      "Rapunzel"
+      "Rapunzel Cashewmus"
     ],
     "tags": {
       "quantities": [
@@ -2385,7 +2383,7 @@
     "name": "Crème Fraîche",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Dr. Oetker",
+      "Dr. Oetker Crème Fraîche",
       "Rama Cremefine",
       "Creme fraiche",
       "Creme legere"
@@ -2665,7 +2663,7 @@
     "category": "Vorratskammer",
     "aliases": [
       "Baked Beans",
-      "Bonduelle",
+      "Bonduelle Bohnen",
       "Kidneybohnen Dose",
       "Heinz Baked Beans"
     ],
@@ -2732,7 +2730,6 @@
     "name": "Dosenmais",
     "category": "Vorratskammer",
     "aliases": [
-      "Zuckermais",
       "Maisdose",
       "Bonduelle Mais"
     ],
@@ -2766,7 +2763,7 @@
     "category": "Vorratskammer",
     "aliases": [
       "Mutti Tomaten",
-      "Oro di Parma",
+      "Oro di Parma Tomaten",
       "Tomatendose",
       "ja! Dosentomaten"
     ],
@@ -3201,7 +3198,7 @@
     "category": "Vorratskammer",
     "aliases": [
       "ja! Erbsen und Möhren",
-      "Bonduelle"
+      "Bonduelle Erbsen & Möhren"
     ],
     "tags": {
       "quantities": [
@@ -3491,7 +3488,7 @@
   {
     "id": "f0aa3968-8808-4e29-8f56-c05a7c627246",
     "name": "Fertigsuppe",
-    "category": "Milchprodukte & Tiefkühlkost",
+    "category": "Vorratskammer",
     "aliases": [
       "Erasco Eintopf",
       "Maggi Suppe",
@@ -3809,7 +3806,7 @@
     "category": "Fleisch & Fisch",
     "aliases": [
       "Homann Fleischsalat",
-      "Popp"
+      "Popp Fleischsalat"
     ],
     "tags": {
       "quantities": [
@@ -3968,7 +3965,7 @@
     "category": "Fleisch & Fisch",
     "aliases": [
       "Fleischklops",
-      "Rügenwalder",
+      "Rügenwalder Frikadelle",
       "Bulette",
       "Fleischpflanzerl"
     ],
@@ -4034,7 +4031,7 @@
       "Almette",
       "Buko",
       "Frischkäsefass",
-      "Exquisa",
+      "Exquisa Frischkäse",
       "Philadelphia"
     ],
     "tags": {
@@ -4290,8 +4287,8 @@
     "category": "Fleisch & Fisch",
     "aliases": [
       "Putenaufschnitt",
-      "Gutfried",
-      "Herta"
+      "Gutfried Geflügelaufschnitt",
+      "Herta Geflügelaufschnitt"
     ],
     "tags": {
       "quantities": [
@@ -4625,8 +4622,8 @@
         "5"
       ],
       "constellations": [
-        "Dry  Classic",
-        "Pink  fruchtig",
+        "Dry Gin Classic",
+        "Pink Gin fruchtig",
         "Spirituose",
         "Alkohol",
         "Cocktail"
@@ -4783,7 +4780,7 @@
         "5"
       ],
       "constellations": [
-        "Frische  di Patate",
+        "Frische Gnocchi di Patate",
         "Pfannen",
         "Süßkartoffel",
         "Frischteigware",
@@ -5070,7 +5067,6 @@
     "name": "Gurken",
     "category": "Obst & Gemüse",
     "aliases": [
-      "Spreewaldgurken",
       "Schlangengurke",
       "Salatgurke",
       "Gurke"
@@ -5672,7 +5668,6 @@
       "Cantaloupe",
       "Galia",
       "Gelbe Melone",
-      "Melone",
       "Zuckermelone"
     ],
     "tags": {
@@ -6129,7 +6124,7 @@
     "name": "Joghurt",
     "aliases": [
       "Zott",
-      "Landliebe",
+      "Landliebe Joghurt",
       "Ehrmann",
       "Alpro Joghurt",
       "Activia",
@@ -6153,7 +6148,7 @@
         "Vegan (Soja/Hafer)",
         "Natur 3,5%",
         "Natur mild 1,5%",
-        "Griechischer  10%",
+        "Griechischer Joghurt 10%",
         "Frucht Erdbeere",
         "Hafer",
         "Soja",
@@ -6379,7 +6374,7 @@
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
       "ja! Kaffeesahne",
-      "Bärenmarke"
+      "Bärenmarke Kaffeesahne"
     ],
     "tags": {
       "quantities": [
@@ -6407,7 +6402,8 @@
     "id": "62acecf5-8b6e-4d29-8e75-26482d9842df",
     "name": "Kakao",
     "aliases": [
-      "Kaba"
+      "Backkakao",
+      "Kakao ungesüßt"
     ],
     "category": "Getränke & Genussmittel",
     "tags": {
@@ -7009,7 +7005,6 @@
     "name": "Kirschen",
     "category": "Obst & Gemüse",
     "aliases": [
-      "Herzkirschen",
       "Kirsche"
     ],
     "tags": {
@@ -7143,7 +7138,7 @@
   {
     "id": "1ea3c16e-0eef-44db-b165-6ee5c5c1cc6c",
     "name": "Knoblauchpulver",
-    "category": "Obst & Gemüse",
+    "category": "Vorratskammer",
     "aliases": [
       "Knoblauchgranulat"
     ],
@@ -7337,7 +7332,6 @@
     "category": "Obst & Gemüse",
     "aliases": [
       "Oberrübe",
-      "Kohlrabi",
       "Kohlrabis"
     ],
     "tags": {
@@ -7367,7 +7361,7 @@
   {
     "id": "c4a0631f-a1cf-4a42-b573-a675b84e3ba5",
     "name": "Kokosmilch",
-    "category": "Milchprodukte & Tiefkühlkost",
+    "category": "Vorratskammer",
     "aliases": [
       "Dosen-Kokosmilch",
       "Kokosnussmilch",
@@ -7888,7 +7882,6 @@
     "name": "Kräuterseitlinge",
     "category": "Obst & Gemüse",
     "aliases": [
-      "Pilze",
       "Kräuterseitling"
     ],
     "tags": {
@@ -8005,7 +7998,7 @@
     "aliases": [
       "Leerdammer",
       "Scheibenkäse",
-      "Milram",
+      "Milram Käse",
       "Schnittkäse"
     ],
     "tags": {
@@ -8453,7 +8446,7 @@
         "Grob",
         "Fein",
         "Im Naturdarm",
-        "Pfälzer  grob",
+        "Pfälzer Leberwurst grob",
         "Feine Kalbs",
         "Vegane",
         "Streichwurst",
@@ -8507,7 +8500,6 @@
     "name": "Leckerlis",
     "aliases": [
       "Hundeleckerli",
-      "Katzenleckerli",
       "Belohnungssnack"
     ],
     "category": "Drogerie, Haushalt & Tierbedarf",
@@ -8862,9 +8854,9 @@
     "name": "Mandelmus",
     "category": "Vorratskammer",
     "aliases": [
-      "Alnatura",
+      "Alnatura Mandelmus",
       "Mandelcreme",
-      "Rapunzel"
+      "Rapunzel Mandelmus"
     ],
     "tags": {
       "quantities": [
@@ -9106,7 +9098,7 @@
     "name": "Mascarpone",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Galbani",
+      "Galbani Mascarpone",
       "Zott Mascarpone"
     ],
     "tags": {
@@ -9397,14 +9389,9 @@
     "name": "Milch",
     "aliases": [
       "Weihenstephan",
-      "Oatly",
       "Kuhmilch",
-      "Landliebe",
-      "Alpro",
-      "Sojamilch",
-      "Hafermilch",
-      "Mandelmilch",
-      "Bärenmarke",
+      "Landliebe Milch",
+      "Bärenmarke Milch",
       "H-Milch",
       "Vollmilch",
       "Frischmilch"
@@ -9421,7 +9408,6 @@
       ],
       "constellations": [
         "0,1%",
-        "0,7%",
         "1,5%",
         "3,5%",
         "3,8%",
@@ -9432,13 +9418,7 @@
         "Kuhmilch",
         "Kuh Voll",
         "Kuh Fettarm",
-        "Haferdrink",
-        "Mandeldrink",
-        "Sojadrink",
-        "Reisdrink",
-        "Erbsendrink",
         "Ziegen",
-        "Vegan",
         "H",
         "Weide"
       ],
@@ -9604,8 +9584,7 @@
     "name": "Mortadella",
     "category": "Fleisch & Fisch",
     "aliases": [
-      "Lyoner",
-      "Rügenwalder",
+      "Rügenwalder Mortadella",
       "Schinken-Spicker"
     ],
     "tags": {
@@ -9641,7 +9620,7 @@
     "name": "Mozzarella",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Galbani",
+      "Galbani Mozzarella",
       "Büffelmozzarella",
       "Zottarella"
     ],
@@ -10225,7 +10204,6 @@
         "Italienisch",
         "Spanisch",
         "Griechisch",
-        "Nativ extra",
         "Brat- mild",
         "Fett",
         "Salat",
@@ -10408,8 +10386,7 @@
       "Paprikaschoten",
       "Paprikamix",
       "Paprikaschote",
-      "Spitzpaprika",
-      "Peperoni"
+      "Spitzpaprika"
     ],
     "tags": {
       "quantities": [
@@ -10524,7 +10501,7 @@
       "Mutti passierte Tomaten",
       "Passata",
       "Tomatenpüree",
-      "Oro di Parma"
+      "Oro di Parma Passata"
     ],
     "category": "Vorratskammer",
     "tags": {
@@ -10738,8 +10715,8 @@
         "Bunt",
         "Ganze Körner",
         "Gemahlen",
-        "Schwarzer  gemahlen",
-        "Bunter  ganze Körner",
+        "Schwarzer Pfeffer gemahlen",
+        "Bunter Pfeffer ganze Körner",
         "Weißer",
         "Cayenne",
         "Gewürz",
@@ -10858,7 +10835,9 @@
       "Sojamilch",
       "Mandelmilch",
       "Erbsendrink",
-      "Pflanzendrink"
+      "Pflanzendrink",
+      "Oatly",
+      "Alpro"
     ],
     "category": "Milchprodukte & Tiefkühlkost",
     "tags": {
@@ -11493,7 +11472,7 @@
     "name": "Pumpernickel",
     "category": "Brot & Backwaren",
     "aliases": [
-      "Schwarzbrot",
+      "Westfälisches Schwarzbrot",
       "Mestemacher"
     ],
     "tags": {
@@ -11528,10 +11507,9 @@
     "name": "Putenbrust",
     "category": "Fleisch & Fisch",
     "aliases": [
-      "Putenaufschnitt",
       "Putenfleisch",
       "Pute",
-      "Herta",
+      "Herta Putenbrust",
       "Putenschnitzel"
     ],
     "tags": {
@@ -11572,9 +11550,9 @@
     "aliases": [
       "Speisequark",
       "Topfen",
-      "Milram",
+      "Milram Quark",
       "Magerquark",
-      "Exquisa"
+      "Exquisa Quark"
     ],
     "tags": {
       "quantities": [
@@ -11836,7 +11814,8 @@
     "id": "0af5942e-a040-482f-b3af-e434d4e858b0",
     "name": "Rasierklingen",
     "aliases": [
-      "Einwegrasierer"
+      "Ersatzklingen",
+      "Rasiererklingen"
     ],
     "category": "Drogerie, Haushalt & Tierbedarf",
     "tags": {
@@ -11974,7 +11953,7 @@
     "name": "Reiswaffeln",
     "category": "Brot & Backwaren",
     "aliases": [
-      "Alnatura",
+      "Alnatura Reiswaffeln",
       "Maiswaffeln",
       "Knabberwaffeln",
       "Reiswaffel"
@@ -12300,7 +12279,6 @@
   {
     "name": "Rindergeschnetzeltes",
     "aliases": [
-      "Rindergeschnetzeltes",
       "Geschnetzeltes Rind",
       "Boeuf Stroganoff",
       "Rindsgeschnetzeltes"
@@ -12528,7 +12506,6 @@
     "aliases": [
       "Rotkraut",
       "Apfelrotkohl",
-      "Mildessa",
       "Blaukraut",
       "Kühne"
     ],
@@ -12746,8 +12723,8 @@
     "aliases": [
       "Aoste",
       "Salami-Scheiben",
-      "Herta",
-      "Rügenwalder",
+      "Herta Salami",
+      "Rügenwalder Salami",
       "Bifi",
       "Kabanos"
     ],
@@ -12892,7 +12869,6 @@
     "category": "Brot & Backwaren",
     "aliases": [
       "Brezelchen",
-      "Saltletts",
       "Lorenz"
     ],
     "tags": {
@@ -13114,9 +13090,7 @@
     "name": "Schafskäse",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Schafkäse",
-      "Patros",
-      "Salakis"
+      "Schafkäse"
     ],
     "tags": {
       "quantities": [
@@ -13240,9 +13214,7 @@
     "id": "9b473410-16c9-4d14-a372-3fa82ed237cc",
     "name": "Schmand",
     "category": "Milchprodukte & Tiefkühlkost",
-    "aliases": [
-      "Sauerrahm"
-    ],
+    "aliases": [],
     "tags": {
       "quantities": [
         "1",
@@ -13685,8 +13657,7 @@
     "category": "Fleisch & Fisch",
     "aliases": [
       "Schnitzel",
-      "Schweinefleisch",
-      "Gutfried"
+      "Schweinefleisch"
     ],
     "tags": {
       "quantities": [
@@ -13752,7 +13723,6 @@
     "id": "72b0aeaf-e9fc-44be-9aa9-1466e58514c5",
     "name": "Seife",
     "aliases": [
-      "Handseife",
       "Seifenstück",
       "Kernseife",
       "Arztseife"
@@ -13831,9 +13801,7 @@
     "name": "Sellerie",
     "category": "Obst & Gemüse",
     "aliases": [
-      "Stangensellerie",
-      "Selleriestange",
-      "Sellerieknolle"
+      "Selleriestange"
     ],
     "tags": {
       "quantities": [
@@ -14479,7 +14447,6 @@
     "id": "f464ee53-54a1-4cb0-89e3-a5ff453489fc",
     "name": "Spinat",
     "aliases": [
-      "Rahmspinat",
       "Blattspinat"
     ],
     "category": "Obst & Gemüse",
@@ -14636,7 +14603,7 @@
   {
     "id": "758986d9-8808-4f2c-8cb7-1f8cfcc0de1a",
     "name": "Spülmaschinensalz",
-    "category": "Vorratskammer",
+    "category": "Drogerie, Haushalt & Tierbedarf",
     "aliases": [
       "Regeneriersalz",
       "Somat Salz",
@@ -15237,8 +15204,8 @@
         "Bio",
         "Kamillen",
         "Früchte Waldbeere",
-        "Grüner  Sencha",
-        "Schwarzer  Assam",
+        "Grüner Tee Sencha",
+        "Schwarzer Tee Assam",
         "Fenchel-Anis-Kümmel",
         "Heißgetränk",
         "Beruhigend",
@@ -15289,7 +15256,6 @@
     "name": "Teewurst",
     "category": "Fleisch & Fisch",
     "aliases": [
-      "Pommersche",
       "Rügenwalder Teewurst"
     ],
     "tags": {
@@ -15551,7 +15517,6 @@
     "name": "TK-Backwaren",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Knack & Back",
       "Torte TK",
       "Kuchen TK",
       "Coppenrath & Wiese"
@@ -15588,7 +15553,6 @@
     "name": "TK-Fisch",
     "category": "Milchprodukte & Tiefkühlkost",
     "aliases": [
-      "Bordelaise",
       "Frosta Fisch",
       "Fischfilet TK"
     ],
@@ -15750,7 +15714,7 @@
         "Recycling",
         "Zewa",
         "4-lagig Premium",
-        "Feuchtes  Kamille",
+        "Feuchtes Toilettenpapier Kamille",
         "Recycling- 3-lagig",
         "Haushalt",
         "Hygiene",
@@ -15773,9 +15737,7 @@
     "name": "Tomaten",
     "category": "Obst & Gemüse",
     "aliases": [
-      "Cherrytomate",
       "Paradeiser",
-      "Cocktailtomaten",
       "Rispentomaten",
       "Tomate"
     ],
@@ -15927,8 +15889,8 @@
         "5"
       ],
       "constellations": [
-        "Frische  Ricotta-Spinat",
-        "Frische  Fleischfüllung",
+        "Frische Tortellini Ricotta-Spinat",
+        "Frische Tortellini Fleischfüllung",
         "Trockene",
         "Teigwaren",
         "Gekühlt",
@@ -16079,7 +16041,7 @@
     "category": "Vorratskammer",
     "aliases": [
       "Ruf Hefe",
-      "Dr. Oetker"
+      "Dr. Oetker Trockenhefe"
     ],
     "tags": {
       "quantities": [
@@ -16109,7 +16071,7 @@
     "aliases": [
       "Zaziki",
       "Apostels Tsatsiki",
-      "Popp"
+      "Popp Tsatsiki"
     ],
     "tags": {
       "quantities": [
@@ -16138,7 +16100,7 @@
   {
     "id": "21a656cd-7d53-4dd2-a7db-b80e6e5484aa",
     "name": "Tütensuppe",
-    "category": "Milchprodukte & Tiefkühlkost",
+    "category": "Vorratskammer",
     "aliases": [
       "Knorr Tütensuppe",
       "Maggi Tütensuppe",
@@ -16262,7 +16224,8 @@
     "id": "f4a17693-032b-4574-af81-f85706c2426c",
     "name": "Vegane Wurst",
     "aliases": [
-      "Schnitzel"
+      "Vegetarische Wurst",
+      "Vegane Aufschnittwurst"
     ],
     "category": "Milchprodukte & Tiefkühlkost",
     "tags": {
@@ -17417,7 +17380,6 @@
     "category": "Obst & Gemüse",
     "aliases": [
       "Zucchino",
-      "Zucchini",
       "Zucchinis"
     ],
     "tags": {
@@ -17552,7 +17514,7 @@
   {
     "id": "321aaa69-ccac-4bb1-b597-c5576a60e3d9",
     "name": "Zuckerrübensirup",
-    "category": "Getränke & Genussmittel",
+    "category": "Vorratskammer",
     "aliases": [
       "Grafschafter Goldsaft",
       "Rübensirup",
@@ -17623,9 +17585,7 @@
     "name": "Zwiebeln",
     "aliases": [
       "Zwiebel",
-      "Schalotte",
-      "Frühlingszwiebel",
-      "Lauchzwiebel"
+      "Schalotte"
     ],
     "category": "Obst & Gemüse",
     "tags": {
@@ -17653,7 +17613,7 @@
   {
     "id": "3e71bb92-7816-4a4a-b049-df5951ec6890",
     "name": "Zwiebelpulver",
-    "category": "Obst & Gemüse",
+    "category": "Vorratskammer",
     "aliases": [
       "Zwiebelgranulat"
     ],

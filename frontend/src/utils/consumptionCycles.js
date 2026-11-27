@@ -18,6 +18,17 @@ export function getCanonicalArticle(name, fallbackCategory = 'Sonstiges') {
   const trimmed = name.trim();
   const lower = trimmed.toLowerCase();
 
+  // 0. Direct match on taxonomy id
+  const idMatch = taxonomy.find(item => item.id === trimmed);
+  if (idMatch) {
+    return {
+      articleKey: idMatch.id,
+      displayName: idMatch.name,
+      category: idMatch.category || fallbackCategory,
+      icon: idMatch.icon || null
+    };
+  }
+
   // 1. Direct match on taxonomy name
   const nameMatch = taxonomy.find(
     item => item.name && item.name.toLowerCase() === lower
@@ -214,7 +225,7 @@ export function computeDueSuggestions({
     }
   }
 
-  // Snoozed items map: article_key -> snoozed_until ms
+  // Snoozed items map: expand both raw article_key and canonical taxonomy key
   const activeSnoozeKeys = new Set();
   for (const snooze of snoozes) {
     if (snooze && snooze.article_key) {
@@ -222,61 +233,72 @@ export function computeDueSuggestions({
         ? snooze.snoozed_until
         : new Date(snooze.snoozed_until).getTime();
       if (untilMs > nowMs) {
-        activeSnoozeKeys.add(snooze.article_key);
+        activeSnoozeKeys.add(snooze.article_key.toLowerCase());
+        const canonSnooze = getCanonicalArticle(snooze.article_key);
+        if (canonSnooze.articleKey) {
+          activeSnoozeKeys.add(canonSnooze.articleKey.toLowerCase());
+        }
+        if (canonSnooze.displayName) {
+          activeSnoozeKeys.add(canonSnooze.displayName.toLowerCase());
+        }
       }
     }
   }
 
-  // Group purchase events by article_key
+  // Group purchase events by canonical taxonomy key (or raw article_key for custom items)
   const grouped = new Map();
   for (const ev of purchaseEvents) {
     if (!ev) continue;
-    let articleKey = ev.article_key;
+    let rawKey = ev.article_key;
     let displayName = ev.display_name || ev.item_name || '';
     let category = ev.category || 'Sonstiges';
     let icon = ev.icon || null;
 
-    if (!articleKey && displayName) {
-      const canon = getCanonicalArticle(displayName, category);
-      articleKey = canon.articleKey;
-      displayName = canon.displayName;
-      category = canon.category;
-      icon = canon.icon;
-    }
+    const canon = getCanonicalArticle(displayName || rawKey, category);
+    const groupKey = canon.articleKey || (rawKey ? rawKey.toLowerCase() : '');
 
-    if (!articleKey) continue;
+    if (!groupKey) continue;
 
-    if (!grouped.has(articleKey)) {
-      grouped.set(articleKey, {
-        articleKey,
-        displayName: displayName || articleKey,
-        category,
-        icon,
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, {
+        articleKey: rawKey || groupKey,
+        canonicalKeys: new Set([groupKey.toLowerCase(), ...(rawKey ? [rawKey.toLowerCase()] : [])]),
+        displayName: canon.displayName || displayName || groupKey,
+        category: (canon.category && canon.category !== 'Sonstiges') ? canon.category : category,
+        icon: canon.icon || icon,
         dates: []
       });
     }
 
-    const group = grouped.get(articleKey);
+    const group = grouped.get(groupKey);
+    if (rawKey) {
+      group.canonicalKeys.add(rawKey.toLowerCase());
+      // Prefer canonical taxonomy UUID if present on any event in this group
+      if (rawKey === canon.articleKey) {
+        group.articleKey = rawKey;
+      }
+    }
+    if (displayName) group.canonicalKeys.add(displayName.trim().toLowerCase());
+
     const dateStr = toDateString(ev.purchased_date || ev.created_at);
     if (dateStr) {
       group.dates.push(dateStr);
     }
-    // Update most recent metadata
-    if (displayName) group.displayName = displayName;
-    if (category && category !== 'Sonstiges') group.category = category;
-    if (icon) group.icon = icon;
+    if (!canon.icon && icon) group.icon = icon;
   }
 
   const suggestions = [];
 
-  for (const [articleKey, data] of grouped.entries()) {
+  for (const [groupKey, data] of grouped.entries()) {
+    const keysToCheck = [data.articleKey.toLowerCase(), groupKey.toLowerCase(), data.displayName.toLowerCase(), ...data.canonicalKeys];
+
     // 1. Exclude if currently open on active list
-    if (activeKeysSet.has(articleKey) || activeKeysSet.has(data.displayName.toLowerCase())) {
+    if (keysToCheck.some(k => activeKeysSet.has(k))) {
       continue;
     }
 
     // 2. Exclude if snoozed
-    if (activeSnoozeKeys.has(articleKey) || activeSnoozeKeys.has(data.displayName.toLowerCase())) {
+    if (keysToCheck.some(k => activeSnoozeKeys.has(k))) {
       continue;
     }
 
@@ -287,7 +309,7 @@ export function computeDueSuggestions({
     }
 
     suggestions.push({
-      article_key: articleKey,
+      article_key: data.articleKey,
       display_name: data.displayName,
       category: data.category,
       icon: data.icon,

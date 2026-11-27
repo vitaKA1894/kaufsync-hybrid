@@ -452,7 +452,14 @@ def match_ingredient_to_taxonomy(name: str, taxonomy_data: List[Dict[str, Any]])
 
 def infer_category_fallback(name: str) -> str:
     lower = name.lower()
-    
+
+    # Specific overrides before broad substring checks
+    if any(k in lower for k in ['spülmaschinensalz', 'regeneriersalz', 'geschirrspülsalz', 'reiniger', 'spülmittel', 'seife', 'shampoo', 'zahnpasta', 'folie', 'alufolie', 'backpapier', 'müllbeutel', 'schraubglas', 'schraubgläser', 'bürste', 'tuch', 'tücher']):
+        return 'Drogerie, Haushalt & Tierbedarf'
+
+    if any(k in lower for k in ['kokosmilch', 'tütensuppe', 'fertigsuppe', 'knoblauchpulver', 'zwiebelpulver', 'agavendicksaft', 'ahornsirup', 'zuckerrübensirup', 'gelierzucker', 'vanillezucker']):
+        return 'Vorratskammer'
+
     # Fleisch & Fisch
     if any(k in lower for k in [
         'fleisch', 'hack', 'wurst', 'würst', 'wiener', 'hähnchen', 'huhn', 'pute',
@@ -483,13 +490,13 @@ def infer_category_fallback(name: str) -> str:
     if any(k in lower for k in ['wasser', 'saft', 'cola', 'limonade', 'bier', 'wein', 'sekt', 'kaffee', 'espresso', 'tee', 'sirup', 'likör', 'rum', 'gin', 'vodka']):
         return 'Getränke & Genussmittel'
 
-    # Drogerie & Haushalt
-    if any(k in lower for k in ['reiniger', 'spülmittel', 'seife', 'shampoo', 'zahnpasta', 'folie', 'alufolie', 'backpapier', 'müllbeutel', 'glas', 'gläser', 'schraubglas', 'schraubgläser', 'bürste', 'tuch', 'tücher']):
+    # Drogerie & Haushalt (remaining container words like Glas/Gläser)
+    if any(k in lower for k in ['glas', 'gläser']):
         return 'Drogerie, Haushalt & Tierbedarf'
 
     # Vorratskammer (Standard cooking staples & pantry)
     if any(k in lower for k in [
-        'zucker', 'gelierzucker', 'mehl', 'stärke', 'backpulver', 'hefe', 'vanille', 'kakao',
+        'zucker', 'mehl', 'stärke', 'backpulver', 'hefe', 'vanille', 'kakao',
         'öl', 'olivenöl', 'essig', 'balsamico', 'salz', 'pfeffer', 'gewürz', 'curry',
         'oregano', 'thymian', 'rosmarin', 'brühe', 'bouillon', 'sauce', 'soße', 'senf',
         'ketchup', 'mayo', 'tomatenmark', 'pesto', 'nudeln', 'pasta', 'spaghetti', 'reis',

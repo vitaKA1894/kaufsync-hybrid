@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted, watch, nextTick, computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
-import { searchTaxonomy, debounce } from '../utils/search';
+import { searchTaxonomy, findTaxonomyItem, debounce } from '../utils/search';
 import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
@@ -102,9 +102,11 @@ const visibleDueSuggestions = computed(() => {
   const activeNames = new Set((props.activeItems || []).map(i => i.name.trim().toLowerCase()));
 
   return dueSuggestions.value.filter(sug => {
-    if (recentlyAddedKeys.value.includes(sug.articleKey)) return false;
-    if (dismissedKeys.value.includes(sug.articleKey)) return false;
-    if (activeNames.has(sug.name.trim().toLowerCase())) return false;
+    const key = sug.article_key || sug.articleKey;
+    const name = (sug.display_name || sug.name || '').trim().toLowerCase();
+    if (recentlyAddedKeys.value.includes(key)) return false;
+    if (dismissedKeys.value.includes(key)) return false;
+    if (name && activeNames.has(name)) return false;
     return true;
   });
 });
@@ -112,16 +114,16 @@ const visibleDueSuggestions = computed(() => {
 const restockSuggestion = (sug) => {
   triggerLightHaptic();
   const newId = crypto.randomUUID();
-  const searchMatch = searchTaxonomy(sug.name).find(
-    t => t.name.toLowerCase() === sug.name.toLowerCase()
-  );
+  const sugName = sug.display_name || sug.name;
+  const sugKey = sug.article_key || sug.articleKey;
+  const searchMatch = findTaxonomyItem(sugName);
   const unit = searchMatch?.unit || 'Stk';
 
-  recentlyAddedKeys.value.push(sug.articleKey);
+  recentlyAddedKeys.value.push(sugKey);
 
   emit('add', {
     id: newId,
-    name: sug.name,
+    name: sugName,
     category: sug.category || 'Sonstiges',
     quantity: 1,
     unit: unit,
@@ -132,8 +134,10 @@ const restockSuggestion = (sug) => {
 
 const dismissSuggestion = (sug) => {
   triggerLightHaptic();
-  dismissedKeys.value.push(sug.articleKey);
-  snoozeSuggestion(props.listId, sug.articleKey, sug.medianCycleDays);
+  const sugKey = sug.article_key || sug.articleKey;
+  const medianDays = sug.median_cycle_days || sug.medianCycleDays;
+  dismissedKeys.value.push(sugKey);
+  snoozeSuggestion(props.listId, sugKey, medianDays);
 };
 
 // Sheet Dragging Logic
@@ -321,9 +325,7 @@ const handleDismiss = () => {
 
 const setupEditItem = (item) => {
   const mappedCategory = mapLegacyCategory(item.category || 'Sonstiges');
-  const taxonomyMatch = searchTaxonomy(item.name).find(
-    t => t.name.toLowerCase() === item.name.toLowerCase()
-  );
+  const taxonomyMatch = findTaxonomyItem(item.name);
 
   selectedItem.value = {
     id: item.id,
@@ -496,7 +498,7 @@ const handleScan = async (barcode) => {
 
 const search = debounce((val) => {
   if (val && val.length >= 1) {
-    results.value = searchTaxonomy(val).reverse();
+    results.value = searchTaxonomy(val);
   } else {
     results.value = [];
   }
@@ -561,16 +563,11 @@ const confirmSelection = (bypassWarning = false) => {
   const qLower = qTrimmed.toLowerCase();
 
   // Try to find exact or close match in taxonomy
-  const searchRes = searchTaxonomy(qTrimmed);
-  const exactMatch = searchRes.find(
-    t => t.name.toLowerCase() === qLower || (t.aliases && t.aliases.some(a => a.toLowerCase() === qLower))
-  );
-  const chosenMatch = exactMatch || (searchRes.length > 0 ? searchRes[0] : null);
+  const directMatch = findTaxonomyItem(qTrimmed);
+  const searchRes = directMatch ? [directMatch] : searchTaxonomy(qTrimmed);
+  const chosenMatch = searchRes.length > 0 ? searchRes[0] : null;
 
   if (chosenMatch) {
-    if (chosenMatch.name.toLowerCase() !== qLower) {
-      chosenMatch.matchedAlias = qTrimmed;
-    }
     selectItem(chosenMatch);
     return;
   }
@@ -753,19 +750,19 @@ watch(() => props.editItem, (newVal) => {
               <div class="restock-chips-slider" @touchstart.stop @touchmove.stop>
                 <div
                   v-for="sug in visibleDueSuggestions"
-                  :key="sug.articleKey"
+                  :key="sug.article_key || sug.articleKey"
                   class="restock-card"
                   :style="{ '--cat-accent': getCategoryDef(sug.category).color }"
                   @click="restockSuggestion(sug)"
                   role="button"
                   tabindex="0"
-                  :aria-label="`${sug.name} wieder auf die Liste setzen`"
+                  :aria-label="`${sug.display_name || sug.name} wieder auf die Liste setzen`"
                 >
                   <button
                     type="button"
                     class="restock-dismiss-btn"
                     @click.stop="dismissSuggestion(sug)"
-                    :aria-label="`${sug.name} Vorschlag verwerfen`"
+                    :aria-label="`${sug.display_name || sug.name} Vorschlag verwerfen`"
                   >
                     <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
                       <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
@@ -774,11 +771,11 @@ watch(() => props.editItem, (newVal) => {
 
                   <div class="restock-card-main">
                     <div class="restock-icon-wrapper" :style="{ color: getCategoryDef(sug.category).color }">
-                      <CategoryIcon :name="sug.name" :category="sug.category" size="26" />
+                      <CategoryIcon :name="sug.display_name || sug.name" :category="sug.category" size="26" />
                     </div>
                     <div class="restock-card-text">
-                      <span class="restock-item-name">{{ sug.name }}</span>
-                      <span class="restock-cadence">{{ sug.cadenceText }}</span>
+                      <span class="restock-item-name">{{ sug.display_name || sug.name }}</span>
+                      <span class="restock-cadence">{{ sug.cadence_text || sug.cadenceText }}</span>
                     </div>
                   </div>
 

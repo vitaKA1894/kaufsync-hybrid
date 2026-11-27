@@ -425,6 +425,15 @@ export function matchIngredientToTaxonomy(name) {
 export function inferCategoryFallback(name) {
   const lower = (name || '').toLowerCase();
 
+  // Specific overrides before broad substring checks
+  if (['spülmaschinensalz', 'regeneriersalz', 'geschirrspülsalz', 'reiniger', 'spülmittel', 'seife', 'shampoo', 'zahnpasta', 'folie', 'alufolie', 'backpapier', 'müllbeutel', 'schraubglas', 'schraubgläser', 'bürste', 'tuch', 'tücher'].some(k => lower.includes(k))) {
+    return 'Drogerie, Haushalt & Tierbedarf';
+  }
+
+  if (['kokosmilch', 'tütensuppe', 'fertigsuppe', 'knoblauchpulver', 'zwiebelpulver', 'agavendicksaft', 'ahornsirup', 'zuckerrübensirup', 'gelierzucker', 'vanillezucker'].some(k => lower.includes(k))) {
+    return 'Vorratskammer';
+  }
+
   // Fleisch & Fisch
   if (['fleisch', 'hack', 'wurst', 'würst', 'wiener', 'hähnchen', 'huhn', 'pute', 'rind', 'schwein', 'kalb', 'lamm', 'wild', 'fisch', 'lachs', 'thunfisch', 'forelle', 'kabeljau', 'dorsch', 'garnele', 'scampi', 'shrimp', 'meeresfrüchte', 'rippchen', 'spareribs', 'ribs', 'schnitzel', 'steak', 'gulasch', 'braten', 'speck', 'bacon', 'schinken'].some(k => lower.includes(k))) {
     return 'Fleisch & Fisch';
@@ -450,13 +459,13 @@ export function inferCategoryFallback(name) {
     return 'Getränke & Genussmittel';
   }
 
-  // Drogerie & Haushalt
-  if (['reiniger', 'spülmittel', 'seife', 'shampoo', 'zahnpasta', 'folie', 'alufolie', 'backpapier', 'müllbeutel', 'glas', 'gläser', 'schraubglas', 'schraubgläser', 'bürste', 'tuch', 'tücher'].some(k => lower.includes(k))) {
+  // Drogerie & Haushalt (remaining container words like Glas/Gläser)
+  if (['glas', 'gläser'].some(k => lower.includes(k))) {
     return 'Drogerie, Haushalt & Tierbedarf';
   }
 
   // Vorratskammer
-  if (['zucker', 'gelierzucker', 'mehl', 'stärke', 'backpulver', 'hefe', 'vanille', 'kakao', 'öl', 'olivenöl', 'essig', 'balsamico', 'salz', 'pfeffer', 'gewürz', 'curry', 'oregano', 'thymian', 'rosmarin', 'brühe', 'bouillon', 'sauce', 'soße', 'senf', 'ketchup', 'mayo', 'tomatenmark', 'pesto', 'nudeln', 'pasta', 'spaghetti', 'reis', 'haferflocken', 'müsli', 'honig', 'marmelade', 'konfitüre', 'nuss', 'nüsse', 'mandel', 'chia', 'linse', 'kichererbse'].some(k => lower.includes(k))) {
+  if (['zucker', 'mehl', 'stärke', 'backpulver', 'hefe', 'vanille', 'kakao', 'öl', 'olivenöl', 'essig', 'balsamico', 'salz', 'pfeffer', 'gewürz', 'curry', 'oregano', 'thymian', 'rosmarin', 'brühe', 'bouillon', 'sauce', 'soße', 'senf', 'ketchup', 'mayo', 'tomatenmark', 'pesto', 'nudeln', 'pasta', 'spaghetti', 'reis', 'haferflocken', 'müsli', 'honig', 'marmelade', 'konfitüre', 'nuss', 'nüsse', 'mandel', 'chia', 'linse', 'kichererbse'].some(k => lower.includes(k))) {
     return 'Vorratskammer';
   }
 

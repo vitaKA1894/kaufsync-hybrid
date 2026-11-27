@@ -2,7 +2,7 @@ import os
 from fastapi import FastAPI, Depends, HTTPException, WebSocket, WebSocketDisconnect, Response, BackgroundTasks, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 from datetime import timedelta, datetime, timezone
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
@@ -953,11 +953,30 @@ def calculate_median(numbers: List[int]) -> int:
         return s[mid]
     return round((s[mid - 1] + s[mid]) / 2)
 
+def _resolve_taxonomy_canonical(name_or_key: str) -> Optional[Dict[str, Any]]:
+    """Resolves an item name, alias, or taxonomy ID to its canonical taxonomy entry."""
+    if not name_or_key:
+        return None
+    key = name_or_key.strip()
+    lower = key.lower()
+    tax = recipe_service.get_taxonomy()
+    if not tax:
+        return None
+    for entry in tax:
+        if entry.get("id") == key or (entry.get("name") or "").lower() == lower:
+            return entry
+    for entry in tax:
+        if any((a or "").lower() == lower for a in entry.get("aliases", [])):
+            return entry
+    return None
+
 def record_purchase_event(db: Session, list_id: str, item_name: str, category: str = "Sonstiges", source_item_id: Optional[str] = None):
     if not list_id or not item_name:
         return
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     article_key = item_name.strip().lower()
+    canon = _resolve_taxonomy_canonical(item_name)
+
     existing = db.query(models.PurchaseEvent).filter(
         models.PurchaseEvent.list_id == list_id,
         models.PurchaseEvent.article_key == article_key,
@@ -967,16 +986,24 @@ def record_purchase_event(db: Session, list_id: str, item_name: str, category: s
         pe = models.PurchaseEvent(
             list_id=list_id,
             article_key=article_key,
-            display_name=item_name.strip(),
-            category=category or "Sonstiges",
+            display_name=(canon.get("name") if canon else None) or item_name.strip(),
+            category=(canon.get("category") if canon else None) or category or "Sonstiges",
+            icon=canon.get("icon") if canon else None,
             purchased_date=today_str,
             source_item_id=source_item_id
         )
         db.add(pe)
-    # Clear active snoozes for this article in this list
+
+    # Clear active snoozes for this article (matching raw name, canonical taxonomy ID, and canonical name)
+    snooze_keys = {article_key}
+    if canon:
+        if canon.get("id"):
+            snooze_keys.add(canon["id"].lower())
+        if canon.get("name"):
+            snooze_keys.add(canon["name"].lower())
     db.query(models.SuggestionSnooze).filter(
         models.SuggestionSnooze.list_id == list_id,
-        models.SuggestionSnooze.article_key == article_key
+        models.SuggestionSnooze.article_key.in_(list(snooze_keys))
     ).delete(synchronize_session=False)
 
 def retract_purchase_event(db: Session, list_id: str, source_item_id: str):
@@ -1029,13 +1056,31 @@ def get_due_suggestions(
         models.Item.status != "completed",
         models.Item.is_deleted == False
     ).all()
-    active_keys = {item.name.strip().lower() for item in active_items if item.name}
+    active_keys = set()
+    for item in active_items:
+        if item.name:
+            active_keys.add(item.name.strip().lower())
+            canon_active = _resolve_taxonomy_canonical(item.name)
+            if canon_active:
+                if canon_active.get("id"):
+                    active_keys.add(canon_active["id"].lower())
+                if canon_active.get("name"):
+                    active_keys.add(canon_active["name"].lower())
 
     snoozes = db.query(models.SuggestionSnooze).filter(
         models.SuggestionSnooze.list_id == list_id,
         models.SuggestionSnooze.snoozed_until > now
     ).all()
-    snoozed_keys = {s.article_key.lower() for s in snoozes}
+    snoozed_keys = set()
+    for s in snoozes:
+        sk = s.article_key.lower()
+        snoozed_keys.add(sk)
+        canon_sn = _resolve_taxonomy_canonical(s.article_key)
+        if canon_sn:
+            if canon_sn.get("id"):
+                snoozed_keys.add(canon_sn["id"].lower())
+            if canon_sn.get("name"):
+                snoozed_keys.add(canon_sn["name"].lower())
 
     events = db.query(models.PurchaseEvent).filter(
         models.PurchaseEvent.list_id == list_id
@@ -1043,30 +1088,37 @@ def get_due_suggestions(
 
     grouped = {}
     for ev in events:
-        ak = ev.article_key.lower()
-        if ak not in grouped:
-            grouped[ak] = {
+        raw_ak = ev.article_key.lower()
+        canon_ev = _resolve_taxonomy_canonical(ev.display_name or ev.article_key)
+        group_key = canon_ev["id"].lower() if canon_ev and canon_ev.get("id") else raw_ak
+        if group_key not in grouped:
+            grouped[group_key] = {
                 "article_key": ev.article_key,
-                "display_name": ev.display_name,
-                "category": ev.category or "Sonstiges",
-                "icon": ev.icon,
+                "canonical_keys": {raw_ak, group_key},
+                "display_name": (canon_ev.get("name") if canon_ev else None) or ev.display_name,
+                "category": (canon_ev.get("category") if canon_ev else None) or ev.category or "Sonstiges",
+                "icon": (canon_ev.get("icon") if canon_ev else None) or ev.icon,
                 "dates": set()
             }
-        grouped[ak]["dates"].add(ev.purchased_date)
+        grouped[group_key]["dates"].add(ev.purchased_date)
+        grouped[group_key]["canonical_keys"].add(raw_ak)
         if ev.display_name:
-            grouped[ak]["display_name"] = ev.display_name
-        if ev.category and ev.category != "Sonstiges":
-            grouped[ak]["category"] = ev.category
-        if ev.icon:
-            grouped[ak]["icon"] = ev.icon
+            grouped[group_key]["canonical_keys"].add(ev.display_name.strip().lower())
+            if not canon_ev:
+                grouped[group_key]["display_name"] = ev.display_name
+        if ev.category and ev.category != "Sonstiges" and not canon_ev:
+            grouped[group_key]["category"] = ev.category
+        if ev.icon and not canon_ev:
+            grouped[group_key]["icon"] = ev.icon
 
     today_date = datetime.strptime(today_str, "%Y-%m-%d").date()
     suggestions = []
 
     for ak, data in grouped.items():
-        if ak in active_keys or data["display_name"].lower() in active_keys:
+        all_keys = data["canonical_keys"] | {data["display_name"].lower()}
+        if all_keys & active_keys:
             continue
-        if ak in snoozed_keys or data["display_name"].lower() in snoozed_keys:
+        if all_keys & snoozed_keys:
             continue
 
         unique_dates = sorted(list(data["dates"]))

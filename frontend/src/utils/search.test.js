@@ -1,4 +1,4 @@
-import { levenshteinDistance, searchTaxonomy, debounce } from './search.js';
+import { levenshteinDistance, searchTaxonomy, findTaxonomyItem, debounce } from './search.js';
 
 // Setup mock for taxonomy.json since we use it directly in search.js
 // We don't actually need to mock it if we are using ES modules in test, but
@@ -62,10 +62,44 @@ function runTests() {
          throw new Error("Exact alias search failed for 'Frischhaltefolie'");
     }
 
-    // matchedAlias property injection test
+    // matchedAlias property injection test (only when resolved via alias)
     const matchedAliasTest = searchTaxonomy("Ültje Erdnussbutter");
     if (matchedAliasTest.length === 0 || matchedAliasTest[0].matchedAlias !== "Ültje Erdnussbutter") {
          throw new Error("matchedAlias property missing or incorrect. Expected 'Ültje Erdnussbutter', got '" + (matchedAliasTest[0] ? matchedAliasTest[0].matchedAlias : 'undefined') + "'");
+    }
+
+    // Exact/prefix name match must rank #1 and must NOT inject a random alias as tag
+    const milchTop = searchTaxonomy("Milch");
+    if (milchTop.length === 0 || milchTop[0].name !== "Milch" || milchTop[0].matchedAlias !== null) {
+         throw new Error("Expected 'Milch' as top hit with matchedAlias=null, got: " + JSON.stringify(milchTop[0]));
+    }
+
+    // Short prefix "Ei" must rank "Eier" first instead of substring matches like Milchreis
+    const eiResults = searchTaxonomy("Ei");
+    if (eiResults.length === 0 || eiResults[0].name !== "Eier") {
+         throw new Error("Expected 'Eier' first for query 'Ei', got: " + JSON.stringify(eiResults.map(r => r.name)));
+    }
+
+    // Umlaut-normalized ASCII queries must find umlaut articles cleanly
+    const kaeseResults = searchTaxonomy("Kaese");
+    if (kaeseResults.length === 0 || kaeseResults[0].name !== "Käse") {
+         throw new Error("Expected 'Käse' first for ASCII query 'Kaese', got: " + JSON.stringify(kaeseResults.map(r => r.name)));
+    }
+
+    // Plant milk alias must resolve cleanly to Pflanzliche Milch without collision
+    const haferResults = searchTaxonomy("Hafermilch");
+    if (haferResults.length === 0 || haferResults[0].name !== "Pflanzliche Milch") {
+         throw new Error("Expected 'Pflanzliche Milch' for 'Hafermilch', got: " + JSON.stringify(haferResults.map(r => r.name)));
+    }
+
+    // Direct O(1) lookup via findTaxonomyItem
+    const directSpuel = findTaxonomyItem("Spülmaschinensalz");
+    if (!directSpuel || directSpuel.category !== "Drogerie, Haushalt & Tierbedarf") {
+         throw new Error("Expected Spülmaschinensalz in Drogerie, Haushalt & Tierbedarf");
+    }
+    const directAscii = findTaxonomyItem("Broetchen");
+    if (!directAscii || directAscii.name !== "Brötchen") {
+         throw new Error("Expected findTaxonomyItem('Broetchen') to resolve to 'Brötchen'");
     }
 
     console.log("Search tests passed!");
