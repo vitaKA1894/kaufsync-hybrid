@@ -7,8 +7,9 @@ android {
         applicationId "com.kaufsync.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 2
-        versionName "1.0.1"
+        def ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")?.isInteger() ? System.getenv("GITHUB_RUN_NUMBER").toInteger() : 43
+        versionCode Math.max(43, ciRunNumber)
+        versionName "1.2.${Math.max(43, ciRunNumber)}"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

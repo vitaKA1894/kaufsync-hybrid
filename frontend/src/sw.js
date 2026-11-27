@@ -1,5 +1,9 @@
-import { precacheAndRoute } from 'workbox-precaching';
+import { clientsClaim } from 'workbox-core';
+import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
 
+self.skipWaiting();
+clientsClaim();
+cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST || []);
 
 self.addEventListener('push', function(event) {
