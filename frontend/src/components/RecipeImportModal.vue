@@ -9,6 +9,11 @@ import {
   parseTextRecipe,
   formatGermanQuantity
 } from '../utils/clientRecipeParser';
+import {
+  getUserMappingsSnapshot,
+  learnArticleMapping,
+  syncUserMappings
+} from '../services/userMappingService';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 const props = defineProps({
@@ -134,8 +139,9 @@ const normalizeError = (err) => {
   };
 };
 
-// Inline Ingredient Editing State
+// Inline Ingredient Editing State + Pending Learned Corrections
 const editingIndex = ref(null);
+const pendingRecipeOverrides = ref({});
 const editForm = ref({
   name: '',
   display_amount: '',
@@ -170,6 +176,8 @@ const cancelEditItem = () => {
 const saveEditItem = (idx) => {
   const it = recipeData.value?.ingredients?.[idx];
   if (!it) return;
+  const prevName = it.name;
+  const prevCat = it.category || 'Sonstiges';
   const newName = editForm.value.name.trim();
   if (newName) {
     it.name = newName;
@@ -182,6 +190,18 @@ const saveEditItem = (idx) => {
     it.tags = [newAmount];
   }
   it.selected = true;
+
+  // Record pending correction so it is learned when user confirms import (not on cancel)
+  if (it.name !== prevName || it.category !== prevCat) {
+    pendingRecipeOverrides.value[idx] = {
+      originalKeyName: it.original_name || prevName,
+      name: it.name,
+      category: it.category,
+      icon: it.icon || null,
+      taxonomyId: it.taxonomy_id || null
+    };
+  }
+
   editingIndex.value = null;
 };
 
@@ -229,11 +249,13 @@ const resetState = () => {
   currentServings.value = 4;
   selectedListId.value = props.listId || '';
   editingIndex.value = null;
+  pendingRecipeOverrides.value = {};
   isCreatingListLoading.value = false;
 };
 
 watch(() => props.isOpen, async (newVal) => {
   if (newVal) {
+    syncUserMappings();
     await loadAvailableLists();
     if (props.initialUrl) {
       url.value = props.initialUrl;
@@ -330,8 +352,8 @@ const fetchRecipe = async () => {
       }
     } catch (netErr) {
       if (netErr.code) throw netErr;
-      // If server unreachable, try client parser
-      data = await parseRecipeClientSide(targetUrl);
+      // If server unreachable, try client parser with user mappings layer
+      data = await parseRecipeClientSide(targetUrl, getUserMappingsSnapshot());
     }
 
     if (!data || !data.ingredients || data.ingredients.length === 0) {
@@ -366,9 +388,9 @@ const handleTextParse = async () => {
   recipeData.value = null;
 
   try {
-    // If offline, always use local clientRecipeParser
+    // If offline, always use local clientRecipeParser with Layer 1 user mappings
     if (!isOnline.value) {
-      const data = parseTextRecipe(content, textTitleInput.value);
+      const data = parseTextRecipe(content, textTitleInput.value, getUserMappingsSnapshot());
       recipeData.value = data;
       currentServings.value = data.servings || 4;
       return;
@@ -397,7 +419,7 @@ const handleTextParse = async () => {
     }
 
     if (!data) {
-      data = parseTextRecipe(content, textTitleInput.value);
+      data = parseTextRecipe(content, textTitleInput.value, getUserMappingsSnapshot());
     }
 
     recipeData.value = data;
@@ -577,9 +599,23 @@ const importSelectedItems = async () => {
         quantity: parseFloat(i.quantity) || 1.0,
         unit: i.unit || 'Stk',
         tags: tagsVal,
-        note: noteVal
+        note: noteVal,
+        taxonomy_id: i.taxonomy_id || null
       };
     });
+
+  // Persist any ingredient corrections edited during recipe preview
+  const overridesList = Object.values(pendingRecipeOverrides.value || {});
+  if (overridesList.length > 0) {
+    await Promise.allSettled(
+      overridesList.map(ov => learnArticleMapping({
+        name: ov.name,
+        category: ov.category,
+        icon: ov.icon,
+        taxonomyId: ov.taxonomyId || ov.originalKeyName
+      }))
+    );
+  }
 
   isImporting.value = true;
   errorMessage.value = '';

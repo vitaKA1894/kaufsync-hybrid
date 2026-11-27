@@ -635,7 +635,22 @@ export function mergeDuplicateIngredients(ingredients) {
 }
 
 // --- FULL INGREDIENT LIST PROCESSING ---
-export function processIngredientLines(rawLines) {
+function findClientUserOverride(rawName, matchedTax, userMappings) {
+  if (!Array.isArray(userMappings) || userMappings.length === 0) return null;
+  const articleMaps = userMappings.filter(m => m && m.mapping_type === 'article');
+  if (matchedTax?.id) {
+    const byTaxId = articleMaps.find(m => m.lookup_key === matchedTax.id);
+    if (byTaxId) return byTaxId;
+  }
+  const candidates = [rawName, matchedTax?.name].filter(Boolean).map(s => s.trim().toLowerCase());
+  for (const c of candidates) {
+    const hit = articleMaps.find(m => (m.lookup_key || '').trim().toLowerCase() === c);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+export function processIngredientLines(rawLines, userMappings = []) {
   const parsedIngredients = [];
 
   for (const rawLine of rawLines) {
@@ -663,6 +678,17 @@ export function processIngredientLines(rawLines) {
       isMatched = true;
     } else {
       category = inferCategoryFallback(itemName);
+    }
+
+    // Layer 1 override: Personal UserItemMapping
+    const userOverride = findClientUserOverride(itemData.name, matchedTax, userMappings)
+      || (itemName !== itemData.name ? findClientUserOverride(itemName, matchedTax, userMappings) : null);
+    if (userOverride) {
+      if (userOverride.preferred_name) itemName = userOverride.preferred_name;
+      if (userOverride.preferred_category) category = userOverride.preferred_category;
+      if (userOverride.preferred_icon) icon = userOverride.preferred_icon;
+      if (userOverride.linked_taxonomy_id && !taxonomyId) taxonomyId = userOverride.linked_taxonomy_id;
+      isMatched = true;
     }
 
     const qty = itemData.quantity;
@@ -717,13 +743,13 @@ export function processIngredientLines(rawLines) {
 }
 
 // --- TEXT IMPORT HELPER ---
-export function parseTextRecipe(text, title) {
+export function parseTextRecipe(text, title, userMappings = []) {
   const lines = (text || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
   if (lines.length === 0) {
     throw new Error('Bitte gib mindestens eine Zutat ein.');
   }
 
-  const ingredients = processIngredientLines(lines);
+  const ingredients = processIngredientLines(lines, userMappings);
   if (ingredients.length === 0) {
     throw new Error('Auf dieser Seite wurden keine Zutaten erkannt. Du kannst sie einfach über den Text-Import einfügen.');
   }
@@ -741,7 +767,7 @@ export function parseTextRecipe(text, title) {
 }
 
 // --- CLIENT-SIDE URL FETCHER & PARSER ---
-export async function parseRecipeClientSide(url) {
+export async function parseRecipeClientSide(url, userMappings = []) {
   let targetUrl = (url || '').trim();
   if (!targetUrl.startsWith('http://') && !targetUrl.startsWith('https://')) {
     targetUrl = 'https://' + targetUrl;
@@ -860,7 +886,7 @@ export async function parseRecipeClientSide(url) {
     ? recipeObj.recipeIngredient
     : (recipeObj.recipeIngredient ? [recipeObj.recipeIngredient] : []);
 
-  const ingredients = processIngredientLines(rawIngredients);
+  const ingredients = processIngredientLines(rawIngredients, userMappings);
   if (ingredients.length === 0) {
     const err = new Error('Auf dieser Seite wurden keine Zutaten erkannt. Du kannst sie einfach über den Text-Import einfügen.');
     err.code = 'no_recipe_found';

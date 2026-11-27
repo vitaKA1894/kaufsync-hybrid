@@ -204,4 +204,24 @@ class SuggestionSnooze(Base):
     shopping_list = relationship("List", backref="suggestion_snoozes")
 
 
+class UserItemMapping(Base):
+    __tablename__ = "user_item_mappings"
+    __table_args__ = (
+        UniqueConstraint('user_id', 'mapping_type', 'lookup_key', name='uq_user_mapping_type_key'),
+    )
+
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id", ondelete="CASCADE"), index=True, nullable=False)
+    mapping_type = Column(String, nullable=False)  # "article" | "barcode"
+    lookup_key = Column(String, index=True, nullable=False)
+    preferred_name = Column(String, nullable=False)
+    preferred_category = Column(String, nullable=False, default="Sonstiges")
+    preferred_icon = Column(String, nullable=True)
+    linked_taxonomy_id = Column(String, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    user = relationship("User", backref="item_mappings")
+
+
 

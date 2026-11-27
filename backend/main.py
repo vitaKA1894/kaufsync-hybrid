@@ -728,6 +728,7 @@ def delete_account(
     db.query(models.Notification).filter(models.Notification.user_id == user_id).delete(synchronize_session=False)
     db.query(models.PushSubscription).filter(models.PushSubscription.user_id == user_id).delete(synchronize_session=False)
     db.query(models.ListLoyaltyCard).filter(models.ListLoyaltyCard.user_id == user_id).delete(synchronize_session=False)
+    db.query(models.UserItemMapping).filter(models.UserItemMapping.user_id == user_id).delete(synchronize_session=False)
 
     # 7. Nutzer löschen
     db.delete(current_user)
@@ -1201,6 +1202,120 @@ def snooze_suggestion(
     db.commit()
     return {"status": "ok", "snoozed_until": snoozed_until.isoformat()}
 
+# --- PERSONAL LEARNABLE ITEM MAPPINGS (STRICTLY PER-USER) ---
+
+def _serialize_user_mappings(db: Session, user_id: str) -> List[Dict[str, Any]]:
+    rows = db.query(models.UserItemMapping).filter(models.UserItemMapping.user_id == user_id).all()
+    return [
+        {
+            "id": r.id,
+            "user_id": r.user_id,
+            "mapping_type": r.mapping_type,
+            "lookup_key": r.lookup_key,
+            "preferred_name": r.preferred_name,
+            "preferred_category": r.preferred_category,
+            "preferred_icon": r.preferred_icon,
+            "linked_taxonomy_id": r.linked_taxonomy_id,
+        }
+        for r in rows
+    ]
+
+def _upsert_single_user_mapping(db: Session, user_id: str, data: schemas.UserItemMappingUpsert) -> models.UserItemMapping:
+    m_type = (data.mapping_type or "article").strip().lower()
+    if m_type not in ("article", "barcode"):
+        raise HTTPException(status_code=400, detail="Ungültiger Zuordnungstyp")
+    l_key = (data.lookup_key or "").strip()
+    if m_type == "article":
+        l_key = l_key.lower()
+    if not l_key:
+        raise HTTPException(status_code=400, detail="lookup_key darf nicht leer sein")
+
+    existing = db.query(models.UserItemMapping).filter(
+        models.UserItemMapping.user_id == user_id,
+        models.UserItemMapping.mapping_type == m_type,
+        models.UserItemMapping.lookup_key == l_key
+    ).first()
+
+    if existing:
+        existing.preferred_name = data.preferred_name.strip()
+        existing.preferred_category = data.preferred_category or "Sonstiges"
+        existing.preferred_icon = data.preferred_icon
+        existing.linked_taxonomy_id = data.linked_taxonomy_id
+        existing.updated_at = datetime.now(timezone.utc)
+        return existing
+
+    created = models.UserItemMapping(
+        user_id=user_id,
+        mapping_type=m_type,
+        lookup_key=l_key,
+        preferred_name=data.preferred_name.strip(),
+        preferred_category=data.preferred_category or "Sonstiges",
+        preferred_icon=data.preferred_icon,
+        linked_taxonomy_id=data.linked_taxonomy_id
+    )
+    db.add(created)
+    return created
+
+@app.get("/api/users/me/item-mappings", response_model=List[schemas.UserItemMappingResponse])
+def get_my_item_mappings(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    return db.query(models.UserItemMapping).filter(
+        models.UserItemMapping.user_id == current_user.id
+    ).order_by(models.UserItemMapping.updated_at.desc()).all()
+
+@app.put("/api/users/me/item-mappings", response_model=schemas.UserItemMappingResponse)
+def upsert_my_item_mapping(
+    payload: schemas.UserItemMappingUpsert,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    row = _upsert_single_user_mapping(db, current_user.id, payload)
+    db.commit()
+    db.refresh(row)
+    return row
+
+@app.post("/api/users/me/item-mappings/sync", response_model=List[schemas.UserItemMappingResponse])
+def sync_my_item_mappings(
+    req: schemas.UserItemMappingSyncRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    for item in req.mappings:
+        _upsert_single_user_mapping(db, current_user.id, item)
+    db.commit()
+    return db.query(models.UserItemMapping).filter(
+        models.UserItemMapping.user_id == current_user.id
+    ).order_by(models.UserItemMapping.updated_at.desc()).all()
+
+@app.delete("/api/users/me/item-mappings/{mapping_id}")
+def delete_my_item_mapping(
+    mapping_id: str,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    row = db.query(models.UserItemMapping).filter(
+        models.UserItemMapping.id == mapping_id,
+        models.UserItemMapping.user_id == current_user.id
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Zuordnung nicht gefunden")
+    db.delete(row)
+    db.commit()
+    return {"status": "ok"}
+
+@app.delete("/api/users/me/item-mappings")
+def reset_my_item_mappings(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(auth.get_current_user)
+):
+    deleted = db.query(models.UserItemMapping).filter(
+        models.UserItemMapping.user_id == current_user.id
+    ).delete(synchronize_session=False)
+    db.commit()
+    return {"status": "ok", "deleted": deleted}
+
 # --- READONLY PUBLIC SHARING ---
 
 @app.get("/api/public/list/{readonly_token}", response_model=schemas.PublicListResponse)
@@ -1666,6 +1781,31 @@ async def create_item(
 
     return new_item
 
+def _parse_tags_split(tags_raw: Optional[str]):
+    """Splits stored JSON/comma tags into (variant_pills, meta_tags)."""
+    urgency_set = {"dringend", "angebot", "wenn's passt"}
+    variants, meta = [], []
+    if not tags_raw:
+        return variants, meta
+    parsed = []
+    if isinstance(tags_raw, list):
+        parsed = [str(t).strip() for t in tags_raw if str(t).strip()]
+    else:
+        try:
+            loaded = json.loads(tags_raw)
+            if isinstance(loaded, list):
+                parsed = [str(t).strip() for t in loaded if str(t).strip()]
+        except Exception:
+            parsed = [s.strip() for s in str(tags_raw).split(",") if s.strip()]
+    for t in parsed:
+        if t.lower() in urgency_set:
+            if not any(m.lower() == t.lower() for m in meta):
+                meta.append(t)
+        else:
+            if not any(v.lower() == t.lower() for v in variants):
+                variants.append(t)
+    return variants, meta
+
 @app.post("/api/lists/{list_id}/items/bulk", response_model=List[schemas.ItemResponse])
 async def create_items_bulk(
     list_id: str,
@@ -1681,20 +1821,69 @@ async def create_items_bulk(
     if db_list.created_by != current_user.id and current_user not in db_list.members:
         raise HTTPException(status_code=403, detail="Keine Berechtigung für diese Liste")
 
+    open_items = db.query(models.Item).filter(
+        models.Item.list_id == list_id,
+        models.Item.status == "active",
+        models.Item.is_deleted == False
+    ).all()
+
     created_items = []
     for item_data in bulk_data.items:
-        new_item = models.Item(
-            list_id=list_id,
-            name=item_data.name,
-            category=item_data.category or "Sonstiges",
-            quantity=item_data.quantity,
-            unit=item_data.unit or "Stk",
-            note=item_data.note,
-            tags=item_data.tags,
-            last_modified_by=current_user.id
-        )
-        db.add(new_item)
-        created_items.append(new_item)
+        in_name_lower = item_data.name.strip().lower()
+        in_canon = _resolve_taxonomy_canonical(item_data.name)
+        in_tax_id = item_data.taxonomy_id or (in_canon.get("id") if in_canon else None)
+        in_variants, in_meta = _parse_tags_split(item_data.tags)
+        in_variant_set = {v.lower() for v in in_variants}
+
+        # Find compatible open item on the list
+        candidates = []
+        for ex in open_items:
+            ex_canon = _resolve_taxonomy_canonical(ex.name)
+            ex_tax_id = ex_canon.get("id") if ex_canon else None
+            if (in_tax_id and ex_tax_id and in_tax_id == ex_tax_id) or (ex.name.strip().lower() == in_name_lower):
+                candidates.append(ex)
+
+        merge_target = None
+        # First pass: exact variant set equality
+        for cand in candidates:
+            c_vars, _ = _parse_tags_split(cand.tags)
+            if {v.lower() for v in c_vars} == in_variant_set:
+                merge_target = cand
+                break
+        # Second pass: empty pills on either side with single unambiguous candidate
+        if not merge_target and len(candidates) == 1:
+            c_vars, _ = _parse_tags_split(candidates[0].tags)
+            if len(c_vars) == 0 or len(in_variants) == 0:
+                merge_target = candidates[0]
+
+        if merge_target:
+            c_vars, c_meta = _parse_tags_split(merge_target.tags)
+            merged_tags = list(c_vars)
+            for v in in_variants:
+                if not any(x.lower() == v.lower() for x in merged_tags):
+                    merged_tags.append(v)
+            for m in c_meta + in_meta:
+                if not any(x.lower() == m.lower() for x in merged_tags):
+                    merged_tags.append(m)
+            merge_target.quantity = (merge_target.quantity or 1.0) + (item_data.quantity or 1.0)
+            merge_target.tags = json.dumps(merged_tags, ensure_ascii=False) if merged_tags else merge_target.tags
+            merge_target.last_modified_by = current_user.id
+            merge_target.updated_at = datetime.now(timezone.utc)
+            created_items.append(merge_target)
+        else:
+            new_item = models.Item(
+                list_id=list_id,
+                name=item_data.name,
+                category=item_data.category or "Sonstiges",
+                quantity=item_data.quantity,
+                unit=item_data.unit or "Stk",
+                note=item_data.note,
+                tags=item_data.tags,
+                last_modified_by=current_user.id
+            )
+            db.add(new_item)
+            open_items.append(new_item)
+            created_items.append(new_item)
 
     db.commit()
     for it in created_items:
@@ -1769,10 +1958,12 @@ async def create_items_bulk(
 @app.post("/api/recipes/parse", response_model=schemas.RecipeParseResponse)
 async def parse_recipe(
     request: schemas.RecipeParseRequest,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     try:
-        result = recipe_service.parse_recipe_url(request.url)
+        user_mappings = _serialize_user_mappings(db, current_user.id)
+        result = recipe_service.parse_recipe_url(request.url, user_mappings=user_mappings)
         return result
     except recipe_service.RecipeImportError as e:
         logger.warning(f"Recipe parse error [{e.code}]: {e.user_message}")
@@ -1796,10 +1987,12 @@ async def parse_recipe(
 @app.post("/api/recipes/parse-text", response_model=schemas.RecipeParseResponse)
 async def parse_recipe_text(
     request: schemas.RecipeTextParseRequest,
+    db: Session = Depends(get_db),
     current_user: models.User = Depends(auth.get_current_user)
 ):
     try:
-        result = recipe_service.parse_recipe_text(request.text, request.title)
+        user_mappings = _serialize_user_mappings(db, current_user.id)
+        result = recipe_service.parse_recipe_text(request.text, request.title, user_mappings=user_mappings)
         return result
     except recipe_service.RecipeImportError as e:
         raise HTTPException(

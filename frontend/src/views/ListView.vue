@@ -40,6 +40,11 @@ import {
   syncPurchases,
   backfillFromChangelog
 } from '../services/consumptionService';
+import {
+  resolveArticleWithUserLayer,
+  syncUserMappings
+} from '../services/userMappingService';
+import { findMergeCandidate, buildMergedItemUpdate } from '../utils/itemMerge';
 import { findTaxonomyItem } from '../utils/search';
 import { db } from '../db/index';
 
@@ -649,6 +654,28 @@ const handleUpdateItem = async (updatedPayload) => {
 
 const handleAddItem = async (itemPayload) => {
   errorMessage.value = '';
+
+  // Smart Duplicate Merging on Open List Items (Quick-Add, Restock, Barcode, Search)
+  const mergeCandidate = findMergeCandidate(
+    openActiveItems.value,
+    itemPayload,
+    resolveArticleWithUserLayer
+  );
+
+  if (mergeCandidate) {
+    const merged = buildMergedItemUpdate(mergeCandidate, itemPayload);
+    await handleUpdateItem(merged);
+    showCompletionPrompt.value = false;
+    triggerLightHaptic();
+    infoToastMessage.value = merged.toastMessage;
+    setTimeout(() => {
+      if (infoToastMessage.value === merged.toastMessage) {
+        infoToastMessage.value = '';
+      }
+    }, 3000);
+    return;
+  }
+
   const newId = itemPayload.id || crypto.randomUUID();
   const newItem = {
     id: newId,
@@ -1543,6 +1570,7 @@ onMounted(() => {
   setupWebSocket();
   processOfflineQueue();
   syncPurchases(listId);
+  syncUserMappings();
   backfillFromChangelog(listId);
   window.addEventListener('online', updateOnlineStatus);
   window.addEventListener('offline', updateOnlineStatus);

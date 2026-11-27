@@ -14,11 +14,17 @@ import { isHapticFeedbackEnabled, setHapticFeedbackEnabled } from '../utils/hapt
 import { isRestockSuggestionsEnabled, setRestockSuggestionsEnabled } from '../services/consumptionService';
 import StoreLogo from '../components/StoreLogo.vue';
 import LoyaltyCardEditModal from '../components/LoyaltyCardEditModal.vue';
+import LearnedMappingsModal from '../components/LearnedMappingsModal.vue';
 import {
   getAllCards,
   deleteCard,
   maskCardCode
 } from '../services/loyaltyCardService';
+import {
+  mappingsCount,
+  syncUserMappings,
+  clearLocalUserMappings
+} from '../services/userMappingService';
 
 const router = useRouter();
 
@@ -288,6 +294,7 @@ const confirmDeleteAccount = async () => {
       return;
     }
     showDeleteAccountModal.value = false;
+    clearLocalUserMappings();
     await clearAllLocalData();
     router.push('/login?deleted=1');
   } catch (err) {
@@ -298,6 +305,7 @@ const confirmDeleteAccount = async () => {
 };
 
 const logout = async () => {
+  clearLocalUserMappings();
   await clearAllLocalData();
   router.push('/login');
 };
@@ -331,6 +339,7 @@ const showCardEditModal = ref(false);
 const selectedCardList = ref(null);
 const showDeleteCardConfirm = ref(false);
 const cardToDeleteList = ref(null);
+const showLearnedMappingsModal = ref(false);
 
 const loadShoppingListsAndCards = async () => {
   isLoadingListsAndCards.value = true;
@@ -409,6 +418,7 @@ const executeDeleteCard = async () => {
 
 onMounted(async () => {
   await loadUserProfile();
+  await syncUserMappings();
   await checkPermissions();
   await loadShoppingListsAndCards();
 });
@@ -566,6 +576,28 @@ onMounted(async () => {
               <span class="ks-switch-slider"></span>
             </label>
           </div>
+
+          <button
+            type="button"
+            class="master-toggle-card learned-entry-btn"
+            style="margin-top: 10px; width: 100%; text-align: left; cursor: pointer;"
+            @click="showLearnedMappingsModal = true"
+          >
+            <div class="master-toggle-info">
+              <span class="master-toggle-title">Gelernte Zuordnungen</span>
+              <span class="master-toggle-desc">
+                Persönliche Kategorie-Korrekturen, eigene Artikel und gemerkte Barcodes verwalten.
+              </span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <span class="learned-count-pill">
+                {{ mappingsCount === 0 ? 'Keine' : (mappingsCount === 1 ? '1 Eintrag' : `${mappingsCount} Einträge`) }}
+              </span>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="#94a3b8">
+                <path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/>
+              </svg>
+            </div>
+          </button>
         </section>
 
         <!-- BONUSKARTEN -->
@@ -915,6 +947,11 @@ onMounted(async () => {
         </section>
       </div>
     </div>
+
+    <LearnedMappingsModal
+      :is-open="showLearnedMappingsModal"
+      @close="showLearnedMappingsModal = false"
+    />
 
     <!-- MODAL: KONTO LÖSCHEN BESTÄTIGEN -->
     <div v-if="showDeleteAccountModal" class="ks-sheet-scrim" @click="closeDeleteAccountModal" style="display: flex; align-items: center; justify-content: center; z-index: 100;">
@@ -1663,5 +1700,22 @@ onMounted(async () => {
 @keyframes ksSlideUp {
   from { opacity: 0; transform: translateY(16px) scale(0.97); }
   to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.learned-entry-btn {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.learned-entry-btn:hover {
+  border-color: rgba(56, 189, 248, 0.35);
+}
+
+.learned-count-pill {
+  font-size: 12px;
+  font-weight: 600;
+  color: #38bdf8;
+  background: rgba(56, 189, 248, 0.14);
+  padding: 3px 9px;
+  border-radius: 9999px;
 }
 </style>

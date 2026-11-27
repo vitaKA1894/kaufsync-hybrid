@@ -4,6 +4,15 @@ import { useRoute } from 'vue-router';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 import { searchTaxonomy, findTaxonomyItem, debounce } from '../utils/search';
+import { parseQuickInput } from '../utils/quickInputParser';
+import { findMergeCandidate } from '../utils/itemMerge';
+import {
+  resolveArticleWithUserLayer,
+  searchWithUserOverrides,
+  learnArticleMapping,
+  learnBarcodeMapping,
+  syncUserMappings
+} from '../services/userMappingService';
 import { isOnline } from '../services/syncService';
 import CategoryIcon from './CategoryIcon.vue';
 import BarcodeScanner from './BarcodeScanner.vue';
@@ -66,7 +75,7 @@ const selectedItem = ref(null);
 const showScanner = ref(false);
 const isContinuousAdd = ref(false);
 
-// Step 2 Redesign State
+// Step 2 Redesign State + Quick Input & Personal Learning State
 const currentQuantity = ref(1);
 const currentUnit = ref('Stk');
 const customNoteInput = ref('');
@@ -75,6 +84,14 @@ const isSliderExpanded = ref(false);
 const localNotesVersion = ref(0);
 const showCategorySelector = ref(false);
 const activeTags = ref([]);
+
+const parsedQuickInput = ref(null);
+const quickAddFeedback = ref('');
+let quickAddFeedbackTimer = null;
+const editIncrementNotice = ref('');
+const pendingBarcode = ref(null);
+const categoryChangedInModal = ref(false);
+const isCustomNewItem = ref(false);
 
 // Restock Suggestions State ("Bald wieder leer")
 const dueSuggestions = ref([]);
@@ -317,7 +334,10 @@ const commitPendingCustomNote = () => {
 };
 
 const selectCategory = (catName) => {
-  if (selectedItem.value) {
+  if (selectedItem.value && selectedItem.value.category !== catName) {
+    selectedItem.value.category = catName;
+    categoryChangedInModal.value = true;
+  } else if (selectedItem.value) {
     selectedItem.value.category = catName;
   }
   showCategorySelector.value = false;
@@ -325,9 +345,42 @@ const selectCategory = (catName) => {
   liveAutoSave();
 };
 
+const commitLearnedMappings = async () => {
+  if (!selectedItem.value || !selectedItem.value.name) return;
+  const itemName = selectedItem.value.name.trim();
+  const itemCat = selectedItem.value.category || 'Sonstiges';
+  const itemIcon = selectedItem.value.icon || null;
+  const taxId = selectedItem.value.taxonomyId || null;
+
+  if (pendingBarcode.value) {
+    await learnBarcodeMapping({
+      barcode: pendingBarcode.value,
+      name: itemName,
+      category: itemCat,
+      icon: itemIcon,
+      taxonomyId: taxId
+    });
+    pendingBarcode.value = null;
+  }
+
+  if (categoryChangedInModal.value || isCustomNewItem.value) {
+    await learnArticleMapping({
+      name: itemName,
+      category: itemCat,
+      icon: itemIcon,
+      taxonomyId: taxId
+    });
+    categoryChangedInModal.value = false;
+    isCustomNewItem.value = false;
+  }
+};
+
 // Footer Actions
 const handleCancel = () => {
   customNoteInput.value = '';
+  pendingBarcode.value = null;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
   if (selectedItem.value && selectedItem.value.id) {
     emit('delete', selectedItem.value.id);
   }
@@ -336,19 +389,24 @@ const handleCancel = () => {
 
 const handleDelete = () => {
   customNoteInput.value = '';
+  pendingBarcode.value = null;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
   if (selectedItem.value && selectedItem.value.id) {
     emit('delete', selectedItem.value.id);
   }
   closeModal();
 };
 
-const handleDone = () => {
+const handleDone = async () => {
   commitPendingCustomNote();
+  await commitLearnedMappings();
   closeModal();
 };
 
-const handleDismiss = () => {
+const handleDismiss = async () => {
   commitPendingCustomNote();
+  await commitLearnedMappings();
   closeModal();
 };
 
@@ -361,6 +419,8 @@ const setupEditItem = (item) => {
     name: item.name,
     category: mappedCategory,
     subcategory: taxonomyMatch?.subcategory || '',
+    taxonomyId: item.taxonomy_id || taxonomyMatch?.id || null,
+    icon: taxonomyMatch?.icon || null,
     unit: item.unit || taxonomyMatch?.defaultUnit || 'Stk',
     allowedUnits: taxonomyMatch?.allowedUnits || ['Stk'],
     variants: taxonomyMatch?.variants || null,
@@ -368,6 +428,9 @@ const setupEditItem = (item) => {
     packSizes: taxonomyMatch?.packSizes || null,
     tags: taxonomyMatch?.tags || { constellations: [] }
   };
+
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
 
   currentQuantity.value = typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1;
   currentUnit.value = item.unit || taxonomyMatch?.defaultUnit || 'Stk';
@@ -425,8 +488,25 @@ const handleScan = async (barcode) => {
   showScanner.value = false;
   isBarcodeLoading.value = true;
   barcodeError.value = '';
+  pendingBarcode.value = String(barcode || '').trim();
 
   try {
+    // 1. Layer 1 Personal Barcode Mapping (100% instant & offline)
+    const learnedBarcode = resolveArticleWithUserLayer('', pendingBarcode.value);
+    if (learnedBarcode.source === 'user_mapping') {
+      const taxItem = learnedBarcode.taxItem || {};
+      selectItem({
+        ...taxItem,
+        id: learnedBarcode.taxonomyId || undefined,
+        name: learnedBarcode.name,
+        category: learnedBarcode.category,
+        icon: learnedBarcode.icon,
+        defaultUnit: learnedBarcode.defaultUnit,
+        allowedUnits: learnedBarcode.allowedUnits
+      });
+      return;
+    }
+
     let productData = null;
 
     if (Capacitor.isNativePlatform()) {
@@ -470,12 +550,12 @@ const handleScan = async (barcode) => {
       }
 
       let searchTarget = genericName || productName;
-      let searchResults = searchTaxonomy(searchTarget);
+      let searchResults = searchWithUserOverrides(searchTarget);
       if ((!searchResults || searchResults.length === 0) && brand) {
-        searchResults = searchTaxonomy(brand);
+        searchResults = searchWithUserOverrides(brand);
       }
       if ((!searchResults || searchResults.length === 0) && productName) {
-        searchResults = searchTaxonomy(productName);
+        searchResults = searchWithUserOverrides(productName);
       }
 
       let matchingItem;
@@ -489,10 +569,14 @@ const handleScan = async (barcode) => {
           auspraegung = productName;
         }
       } else {
+        const fallbackName = genericName || productName || 'Unbekanntes Produkt';
+        const resolvedFallback = resolveArticleWithUserLayer(fallbackName);
         matchingItem = {
-          name: genericName || productName || 'Unbekanntes Produkt',
-          category: 'Sonstiges',
-          tags: { quantities: [], constellations: [], global_meta: [] }
+          name: resolvedFallback.name || fallbackName,
+          category: resolvedFallback.category || 'Sonstiges',
+          icon: resolvedFallback.icon || null,
+          _isCustomNew: true,
+          tags: { constellations: [] }
         };
         auspraegung = brand || productName;
       }
@@ -531,48 +615,137 @@ const handleScan = async (barcode) => {
 };
 
 const search = debounce((val) => {
-  if (val && val.length >= 1) {
-    results.value = searchTaxonomy(val);
+  const parsed = parsedQuickInput.value;
+  const searchTarget = (parsed?.has_modifiers && parsed?.core_query) ? parsed.core_query : val;
+  if (searchTarget && searchTarget.trim().length >= 2) {
+    results.value = searchWithUserOverrides(searchTarget);
   } else {
     results.value = [];
   }
-}, 300);
+}, 200);
 
 const handleInput = (e) => {
   query.value = e.target.value;
+  parsedQuickInput.value = parseQuickInput(query.value, props.listId);
   search(query.value);
 };
 
-const selectItem = (item) => {
-  const primaryName = item.name;
-  const matchedAlias = item.matchedAlias;
+const showQuickFeedback = (msg) => {
+  if (quickAddFeedbackTimer) clearTimeout(quickAddFeedbackTimer);
+  quickAddFeedback.value = msg;
+  quickAddFeedbackTimer = setTimeout(() => {
+    quickAddFeedback.value = '';
+  }, 2600);
+};
 
-  // Check if article already exists on list -> switch to edit mode
-  const existingItem = props.activeItems.find(
-    i => i.name.trim().toLowerCase() === primaryName.trim().toLowerCase()
-  );
-  if (existingItem) {
+const quickAddParsedItem = async () => {
+  const p = parsedQuickInput.value;
+  if (!p || !p.matched_name) return;
+
+  triggerLightHaptic();
+  const allPills = [
+    ...(p.detected_variant_pills || []),
+    ...(p.detected_custom_pills || []),
+    ...(p.detected_meta_tags || [])
+  ];
+
+  // Remember custom note pills locally per list
+  for (const customPill of (p.detected_custom_pills || [])) {
+    saveCustomNote(props.listId, p.matched_name, customPill);
+  }
+
+  // If a scanned unknown barcode was pending, learn it now
+  if (pendingBarcode.value) {
+    await learnBarcodeMapping({
+      barcode: pendingBarcode.value,
+      name: p.matched_name,
+      category: p.matched_category,
+      icon: p.matched_icon,
+      taxonomyId: p.matched_taxonomy_id
+    });
+    pendingBarcode.value = null;
+  }
+
+  const newId = crypto.randomUUID();
+  emit('add', {
+    id: newId,
+    name: p.matched_name,
+    category: p.matched_category || 'Sonstiges',
+    quantity: p.count_quantity || 1,
+    unit: p.default_unit || 'Stk',
+    tags: JSON.stringify(allPills),
+    note: '',
+    taxonomy_id: p.matched_taxonomy_id || null
+  });
+
+  const pillStr = allPills.length > 0 ? ` (${allPills.join(' · ')})` : '';
+  showQuickFeedback(`${p.count_quantity}× ${p.matched_name}${pillStr} hinzugefügt`);
+
+  query.value = '';
+  results.value = [];
+  parsedQuickInput.value = null;
+  barcodeError.value = '';
+  nextTick(() => {
+    inputRef.value?.focus({ preventScroll: true });
+  });
+};
+
+const selectItem = (item) => {
+  const resolved = resolveArticleWithUserLayer(item.name);
+  const primaryName = resolved.name || item.name;
+  const matchedAlias = item.matchedAlias;
+  editIncrementNotice.value = '';
+
+  // Check for existing open item (Spec 2.3.4):
+  // On plain search tap (single unambiguous match or compatible plain match), increment by +1 and open edit mode
+  const openMatches = props.activeItems.filter(i => {
+    const iResolved = resolveArticleWithUserLayer(i.name);
+    if (resolved.taxonomyId && iResolved.taxonomyId && resolved.taxonomyId === iResolved.taxonomyId) return true;
+    return i.name.trim().toLowerCase() === primaryName.trim().toLowerCase();
+  });
+
+  let existingToIncrement = null;
+  if (openMatches.length === 1) {
+    existingToIncrement = openMatches[0];
+  } else if (openMatches.length > 1) {
+    existingToIncrement = findMergeCandidate(
+      openMatches,
+      { name: primaryName, tags: JSON.stringify([]), taxonomy_id: resolved.taxonomyId },
+      resolveArticleWithUserLayer
+    );
+  }
+
+  if (existingToIncrement) {
+    const newQty = (Number(existingToIncrement.quantity) || 1) + 1;
     openedFromNewAdd.value = false;
-    setupEditItem(existingItem);
+    triggerLightHaptic();
+    emit('update', { id: existingToIncrement.id, quantity: newQty });
+    setupEditItem({ ...existingToIncrement, quantity: newQty });
+    editIncrementNotice.value = `Menge von „${existingToIncrement.name}“ auf ${newQty} erhöht`;
     return;
   }
 
   // New item: instant save with quantity 1
   const newId = crypto.randomUUID();
   openedFromNewAdd.value = true;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = Boolean(item._isCustomNew);
 
-  const defUnit = item.defaultUnit || item.unit || 'Stk';
+  const defUnit = resolved.defaultUnit || item.defaultUnit || item.unit || 'Stk';
+  const taxSource = resolved.taxItem || item;
   selectedItem.value = {
     id: newId,
     name: primaryName,
-    category: item.category || 'Sonstiges',
-    subcategory: item.subcategory || '',
+    category: resolved.category || item.category || 'Sonstiges',
+    subcategory: taxSource.subcategory || '',
+    taxonomyId: resolved.taxonomyId || item.id || null,
+    icon: resolved.icon || item.icon || null,
     unit: defUnit,
-    allowedUnits: item.allowedUnits || ['Stk'],
-    variants: item.variants || null,
-    attributes: item.attributes || null,
-    packSizes: item.packSizes || null,
-    tags: item.tags || { constellations: [] }
+    allowedUnits: resolved.allowedUnits || item.allowedUnits || ['Stk'],
+    variants: taxSource.variants || null,
+    attributes: taxSource.attributes || null,
+    packSizes: taxSource.packSizes || null,
+    tags: taxSource.tags || { constellations: [] }
   };
   currentQuantity.value = 1;
   currentUnit.value = defUnit;
@@ -593,22 +766,42 @@ const selectItem = (item) => {
     quantity: currentQuantity.value,
     unit: currentUnit.value,
     tags: JSON.stringify(activeTags.value),
-    note: ''
+    note: '',
+    taxonomy_id: selectedItem.value.taxonomyId
   });
 };
 
 const confirmSelection = (bypassWarning = false) => {
   if (!query.value || query.value.trim() === '') return;
+
+  // If natural-language modifiers are detected, Enter triggers immediate Quick-Add!
+  if (parsedQuickInput.value?.has_modifiers && parsedQuickInput.value?.matched_name) {
+    quickAddParsedItem();
+    return;
+  }
+
   const qTrimmed = query.value.trim();
   const qLower = qTrimmed.toLowerCase();
 
-  // Try to find exact or close match in taxonomy
-  const directMatch = findTaxonomyItem(qTrimmed);
-  const searchRes = directMatch ? [directMatch] : searchTaxonomy(qTrimmed);
-  const chosenMatch = searchRes.length > 0 ? searchRes[0] : null;
+  // Check Layer 1 (user mapping) -> Layer 2 (global taxonomy)
+  const resolved = resolveArticleWithUserLayer(qTrimmed);
+  if (resolved.source === 'user_mapping' || resolved.source === 'taxonomy') {
+    const taxObj = resolved.taxItem || {};
+    selectItem({
+      ...taxObj,
+      id: resolved.taxonomyId || taxObj.id,
+      name: resolved.name,
+      category: resolved.category,
+      icon: resolved.icon,
+      defaultUnit: resolved.defaultUnit,
+      allowedUnits: resolved.allowedUnits
+    });
+    return;
+  }
 
-  if (chosenMatch) {
-    selectItem(chosenMatch);
+  const searchRes = searchWithUserOverrides(qTrimmed);
+  if (searchRes.length > 0) {
+    selectItem(searchRes[0]);
     return;
   }
 
@@ -617,16 +810,20 @@ const confirmSelection = (bypassWarning = false) => {
     i => i.name.trim().toLowerCase() === qLower
   );
   if (existingItem) {
+    const newQty = (Number(existingItem.quantity) || 1) + 1;
     openedFromNewAdd.value = false;
-    setupEditItem(existingItem);
+    emit('update', { id: existingItem.id, quantity: newQty });
+    setupEditItem({ ...existingItem, quantity: newQty });
+    editIncrementNotice.value = `Menge von „${existingItem.name}“ auf ${newQty} erhöht`;
     return;
   }
 
   const customItem = {
     name: qTrimmed,
-    category: 'Sonstiges',
+    category: resolved.category || 'Sonstiges',
     unit: 'Stk',
-    tags: { quantities: [], constellations: [], global_meta: [] }
+    _isCustomNew: true,
+    tags: { constellations: [] }
   };
   selectItem(customItem);
 };
@@ -659,6 +856,12 @@ const closeModal = () => {
   isContinuousAdd.value = false;
   query.value = '';
   results.value = [];
+  parsedQuickInput.value = null;
+  quickAddFeedback.value = '';
+  editIncrementNotice.value = '';
+  pendingBarcode.value = null;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
   selectedItem.value = null;
   activeTags.value = [];
   customNoteInput.value = '';
@@ -702,6 +905,7 @@ watch(() => props.isOpen, (newVal) => {
     lockBackgroundScroll();
     recentlyAddedKeys.value = [];
     dismissedKeys.value = [];
+    syncUserMappings();
     loadDueSuggestions();
     if (props.editItem) {
       openedFromNewAdd.value = false;
@@ -749,6 +953,56 @@ watch(() => props.editItem, (newVal) => {
           <!-- Search Step View -->
           <div class="search-step" v-show="!showScanner" style="flex-direction: column-reverse;">
             <div v-if="query.length >= 1" class="results-list" style="margin-bottom: 16px;">
+              <!-- Pinned Quick-Add Card when Natural-Language Modifiers are detected -->
+              <button
+                v-if="parsedQuickInput?.has_modifiers && parsedQuickInput?.matched_name"
+                type="button"
+                class="quick-add-card"
+                :style="{ '--qa-accent': getCategoryDef(parsedQuickInput.matched_category).color }"
+                @click="quickAddParsedItem"
+              >
+                <div class="quick-add-left" :style="{ color: getCategoryDef(parsedQuickInput.matched_category).color }">
+                  <CategoryIcon :name="parsedQuickInput.matched_name" :category="parsedQuickInput.matched_category" size="34" />
+                </div>
+                <div class="quick-add-center">
+                  <div class="quick-add-name-row">
+                    <span class="quick-add-name">{{ parsedQuickInput.matched_name }}</span>
+                    <span class="quick-add-cat-dot" :style="{ backgroundColor: getCategoryDef(parsedQuickInput.matched_category).color }"></span>
+                  </div>
+                  <div class="quick-add-pills">
+                    <span
+                      v-for="vp in parsedQuickInput.detected_variant_pills"
+                      :key="'qv-' + vp"
+                      class="qa-pill qa-pill--variant"
+                    >
+                      {{ vp }}
+                    </span>
+                    <span
+                      v-for="cp in parsedQuickInput.detected_custom_pills"
+                      :key="'qc-' + cp"
+                      class="qa-pill qa-pill--custom"
+                    >
+                      {{ cp }}
+                    </span>
+                    <span
+                      v-for="mp in parsedQuickInput.detected_meta_tags"
+                      :key="'qm-' + mp"
+                      class="qa-pill qa-pill--meta"
+                    >
+                      {{ mp }}
+                    </span>
+                  </div>
+                </div>
+                <div class="quick-add-right">
+                  <span class="quick-add-qty-badge">{{ parsedQuickInput.count_quantity }}×</span>
+                  <span class="quick-add-plus-btn" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                    </svg>
+                  </span>
+                </div>
+              </button>
+
               <div class="ks-grid items-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2" style="padding: 0 4px;">
                 <div
                   v-for="item in results"
@@ -767,9 +1021,17 @@ watch(() => props.editItem, (newVal) => {
                 </div>
               </div>
 
-              <div v-if="results.length === 0" class="no-results">
+              <div v-if="results.length === 0 && !parsedQuickInput?.has_modifiers" class="no-results">
                 Keine Vorschläge gefunden. Drücke Enter, um "{{ query }}" hinzuzufügen.
               </div>
+            </div>
+
+            <!-- Instant Quick-Add Confirmation Banner -->
+            <div v-if="quickAddFeedback" class="quick-add-feedback-banner">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+              <span>{{ quickAddFeedback }}</span>
             </div>
 
             <!-- "Bald wieder leer" Suggestions Section -->
@@ -843,7 +1105,7 @@ watch(() => props.editItem, (newVal) => {
                     @input="handleInput($event); barcodeError = '';"
                     type="text"
                     class="modal-input"
-                    placeholder="Artikel suchen..."
+                    placeholder="Suchen oder z. B. „2x Milch bio !“..."
                     @keyup.enter="confirmSelection(false)"
                   />
                 </div>
@@ -858,6 +1120,13 @@ watch(() => props.editItem, (newVal) => {
         <!-- STEP 2: Compact Slider & Stepper Details -->
         <div v-else class="tags-step">
           <div class="ks-sheet__handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
+
+          <div v-if="editIncrementNotice" class="edit-increment-notice">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            <span>{{ editIncrementNotice }}</span>
+          </div>
 
           <!-- Header: Icon, Name, Category Selector (No saved badge, no trash icon) -->
           <div class="modal-header modal-header--details">
@@ -1842,5 +2111,138 @@ watch(() => props.editItem, (newVal) => {
   background: #475569;
   color: #f8fafc;
   transform: scale(1.1);
+}
+
+/* Quick-Add Card & Feedback */
+.quick-add-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(30, 41, 59, 0.96));
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  border-left: 4px solid var(--qa-accent, #38bdf8);
+  color: #f8fafc;
+  text-align: left;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: transform 0.12s ease, background 0.15s ease;
+}
+
+.quick-add-card:active {
+  transform: scale(0.98);
+}
+
+.quick-add-left {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.quick-add-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-add-name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.quick-add-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #f8fafc;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.quick-add-cat-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.quick-add-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.qa-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  line-height: 1.3;
+}
+
+.qa-pill--variant {
+  background: rgba(56, 189, 248, 0.15);
+  color: #7dd3fc;
+}
+
+.qa-pill--custom {
+  background: rgba(148, 163, 184, 0.18);
+  color: #e2e8f0;
+}
+
+.qa-pill--meta {
+  background: rgba(244, 63, 94, 0.2);
+  color: #fda4af;
+}
+
+.quick-add-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.quick-add-qty-badge {
+  font-size: 15px;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.quick-add-plus-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #38bdf8;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.quick-add-feedback-banner,
+.edit-increment-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(34, 197, 94, 0.14);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 10px;
 }
 </style>

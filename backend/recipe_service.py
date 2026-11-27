@@ -981,7 +981,35 @@ def fetch_schema_org_recipe(url: str) -> Optional[Dict[str, Any]]:
     return None
 
 # --- PROCESS INGREDIENT LIST PIPELINE ---
-def process_ingredient_lines(raw_lines: List[str]) -> List[Dict[str, Any]]:
+def _find_user_article_mapping(
+    raw_name: str,
+    matched_tax: Optional[Dict[str, Any]],
+    user_mappings: Optional[List[Dict[str, Any]]]
+) -> Optional[Dict[str, Any]]:
+    if not user_mappings:
+        return None
+    tax_id = matched_tax.get('id') if matched_tax else None
+    tax_name_lower = (matched_tax.get('name') or '').strip().lower() if matched_tax else ''
+    raw_lower = (raw_name or '').strip().lower()
+
+    article_maps = [m for m in user_mappings if m.get('mapping_type') == 'article']
+    if tax_id:
+        for m in article_maps:
+            if m.get('lookup_key') == tax_id:
+                return m
+    for candidate in (raw_lower, tax_name_lower):
+        if not candidate:
+            continue
+        for m in article_maps:
+            if (m.get('lookup_key') or '').strip().lower() == candidate:
+                return m
+    return None
+
+
+def process_ingredient_lines(
+    raw_lines: List[str],
+    user_mappings: Optional[List[Dict[str, Any]]] = None
+) -> List[Dict[str, Any]]:
     taxonomy_data = get_taxonomy()
     parsed_ingredients = []
 
@@ -1008,6 +1036,21 @@ def process_ingredient_lines(raw_lines: List[str]) -> List[Dict[str, Any]]:
             icon = None
             taxonomy_id = None
             is_matched = False
+
+        # Layer 1 override: Personal UserItemMapping (if present for this user)
+        user_override = _find_user_article_mapping(item_data['name'], matched_tax, user_mappings)
+        if not user_override and item_name != item_data['name']:
+            user_override = _find_user_article_mapping(item_name, matched_tax, user_mappings)
+        if user_override:
+            if user_override.get('preferred_name'):
+                item_name = user_override['preferred_name']
+            if user_override.get('preferred_category'):
+                category = user_override['preferred_category']
+            if user_override.get('preferred_icon'):
+                icon = user_override['preferred_icon']
+            if user_override.get('linked_taxonomy_id') and not taxonomy_id:
+                taxonomy_id = user_override['linked_taxonomy_id']
+            is_matched = True
 
         qty = item_data['quantity']
         unit = item_data['unit']
@@ -1063,7 +1106,7 @@ def process_ingredient_lines(raw_lines: List[str]) -> List[Dict[str, Any]]:
     return merged_ingredients
 
 # --- MAIN ENTRY POINTS ---
-def parse_recipe_url(url: str) -> Dict[str, Any]:
+def parse_recipe_url(url: str, user_mappings: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     url = url.strip()
     if not url.startswith("http://") and not url.startswith("https://"):
         url = "https://" + url
@@ -1084,7 +1127,7 @@ def parse_recipe_url(url: str) -> Dict[str, Any]:
             422
         )
 
-    ingredients = process_ingredient_lines(recipe_data.get("ingredients_raw", []))
+    ingredients = process_ingredient_lines(recipe_data.get("ingredients_raw", []), user_mappings=user_mappings)
     if not ingredients:
         raise RecipeImportError(
             'no_recipe_found',
@@ -1101,12 +1144,12 @@ def parse_recipe_url(url: str) -> Dict[str, Any]:
         "ingredients": ingredients
     }
 
-def parse_recipe_text(text: str, title: Optional[str] = None) -> Dict[str, Any]:
+def parse_recipe_text(text: str, title: Optional[str] = None, user_mappings: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
     lines = [line.strip() for line in (text or '').splitlines() if line.strip()]
     if not lines:
         raise RecipeImportError('no_recipe_found', "Bitte gib mindestens eine Zutat ein.", 400)
 
-    ingredients = process_ingredient_lines(lines)
+    ingredients = process_ingredient_lines(lines, user_mappings=user_mappings)
     if not ingredients:
         raise RecipeImportError('no_recipe_found', "Es konnten keine gültigen Zutatenzeilen erkannt werden.", 400)
 

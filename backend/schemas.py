@@ -100,6 +100,7 @@ class ItemBase(BaseModel):
 
 class ItemCreate(ItemBase):
     id: Optional[str] = None
+    taxonomy_id: Optional[str] = None
 
 class ItemUpdate(BaseModel):
     name: Optional[str] = None
@@ -321,4 +322,31 @@ class DueSuggestionResponse(BaseModel):
 class SnoozeRequest(BaseModel):
     article_key: str
     days: Optional[int] = None
+
+# --- PERSONAL USER ITEM MAPPING SCHEMAS ---
+class UserItemMappingUpsert(BaseModel):
+    mapping_type: str  # "article" | "barcode"
+    lookup_key: str
+    preferred_name: str
+    preferred_category: str = "Sonstiges"
+    preferred_icon: Optional[str] = None
+    linked_taxonomy_id: Optional[str] = None
+
+class UserItemMappingSyncRequest(BaseModel):
+    mappings: List[UserItemMappingUpsert]
+
+class UserItemMappingResponse(BaseModel):
+    id: str
+    user_id: str
+    mapping_type: str
+    lookup_key: str
+    preferred_name: str
+    preferred_category: str
+    preferred_icon: Optional[str] = None
+    linked_taxonomy_id: Optional[str] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
 

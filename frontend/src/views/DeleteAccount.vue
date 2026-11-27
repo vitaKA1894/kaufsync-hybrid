@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { apiUrl } from '../config/api';
 import { clearAllLocalData } from '../db/index';
 import { clearAllNoteHistories } from '../utils/articleNoteHistory';
+import { clearLocalUserMappings } from '../services/userMappingService';
 import { isOnline } from '../services/syncService';
 
 const router = useRouter();
@@ -109,6 +110,7 @@ const executeAccountDeletion = async () => {
     }
 
     showConfirmModal.value = false;
+    clearLocalUserMappings();
     await clearAllLocalData();
     clearAllNoteHistories();
     router.push('/login?deleted=1');
