@@ -1,9 +1,9 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, computed, watch } from 'vue';
 import ConfirmModal from './ConfirmModal.vue';
 import TemplateApplyModal from './TemplateApplyModal.vue';
 import TemplateEditorModal from './TemplateEditorModal.vue';
-import { getLocalTemplates, syncTemplates, deleteTemplate } from '../services/templateService';
+import { getLocalTemplates, syncTemplates, deleteTemplate, buildTemplateItemsFromList } from '../services/templateService';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 import { triggerLightHaptic } from '../utils/hapticsService';
 
@@ -11,9 +11,13 @@ const props = defineProps({
   isOpen: Boolean,
   availableLists: { type: Array, default: () => [] },
   defaultListId: { type: String, default: '' },
+  currentListName: { type: String, default: '' },
+  currentListOpenItems: { type: Array, default: () => [] },
   initialMode: { type: String, default: 'overview' }, // 'overview' | 'create'
   initialDraft: { type: Object, default: null }
 });
+
+const openItemsCount = computed(() => (props.currentListOpenItems || []).length);
 
 const emit = defineEmits(['close', 'applied', 'saved']);
 
@@ -61,6 +65,17 @@ const openCreate = () => {
   triggerLightHaptic();
   editingTemplate.value = null;
   draftForEditor.value = null;
+  showEditor.value = true;
+};
+
+const openSaveCurrentList = () => {
+  if (openItemsCount.value === 0) return;
+  triggerLightHaptic();
+  editingTemplate.value = null;
+  draftForEditor.value = {
+    name: props.currentListName || 'Einkaufsliste',
+    items: buildTemplateItemsFromList(props.currentListOpenItems)
+  };
   showEditor.value = true;
 };
 
@@ -128,6 +143,25 @@ const formatPreview = (tmpl) => {
               </div>
               <button type="button" class="tmpl-new-btn" @click="openCreate">+ Neu</button>
             </div>
+          </div>
+
+          <div v-if="defaultListId" class="tmpl-save-current-wrap">
+            <button
+              type="button"
+              class="tmpl-save-current-btn"
+              :disabled="openItemsCount === 0"
+              @click="openSaveCurrentList"
+            >
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
+              </svg>
+              <span>
+                Aktuelle Liste als Vorlage speichern<template v-if="openItemsCount > 0"> ({{ openItemsCount }} Artikel)</template>
+              </span>
+            </button>
+            <p v-if="openItemsCount === 0" class="tmpl-save-disabled-note">
+              Füge erst offene Artikel hinzu, um diese Liste als Vorlage zu sichern.
+            </p>
           </div>
 
           <div class="tmpl-list-scroll" @touchstart.stop>
@@ -249,6 +283,47 @@ const formatPreview = (tmpl) => {
   font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
+}
+
+.tmpl-save-current-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tmpl-save-current-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(168, 85, 247, 0.22));
+  color: #f8fafc;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, opacity 0.15s ease;
+}
+
+.tmpl-save-current-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.tmpl-save-current-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(30, 41, 59, 0.7);
+  border-color: rgba(148, 163, 184, 0.2);
+}
+
+.tmpl-save-disabled-note {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
 }
 
 .tmpl-list-scroll {

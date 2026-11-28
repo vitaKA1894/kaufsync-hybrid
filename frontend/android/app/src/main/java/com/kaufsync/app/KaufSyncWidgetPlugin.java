@@ -1,5 +1,8 @@
 package com.kaufsync.app;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
+import android.content.Context;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
@@ -56,5 +59,30 @@ public class KaufSyncWidgetPlugin extends Plugin {
         JSObject ret = new JSObject();
         ret.put("shortcutJson", json);
         call.resolve(ret);
+    }
+
+    @PluginMethod
+    public void readClipboardText(PluginCall call) {
+        JSObject ret = new JSObject();
+        try {
+            Context ctx = getContext();
+            ClipboardManager clipboard = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+            String text = "";
+            if (clipboard != null && clipboard.hasPrimaryClip()) {
+                ClipData clip = clipboard.getPrimaryClip();
+                if (clip != null && clip.getItemCount() > 0) {
+                    CharSequence coerced = clip.getItemAt(0).coerceToText(ctx);
+                    if (coerced != null) {
+                        text = coerced.toString();
+                    }
+                }
+            }
+            ret.put("text", text);
+            call.resolve(ret);
+        } catch (Exception e) {
+            ret.put("text", "");
+            ret.put("error", e.getMessage() != null ? e.getMessage() : "clipboard_error");
+            call.resolve(ret);
+        }
     }
 }

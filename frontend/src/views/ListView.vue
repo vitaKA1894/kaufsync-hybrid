@@ -44,6 +44,10 @@ import {
   isItemCompleted
 } from '../utils/itemTransfer';
 import {
+  partitionItemsOnCheckout,
+  resolvePostCheckoutState
+} from '../utils/checkoutCompletion';
+import {
   recordPurchase,
   retractPurchase,
   syncPurchases,
@@ -229,10 +233,11 @@ const isUndoing = ref(false);
 let touchStartX = 0;
 let touchStartY = 0;
 
-// Ephemeral "Complete Shopping" Prompt State
+// Ephemeral "Complete Shopping" Prompt & Post-Completion Loyalty Card Prompt State
 const showCompletionPrompt = ref(false);
 const completionPromptDismissed = ref(false);
 const isSubmittingCompletion = ref(false);
+const showLoyaltyPromptBanner = ref(false);
 
 const isSharedList = computed(() => {
   return (currentList.value?.members?.length || 0) > 1;
@@ -495,6 +500,7 @@ const clearMetaFilter = () => {
 watch(() => openOnlyItems.value.length, (newCount) => {
   if (newCount > 0) {
     showCompletionPrompt.value = false;
+    showLoyaltyPromptBanner.value = false;
   }
 });
 
@@ -1124,15 +1130,93 @@ const executeUndo = async () => {
 const handlePromptCompleteShopping = async () => {
   if (isSubmittingCompletion.value) return;
   isSubmittingCompletion.value = true;
-  triggerSuccessHaptic();
   try {
-    await finishShopping();
+    // 1. Checked/abgehakte Artikel dauerhaft entfernen, Ausverkauft-Artikel sicher behalten
+    const { clearedIds, remainingItems } = partitionItemsOnCheckout(items.value);
+    if (clearedIds.length > 0) {
+      items.value = remainingItems;
+      if (undoSnackbar.value.itemSnapshot && clearedIds.includes(undoSnackbar.value.itemSnapshot.id)) {
+        dismissUndoSnackbar();
+      }
+      await queueMutation({
+        listId,
+        action: 'CLEAR_COMPLETED',
+        payload: {}
+      });
+    }
+
+    // 2. Gruppenbenachrichtigung bei Online-Verbindung senden (offline nicht blockierend)
+    let pushSuccess = true;
+    try {
+      const token = localStorage.getItem('token');
+      if (isOnline.value && token) {
+        const resp = await fetch(apiUrl(`/api/lists/${listId}/finish-shopping`), {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` }
+        }).catch(() => null);
+        if (!resp || !resp.ok) {
+          pushSuccess = false;
+        }
+      }
+    } catch {
+      pushSuccess = false;
+    }
+
+    triggerSuccessHaptic();
+    isShoppingSessionActive.value = false;
     showCompletionPrompt.value = false;
+    showSettingsSheet.value = false;
+
+    // 3. Bonuskarten-Check (funktioniert 100% offline über Dexie)
+    if (!currentListLoyaltyCard.value) {
+      try {
+        currentListLoyaltyCard.value = await getCardForList(listId);
+      } catch {}
+    }
+
+    const postState = resolvePostCheckoutState({
+      hasLoyaltyCard: Boolean(currentListLoyaltyCard.value),
+      isOnline: isOnline.value,
+      isSharedList: isSharedList.value,
+      pushSuccess
+    });
+
+    if (postState.showLoyaltyPrompt) {
+      showLoyaltyPromptBanner.value = true;
+      if (postState.offlineSharedNotice) {
+        infoToastMessage.value = postState.offlineSharedNotice;
+        setTimeout(() => {
+          if (infoToastMessage.value === postState.offlineSharedNotice) {
+            infoToastMessage.value = '';
+          }
+        }, 4000);
+      }
+    } else {
+      showLoyaltyPromptBanner.value = false;
+      successMessage.value = postState.offlineSharedNotice
+        ? `${postState.confirmationMessage} (${postState.offlineSharedNotice})`
+        : postState.confirmationMessage;
+      setTimeout(() => {
+        if (successMessage.value && successMessage.value.includes('Einkauf beendet')) {
+          successMessage.value = '';
+        }
+      }, 3800);
+    }
   } catch (err) {
     console.error('Error completing shopping:', err);
   } finally {
     isSubmittingCompletion.value = false;
   }
+};
+
+const openLoyaltyCardFromPrompt = () => {
+  triggerLightHaptic();
+  showLoyaltyPromptBanner.value = false;
+  openLoyaltyCardModal();
+};
+
+const dismissLoyaltyPromptBanner = () => {
+  showLoyaltyPromptBanner.value = false;
 };
 
 const dismissCompletionPrompt = () => {
@@ -2044,7 +2128,7 @@ onUnmounted(() => {
             <div class="settings-menu-arrow">›</div>
           </button>
 
-          <!-- 5. VORLAGE ANWENDEN -->
+          <!-- 5. VORLAGEN (KONSOLIDIERT) -->
           <button class="settings-menu-item" @click="openTemplatesForList">
             <div class="settings-menu-icon" style="background: rgba(56, 189, 248, 0.16); color: #38bdf8;">
               <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
@@ -2052,22 +2136,8 @@ onUnmounted(() => {
               </svg>
             </div>
             <div class="settings-menu-content">
-              <div class="settings-menu-title">Vorlage anwenden</div>
-              <div class="settings-menu-desc">Gespeicherte Einkaufsvorlagen direkt übernehmen</div>
-            </div>
-            <div class="settings-menu-arrow">›</div>
-          </button>
-
-          <!-- 6. LISTE ALS VORLAGE SPEICHERN -->
-          <button v-if="openActiveItems.length > 0" class="settings-menu-item" @click="saveCurrentListAsTemplate">
-            <div class="settings-menu-icon" style="background: rgba(168, 85, 247, 0.16); color: #c084fc;">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
-                <path d="M17 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4zm-5 16c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3zm3-10H5V5h10v4z"/>
-              </svg>
-            </div>
-            <div class="settings-menu-content">
-              <div class="settings-menu-title">Liste als Vorlage speichern</div>
-              <div class="settings-menu-desc">{{ openActiveItems.length }} offene Artikel als Vorlage sichern</div>
+              <div class="settings-menu-title">Vorlagen</div>
+              <div class="settings-menu-desc">Vorlagen anwenden oder aktuelle Liste speichern</div>
             </div>
             <div class="settings-menu-arrow">›</div>
           </button>
@@ -2377,24 +2447,24 @@ onUnmounted(() => {
                 <span v-marquee class="item-name">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span v-marquee class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
-                  <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
+                <span v-marquee class="item-regular-tags" :class="{ 'invisible': isItemUnavailable(item) || !getRegularTags(item.tags).length }">
+                  <span class="item-regular-tags-text">{{ !isItemUnavailable(item) && getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
               <button
                 v-if="isItemUnavailable(item)"
                 type="button"
-                class="quick-transfer-pill"
+                class="quick-transfer-pill quick-transfer-pill--tile-slot"
                 @mousedown.stop
                 @touchstart.stop
                 @click.stop="openQuickTransferSheet(item)"
               >
                 → Markt
               </button>
-              <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
+              <div v-else class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
                 <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
-                <span class="qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">+</button>
+                <span class="qty-val" :style="{ color: group.def.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: group.def.color }">+</button>
               </div>
               </div>
             </transition-group>
@@ -2432,24 +2502,24 @@ onUnmounted(() => {
                 <span v-marquee class="item-name">
                   <span class="item-name-text">{{ item.name }}</span>
                 </span>
-                <span v-marquee class="item-regular-tags" :class="{ 'invisible': !getRegularTags(item.tags).length }">
-                  <span class="item-regular-tags-text">{{ getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
+                <span v-marquee class="item-regular-tags" :class="{ 'invisible': isItemUnavailable(item) || !getRegularTags(item.tags).length }">
+                  <span class="item-regular-tags-text">{{ !isItemUnavailable(item) && getRegularTags(item.tags).length > 0 ? formatTags(item.tags) : '&nbsp;' }}</span>
                 </span>
               </div>
               <button
                 v-if="isItemUnavailable(item)"
                 type="button"
-                class="quick-transfer-pill"
+                class="quick-transfer-pill quick-transfer-pill--tile-slot"
                 @mousedown.stop
                 @touchstart.stop
                 @click.stop="openQuickTransferSheet(item)"
               >
                 → Markt
               </button>
-              <div class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
+              <div v-else class="quantity-controls flex items-center justify-between w-full mt-auto bg-slate-900 rounded-lg p-1" @click.stop>
                 <button @click.stop="updateItemQuantity(item, -1)" class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 font-bold flex items-center justify-center active:scale-90 transition-transform">-</button>
-                <span class="qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : item._groupDef.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
-                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : item._groupDef.color }">+</button>
+                <span class="qty-val" :style="{ color: item._groupDef.color }" style="font-weight: bold;">{{ formatQuantity(item) }}</span>
+                <button @click.stop="updateItemQuantity(item, 1)" class="w-8 h-8 rounded-md font-bold text-slate-900 flex items-center justify-center active:scale-90 transition-transform" :style="{ backgroundColor: item._groupDef.color }">+</button>
               </div>
             </div>
           </transition-group>
@@ -2493,13 +2563,13 @@ onUnmounted(() => {
                       <span v-if="isItemUnavailable(item)" class="unavailable-badge unavailable-badge--inline">Ausverkauft</span>
                     </div>
 
-                    <!-- Subtitle / Notes / Regular tags -->
-                    <div v-if="getRegularTags(item.tags).length > 0" class="row-item-subtext">
+                    <!-- Subtitle / Notes / Regular tags (hidden on unavailable rows for compact consistency) -->
+                    <div v-if="!isItemUnavailable(item) && getRegularTags(item.tags).length > 0" class="row-item-subtext">
                       {{ formatTags(item.tags) }}
                     </div>
 
                     <!-- Meta-tag pills (Dringend, Angebot, Wenn's passt) -->
-                    <div v-if="getUrgencyTags(item.tags).length > 0" class="row-meta-tags">
+                    <div v-if="!isItemUnavailable(item) && getUrgencyTags(item.tags).length > 0" class="row-meta-tags">
                       <span
                         v-for="tag in getUrgencyTags(item.tags)"
                         :key="tag"
@@ -2518,22 +2588,22 @@ onUnmounted(() => {
                     </div>
                   </div>
 
-                  <!-- Right: Quick transfer pill + Quantity Controls -->
+                  <!-- Right: Quick transfer pill or Quantity Controls (same slot height) -->
                   <div class="row-right-controls" @click.stop>
                     <button
                       v-if="isItemUnavailable(item)"
                       type="button"
-                      class="quick-transfer-pill quick-transfer-pill--row"
+                      class="quick-transfer-pill quick-transfer-pill--row-slot"
                       @mousedown.stop
                       @touchstart.stop
                       @click.stop="openQuickTransferSheet(item)"
                     >
                       → Markt
                     </button>
-                    <div class="row-quantity-controls">
+                    <div v-else class="row-quantity-controls">
                       <button @click.stop="updateItemQuantity(item, -1)" class="row-qty-btn row-qty-btn-minus">-</button>
-                      <span class="row-qty-val" :style="{ color: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">{{ formatQuantity(item) }}</span>
-                      <button @click.stop="updateItemQuantity(item, 1)" class="row-qty-btn row-qty-btn-plus" :style="{ backgroundColor: isItemUnavailable(item) ? '#fbbf24' : group.def.color }">+</button>
+                      <span class="row-qty-val" :style="{ color: group.def.color }">{{ formatQuantity(item) }}</span>
+                      <button @click.stop="updateItemQuantity(item, 1)" class="row-qty-btn row-qty-btn-plus" :style="{ backgroundColor: group.def.color }">+</button>
                     </div>
                   </div>
                 </div>
@@ -2556,7 +2626,7 @@ onUnmounted(() => {
         <p>Deine Liste ist leer!</p>
       </div>
 
-      <!-- Completion Prompt Card on Final Item Check-Off -->
+      <!-- Completion Prompt Card & Post-Completion Loyalty Card Prompt -->
       <transition name="prompt-fade">
         <div v-if="showCompletionPrompt" class="ks-completion-prompt-card">
           <div class="prompt-card-icon-wrap">
@@ -2569,12 +2639,12 @@ onUnmounted(() => {
             </h3>
             <p class="prompt-card-desc">
               <template v-if="unavailableItems.length > 0">
-                Alle verfügbaren Artikel sind abgehakt. {{ unavailableItems.length }} als „Ausverkauft“ markierte{{ unavailableItems.length === 1 ? 'r Artikel bleibt' : ' Artikel bleiben' }} auf dieser Liste erhalten.
+                Alle verfügbaren Artikel sind abgehakt – erledigte Artikel werden entfernt. {{ unavailableItems.length }} als „Ausverkauft“ markierte{{ unavailableItems.length === 1 ? 'r Artikel bleibt' : ' Artikel bleiben' }} erhalten.
               </template>
               <template v-else>
                 {{ isSharedList
-                  ? 'Alle Artikel sind abgehakt. Möchtest du den Einkauf abschließen und die Gruppe benachrichtigen?'
-                  : 'Alle Artikel dieser Liste sind abgehakt. Möchtest du den Einkauf jetzt abschließen?' }}
+                  ? 'Alle Artikel sind abgehakt. Beim Beenden werden erledigte Artikel entfernt und die Gruppe benachrichtigt.'
+                  : 'Alle Artikel dieser Liste sind abgehakt. Beim Beenden werden alle abgehakten Artikel aus der Liste entfernt.' }}
               </template>
             </p>
             <p v-if="!isOnline && isSharedList" class="prompt-offline-notice">
@@ -2596,7 +2666,7 @@ onUnmounted(() => {
                 @click="handlePromptCompleteShopping"
               >
                 <span v-if="isSubmittingCompletion" class="prompt-spinner"></span>
-                <span>{{ isSubmittingCompletion ? 'Wird beendet...' : 'Einkauf abschließen' }}</span>
+                <span>{{ isSubmittingCompletion ? 'Wird beendet...' : 'Einkauf beenden & Artikel entfernen' }}</span>
               </button>
               <button
                 class="prompt-btn-secondary"
@@ -2605,6 +2675,25 @@ onUnmounted(() => {
                 Später
               </button>
             </div>
+          </div>
+        </div>
+        <div v-else-if="showLoyaltyPromptBanner && currentListLoyaltyCard" class="ks-loyalty-post-prompt-card">
+          <div class="prompt-card-icon-wrap prompt-card-icon-wrap--loyalty">
+            <span class="prompt-card-icon">💳</span>
+          </div>
+          <div class="prompt-card-content">
+            <h3 class="prompt-card-title">Einkauf abgeschlossen!</h3>
+            <p class="prompt-card-desc">
+              Alle erledigten Artikel wurden entfernt. An der Kasse <strong>{{ currentListLoyaltyCard.provider || 'Bonuskarte' }}</strong> vorzeigen?
+            </p>
+          </div>
+          <div class="prompt-card-actions">
+            <button type="button" class="prompt-btn-primary prompt-btn-loyalty" @click="openLoyaltyCardFromPrompt">
+              Bonuskarte öffnen
+            </button>
+            <button type="button" class="prompt-btn-secondary" @click="dismissLoyaltyPromptBanner">
+              Schließen
+            </button>
           </div>
         </div>
         <div v-else-if="groupedActiveItems.length === 0 && completedItems.length > 0" class="all-done-banner text-center bg-green-100 text-green-700 p-4 rounded-xl mb-4 flex items-center justify-center gap-3" style="background-color: #d1fae5; color: #15803d; padding: 16px; border-radius: 12px; margin-bottom: 24px; display: flex; align-items: center; justify-content: center; gap: 12px;">
@@ -2857,6 +2946,8 @@ onUnmounted(() => {
         :is-open="showTemplatesModal"
         :available-lists="allUserLists"
         :default-list-id="listId"
+        :current-list-name="currentList?.name || 'Einkaufsliste'"
+        :current-list-open-items="openActiveItems"
         :initial-mode="templateModalMode"
         :initial-draft="templateInitialDraft"
         @close="showTemplatesModal = false"
@@ -2965,9 +3056,9 @@ onUnmounted(() => {
 
 .ks-grid {
   display: grid;
-
   gap: 8px;
-  align-items: start;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .grid-card {
@@ -4231,11 +4322,20 @@ onUnmounted(() => {
   transform: translateY(-8px);
 }
 
-/* OUT-OF-STOCK & 1-TAP TRANSFER STYLES (4.1) */
+/* OUT-OF-STOCK & 1-TAP TRANSFER STYLES (4.1 & Uniform Height) */
 .grid-card.is-unavailable {
   border-color: rgba(245, 158, 11, 0.55) !important;
   background: linear-gradient(160deg, rgba(45, 34, 16, 0.92), rgba(30, 41, 59, 0.96)) !important;
   box-shadow: 0 4px 16px rgba(245, 158, 11, 0.14);
+}
+
+.grid-card.is-unavailable .item-icon-container {
+  padding-top: 14px;
+}
+
+.grid-card.is-unavailable .icon-svg :deep(svg) {
+  width: 50px;
+  height: 50px;
 }
 
 .row-item-card.is-unavailable {
@@ -4245,11 +4345,12 @@ onUnmounted(() => {
 
 .unavailable-badge {
   position: absolute;
-  top: 7px;
-  right: 7px;
+  top: 6px;
+  right: 6px;
   z-index: 3;
-  font-size: 9px;
+  font-size: 8.5px;
   font-weight: 800;
+  line-height: 1.1;
   letter-spacing: 0.03em;
   text-transform: uppercase;
   padding: 2px 6px;
@@ -4258,6 +4359,10 @@ onUnmounted(() => {
   border: 1px solid rgba(251, 191, 36, 0.5);
   color: #fbbf24;
   pointer-events: none;
+  max-width: calc(100% - 12px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .unavailable-badge--inline {
@@ -4285,11 +4390,54 @@ onUnmounted(() => {
   background: rgba(245, 158, 11, 0.3);
 }
 
-.quick-transfer-pill--row {
-  width: auto;
+.quick-transfer-pill--tile-slot {
+  height: 40px;
+  min-height: 40px;
+  margin-top: auto;
   margin-bottom: 0;
-  padding: 5px 10px;
+  padding: 0 8px;
+  border-radius: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+
+.quick-transfer-pill--row-slot {
+  width: auto;
+  height: 36px;
+  min-height: 36px;
+  margin-bottom: 0;
+  padding: 0 12px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   white-space: nowrap;
+}
+
+.ks-loyalty-post-prompt-card {
+  margin-top: 16px;
+  margin-bottom: 20px;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.94), rgba(14, 116, 144, 0.25));
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 20px;
+  padding: 18px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), 0 0 24px rgba(56, 189, 248, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.prompt-card-icon-wrap--loyalty {
+  background: rgba(56, 189, 248, 0.18);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.prompt-btn-loyalty {
+  background: linear-gradient(135deg, #0284c7, #0ea5e9) !important;
+  color: #ffffff !important;
 }
 
 .row-right-controls {

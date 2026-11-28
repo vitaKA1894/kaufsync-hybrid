@@ -5,7 +5,13 @@ import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
 
 import { searchTaxonomy, findTaxonomyItem, debounce } from '../utils/search';
 import { parseQuickInput } from '../utils/quickInputParser';
-import { findMergeCandidate } from '../utils/itemMerge';
+import { findMergeCandidate, buildMergedItemUpdate } from '../utils/itemMerge';
+import {
+  createInitialRapidState,
+  onRapidQueryInput,
+  onRapidItemSelected,
+  onRapidUndo
+} from '../utils/rapidAddFlow';
 import {
   resolveArticleWithUserLayer,
   searchWithUserOverrides,
@@ -110,6 +116,69 @@ const pendingBarcode = ref(null);
 const categoryChangedInModal = ref(false);
 const isCustomNewItem = ref(false);
 
+// Continuous Rapid Add-Item State ('+ Artikel')
+const isLongPressEditMode = computed(() => Boolean(props.editItem));
+const rapidState = ref(createInitialRapidState());
+const showInlineCustomNoteInput = ref(false);
+const inlineNoteInputRef = ref(null);
+const lastRestockSuggestionKey = ref(null);
+const keyboardBottomInset = ref(0);
+const rapidViewportMaxHeight = ref('');
+
+const syncVisualViewport = () => {
+  if (typeof window === 'undefined') return;
+  const vv = window.visualViewport;
+  if (vv && vv.height > 0) {
+    const bottomInset = Math.max(0, window.innerHeight - (vv.height + vv.offsetTop));
+    keyboardBottomInset.value = bottomInset;
+    rapidViewportMaxHeight.value = `${Math.max(240, Math.floor(vv.height * 0.92))}px`;
+  } else {
+    keyboardBottomInset.value = 0;
+    rapidViewportMaxHeight.value = '';
+  }
+};
+
+const rapidSheetStyle = computed(() => {
+  const style = {};
+  if (rapidViewportMaxHeight.value) {
+    style.maxHeight = rapidViewportMaxHeight.value;
+  }
+  return style;
+});
+
+const keepRapidSearchFocus = () => {
+  if (isLongPressEditMode.value || showInlineCustomNoteInput.value || showScanner.value) return;
+  nextTick(() => {
+    inputRef.value?.focus({ preventScroll: true });
+  });
+};
+
+const openItemQtyMap = computed(() => {
+  const map = new Map();
+  for (const active of (props.activeItems || [])) {
+    if (!active || active.is_deleted) continue;
+    const qty = Number(active.quantity) || 1;
+    const res = resolveArticleWithUserLayer(active.name);
+    if (res?.taxonomyId) {
+      const k = `tax:${String(res.taxonomyId).toLowerCase()}`;
+      map.set(k, (map.get(k) || 0) + qty);
+    }
+    const nk = `name:${String(res?.name || active.name || '').trim().toLowerCase()}`;
+    map.set(nk, (map.get(nk) || 0) + qty);
+  }
+  return map;
+});
+
+const getOpenItemQuantity = (item) => {
+  if (!item) return 0;
+  const taxId = item.id || item.taxonomyId;
+  if (taxId && openItemQtyMap.value.has(`tax:${String(taxId).toLowerCase()}`)) {
+    return openItemQtyMap.value.get(`tax:${String(taxId).toLowerCase()}`);
+  }
+  const nk = `name:${String(item.name || '').trim().toLowerCase()}`;
+  return openItemQtyMap.value.get(nk) || 0;
+};
+
 // Optional Per-Unit Price Input State
 const priceInput = ref('');
 const priceError = ref('');
@@ -150,25 +219,73 @@ const visibleDueSuggestions = computed(() => {
   });
 });
 
-const restockSuggestion = (sug) => {
+const restockSuggestion = async (sug) => {
   triggerLightHaptic();
-  const newId = crypto.randomUUID();
+  commitPendingCustomNote();
+  await commitLearnedMappings();
+
   const sugName = sug.display_name || sug.name;
   const sugKey = sug.article_key || sug.articleKey;
-  const searchMatch = findTaxonomyItem(sugName);
-  const unit = searchMatch?.defaultUnit || searchMatch?.unit || 'Stk';
+  const resolved = resolveArticleWithUserLayer(sugName);
+  const taxSource = resolved.taxItem || findTaxonomyItem(sugName) || {};
+  const defUnit = resolved.defaultUnit || taxSource.defaultUnit || taxSource.unit || 'Stk';
+
+  const newId = crypto.randomUUID();
+  const payload = {
+    id: newId,
+    name: resolved.name || sugName,
+    category: resolved.category || sug.category || 'Sonstiges',
+    quantity: 1,
+    unit: defUnit,
+    tags: JSON.stringify([]),
+    note: '',
+    taxonomy_id: resolved.taxonomyId || taxSource.id || null
+  };
 
   recentlyAddedKeys.value.push(sugKey);
+  lastRestockSuggestionKey.value = sugKey;
+  openedFromNewAdd.value = true;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
 
-  emit('add', {
+  selectedItem.value = {
     id: newId,
-    name: sugName,
-    category: sug.category || 'Sonstiges',
-    quantity: 1,
-    unit: unit,
-    tags: JSON.stringify([]),
-    note: ''
-  });
+    name: payload.name,
+    category: payload.category,
+    subcategory: taxSource.subcategory || '',
+    taxonomyId: payload.taxonomy_id,
+    scanned_barcode: null,
+    icon: resolved.icon || taxSource.icon || null,
+    unit: defUnit,
+    allowedUnits: resolved.allowedUnits || taxSource.allowedUnits || ['Stk'],
+    variants: taxSource.variants || null,
+    attributes: taxSource.attributes || null,
+    packSizes: taxSource.packSizes || null,
+    tags: taxSource.tags || { constellations: [] }
+  };
+  currentQuantity.value = 1;
+  currentUnit.value = defUnit;
+  activeTags.value = [];
+  customNoteInput.value = '';
+  isSliderExpanded.value = false;
+  showInlineCustomNoteInput.value = false;
+  localNotesVersion.value++;
+
+  emit('add', payload);
+
+  if (!isLongPressEditMode.value) {
+    rapidState.value = onRapidItemSelected(rapidState.value, {
+      itemId: newId,
+      wasNewlyCreated: true,
+      previousSnapshot: null,
+      actionKind: 'added'
+    });
+    query.value = '';
+    results.value = [];
+    parsedQuickInput.value = null;
+    barcodeError.value = '';
+    keepRapidSearchFocus();
+  }
 };
 
 const dismissSuggestion = (sug) => {
@@ -276,6 +393,7 @@ const selectUnit = (u) => {
   currentUnit.value = u;
   triggerLightHaptic();
   liveAutoSave();
+  keepRapidSearchFocus();
 };
 
 const showPriceInput = computed(() => {
@@ -412,12 +530,14 @@ const decrementQuantity = () => {
     triggerLightHaptic();
     liveAutoSave();
   }
+  keepRapidSearchFocus();
 };
 
 const incrementQuantity = () => {
   currentQuantity.value++;
   triggerLightHaptic();
   liveAutoSave();
+  keepRapidSearchFocus();
 };
 
 // Tag toggling
@@ -429,6 +549,7 @@ const toggleTag = (tag) => {
   }
   triggerLightHaptic();
   liveAutoSave();
+  keepRapidSearchFocus();
 };
 
 // Custom Notes
@@ -445,6 +566,20 @@ const handleAddCustomNote = () => {
   liveAutoSave();
 };
 
+const openInlineCustomNote = () => {
+  triggerLightHaptic();
+  showInlineCustomNoteInput.value = true;
+  nextTick(() => {
+    inlineNoteInputRef.value?.focus({ preventScroll: true });
+  });
+};
+
+const confirmInlineCustomNote = () => {
+  handleAddCustomNote();
+  showInlineCustomNoteInput.value = false;
+  keepRapidSearchFocus();
+};
+
 const handleRemoveCustomNote = (note) => {
   removeCustomNote(props.listId, selectedItem.value.name, note);
   if (activeTags.value.includes(note)) {
@@ -453,6 +588,7 @@ const handleRemoveCustomNote = (note) => {
   }
   localNotesVersion.value++;
   triggerLightHaptic();
+  keepRapidSearchFocus();
 };
 
 const commitPendingCustomNote = () => {
@@ -822,6 +958,14 @@ const search = debounce((val) => {
 
 const handleInput = (e) => {
   query.value = e.target.value;
+  if (!isLongPressEditMode.value) {
+    if (rapidState.value.mode === 'inline_details' && query.value.trim().length > 0) {
+      commitPendingCustomNote();
+      commitLearnedMappings();
+      showInlineCustomNoteInput.value = false;
+    }
+    rapidState.value = onRapidQueryInput(rapidState.value, query.value);
+  }
   parsedQuickInput.value = parseQuickInput(query.value, props.listId);
   search(query.value);
 };
@@ -838,6 +982,8 @@ const quickAddParsedItem = async () => {
   const p = parsedQuickInput.value;
   if (!p || !p.matched_name) return;
 
+  commitPendingCustomNote();
+  await commitLearnedMappings();
   triggerLightHaptic();
   const allPills = [
     ...(p.detected_variant_pills || []),
@@ -862,9 +1008,10 @@ const quickAddParsedItem = async () => {
     pendingBarcode.value = null;
   }
 
-  const newId = crypto.randomUUID();
-  emit('add', {
-    id: newId,
+  const resolved = resolveArticleWithUserLayer(p.matched_name);
+  const taxSource = resolved.taxItem || findTaxonomyItem(p.matched_name) || {};
+  const payload = {
+    id: crypto.randomUUID(),
     name: p.matched_name,
     category: p.matched_category || 'Sonstiges',
     quantity: p.count_quantity || 1,
@@ -872,28 +1019,102 @@ const quickAddParsedItem = async () => {
     tags: JSON.stringify(allPills),
     note: '',
     taxonomy_id: p.matched_taxonomy_id || null
-  });
+  };
 
-  const pillStr = allPills.length > 0 ? ` (${allPills.join(' · ')})` : '';
-  showQuickFeedback(`${p.count_quantity}× ${p.matched_name}${pillStr} hinzugefügt`);
+  const mergeCand = findMergeCandidate(
+    props.activeItems || [],
+    payload,
+    resolveArticleWithUserLayer
+  );
+
+  lastRestockSuggestionKey.value = null;
+  let boundId = payload.id;
+  let wasCreated = true;
+  let prevSnapshot = null;
+  let finalQty = payload.quantity;
+  let finalUnit = payload.unit;
+  let finalTags = [...allPills];
+
+  if (mergeCand) {
+    prevSnapshot = {
+      id: mergeCand.id,
+      name: mergeCand.name,
+      category: mergeCand.category,
+      quantity: mergeCand.quantity,
+      unit: mergeCand.unit,
+      tags: mergeCand.tags
+    };
+    const merged = buildMergedItemUpdate(mergeCand, payload);
+    boundId = mergeCand.id;
+    wasCreated = false;
+    finalQty = merged.quantity || 1;
+    finalUnit = merged.unit || payload.unit;
+    try {
+      finalTags = typeof merged.tags === 'string' ? JSON.parse(merged.tags) : (Array.isArray(merged.tags) ? merged.tags : []);
+    } catch {
+      finalTags = [...allPills];
+    }
+    emit('update', merged);
+  } else {
+    emit('add', payload);
+  }
+
+  openedFromNewAdd.value = wasCreated;
+  categoryChangedInModal.value = false;
+  isCustomNewItem.value = false;
+  selectedItem.value = {
+    id: boundId,
+    name: p.matched_name,
+    category: p.matched_category || 'Sonstiges',
+    subcategory: taxSource.subcategory || '',
+    taxonomyId: p.matched_taxonomy_id || taxSource.id || null,
+    scanned_barcode: null,
+    icon: p.matched_icon || taxSource.icon || null,
+    unit: finalUnit,
+    allowedUnits: resolved.allowedUnits || taxSource.allowedUnits || ['Stk'],
+    variants: taxSource.variants || null,
+    attributes: taxSource.attributes || null,
+    packSizes: taxSource.packSizes || null,
+    tags: taxSource.tags || { constellations: [] }
+  };
+  currentQuantity.value = finalQty;
+  currentUnit.value = finalUnit;
+  activeTags.value = [...finalTags];
+  customNoteInput.value = '';
+  isSliderExpanded.value = false;
+  showInlineCustomNoteInput.value = false;
+  localNotesVersion.value++;
+
+  if (!isLongPressEditMode.value) {
+    rapidState.value = onRapidItemSelected(rapidState.value, {
+      itemId: boundId,
+      wasNewlyCreated: wasCreated,
+      previousSnapshot: prevSnapshot,
+      actionKind: wasCreated ? 'added' : 'updated'
+    });
+  } else {
+    const pillStr = allPills.length > 0 ? ` (${allPills.join(' · ')})` : '';
+    showQuickFeedback(`${p.count_quantity}× ${p.matched_name}${pillStr} hinzugefügt`);
+  }
 
   query.value = '';
   results.value = [];
   parsedQuickInput.value = null;
   barcodeError.value = '';
-  nextTick(() => {
-    inputRef.value?.focus({ preventScroll: true });
-  });
+  keepRapidSearchFocus();
 };
 
-const selectItem = (item) => {
+const selectItem = async (item) => {
+  commitPendingCustomNote();
+  await commitLearnedMappings();
   const resolved = resolveArticleWithUserLayer(item.name);
   const primaryName = resolved.name || item.name;
   const matchedAlias = item.matchedAlias;
   editIncrementNotice.value = '';
+  lastRestockSuggestionKey.value = null;
 
   // Check for existing open item (Spec 2.3.4):
-  // On plain search tap (single unambiguous match or compatible plain match), increment by +1 and open edit mode
+  // On plain search tap (single unambiguous match or compatible plain match), increment by +1 and open inline/edit mode
   const openMatches = props.activeItems.filter(i => {
     const iResolved = resolveArticleWithUserLayer(i.name);
     if (resolved.taxonomyId && iResolved.taxonomyId && resolved.taxonomyId === iResolved.taxonomyId) return true;
@@ -912,12 +1133,34 @@ const selectItem = (item) => {
   }
 
   if (existingToIncrement) {
+    const prevSnapshot = {
+      id: existingToIncrement.id,
+      name: existingToIncrement.name,
+      category: existingToIncrement.category,
+      quantity: existingToIncrement.quantity,
+      unit: existingToIncrement.unit,
+      tags: existingToIncrement.tags
+    };
     const newQty = (Number(existingToIncrement.quantity) || 1) + 1;
     openedFromNewAdd.value = false;
     triggerLightHaptic();
     emit('update', { id: existingToIncrement.id, quantity: newQty });
     setupEditItem({ ...existingToIncrement, quantity: newQty });
     editIncrementNotice.value = `Menge von „${existingToIncrement.name}“ auf ${newQty} erhöht`;
+    if (!isLongPressEditMode.value) {
+      rapidState.value = onRapidItemSelected(rapidState.value, {
+        itemId: existingToIncrement.id,
+        wasNewlyCreated: false,
+        previousSnapshot: prevSnapshot,
+        actionKind: 'updated'
+      });
+      showInlineCustomNoteInput.value = false;
+      query.value = '';
+      results.value = [];
+      parsedQuickInput.value = null;
+      barcodeError.value = '';
+      keepRapidSearchFocus();
+    }
     return;
   }
 
@@ -950,6 +1193,7 @@ const selectItem = (item) => {
   activeTags.value = [];
   customNoteInput.value = '';
   isSliderExpanded.value = false;
+  showInlineCustomNoteInput.value = false;
   localNotesVersion.value++;
 
   if (matchedAlias && matchedAlias.toLowerCase() !== primaryName.toLowerCase()) {
@@ -975,6 +1219,20 @@ const selectItem = (item) => {
     taxonomy_id: selectedItem.value.taxonomyId,
     scanned_barcode: activeBarcode
   });
+
+  if (!isLongPressEditMode.value) {
+    rapidState.value = onRapidItemSelected(rapidState.value, {
+      itemId: newId,
+      wasNewlyCreated: true,
+      previousSnapshot: null,
+      actionKind: 'added'
+    });
+    query.value = '';
+    results.value = [];
+    parsedQuickInput.value = null;
+    barcodeError.value = '';
+    keepRapidSearchFocus();
+  }
 };
 
 const confirmSelection = (bypassWarning = false) => {
@@ -1057,9 +1315,45 @@ const unlockBackgroundScroll = () => {
   window.scrollTo(0, savedScrollY);
 };
 
+const handleRapidUndo = () => {
+  const { nextState, undoAction } = onRapidUndo(rapidState.value);
+  if (!undoAction) return;
+  triggerLightHaptic();
+
+  if (undoAction.type === 'delete') {
+    emit('delete', undoAction.itemId);
+    if (lastRestockSuggestionKey.value) {
+      recentlyAddedKeys.value = recentlyAddedKeys.value.filter(k => k !== lastRestockSuggestionKey.value);
+    }
+  } else if (undoAction.type === 'restore' && undoAction.snapshot) {
+    emit('update', {
+      id: undoAction.snapshot.id,
+      name: undoAction.snapshot.name,
+      category: undoAction.snapshot.category,
+      quantity: undoAction.snapshot.quantity,
+      unit: undoAction.snapshot.unit,
+      tags: undoAction.snapshot.tags
+    });
+  }
+
+  lastRestockSuggestionKey.value = null;
+  pendingBarcode.value = null;
+  selectedItem.value = null;
+  activeTags.value = [];
+  customNoteInput.value = '';
+  showInlineCustomNoteInput.value = false;
+  isSliderExpanded.value = false;
+  openedFromNewAdd.value = false;
+  rapidState.value = nextState;
+  keepRapidSearchFocus();
+};
+
 const closeModal = () => {
   unlockBackgroundScroll();
   isContinuousAdd.value = false;
+  rapidState.value = createInitialRapidState();
+  showInlineCustomNoteInput.value = false;
+  lastRestockSuggestionKey.value = null;
   query.value = '';
   results.value = [];
   parsedQuickInput.value = null;
@@ -1089,6 +1383,11 @@ const highlightText = (text, match) => {
 };
 
 onMounted(() => {
+  syncVisualViewport();
+  if (typeof window !== 'undefined' && window.visualViewport) {
+    window.visualViewport.addEventListener('resize', syncVisualViewport);
+    window.visualViewport.addEventListener('scroll', syncVisualViewport);
+  }
   if (props.isOpen) {
     lockBackgroundScroll();
     loadDueSuggestions();
@@ -1096,6 +1395,7 @@ onMounted(() => {
       openedFromNewAdd.value = false;
       setupEditItem(props.editItem);
     } else {
+      rapidState.value = createInitialRapidState();
       nextTick(() => {
         inputRef.value?.focus({ preventScroll: true });
       });
@@ -1104,12 +1404,17 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  if (typeof window !== 'undefined' && window.visualViewport) {
+    window.visualViewport.removeEventListener('resize', syncVisualViewport);
+    window.visualViewport.removeEventListener('scroll', syncVisualViewport);
+  }
   unlockBackgroundScroll();
 });
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
     lockBackgroundScroll();
+    syncVisualViewport();
     recentlyAddedKeys.value = [];
     dismissedKeys.value = [];
     syncUserMappings();
@@ -1118,9 +1423,12 @@ watch(() => props.isOpen, (newVal) => {
       openedFromNewAdd.value = false;
       setupEditItem(props.editItem);
     } else if (props.startWithScanner) {
+      rapidState.value = createInitialRapidState();
       openedFromNewAdd.value = false;
       triggerScan();
     } else {
+      rapidState.value = createInitialRapidState();
+      showInlineCustomNoteInput.value = false;
       showScanner.value = false;
       openedFromNewAdd.value = false;
       nextTick(() => {
@@ -1149,183 +1457,414 @@ watch(() => props.editItem, (newVal) => {
 
 <template>
   <transition name="scrim-fade">
-    <div v-if="isOpen" class="modal-backdrop" @click="handleDismiss">
-      <div class="modal-content" :class="{ 'is-details': selectedItem }" @click.stop ref="sheetRef" :style="sheetStyle">
+    <div
+      v-if="isOpen"
+      class="modal-backdrop"
+      :style="!isLongPressEditMode && keyboardBottomInset > 0 ? { paddingBottom: keyboardBottomInset + 'px' } : null"
+      @click="handleDismiss"
+    >
+      <div
+        class="modal-content"
+        :class="{ 'is-details': isLongPressEditMode, 'is-rapid-add': !isLongPressEditMode }"
+        @click.stop
+        ref="sheetRef"
+        :style="isLongPressEditMode ? sheetStyle : [sheetStyle, rapidSheetStyle]"
+      >
 
-        <!-- STEP 1: Search -->
-        <div v-if="!selectedItem" class="search-step-container" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
-          <!-- Scanner View -->
+        <!-- CONTINUOUS RAPID ADD-ITEM FLOW (+ Artikel & Scanner) -->
+        <div v-if="!isLongPressEditMode" class="rapid-add-shell">
+          <!-- Barcode Scanner View -->
           <BarcodeScanner v-if="showScanner" @close="handleWebScannerClose" @scan="handleScan" />
 
-          <!-- Search Step View -->
-          <div class="search-step" v-show="!showScanner" style="flex-direction: column-reverse;">
-            <div v-if="query.length >= 1" class="results-list" style="margin-bottom: 16px;">
-              <!-- Pinned Quick-Add Card when Natural-Language Modifiers are detected -->
-              <button
-                v-if="parsedQuickInput?.has_modifiers && parsedQuickInput?.matched_name"
-                type="button"
-                class="quick-add-card"
-                :style="{ '--qa-accent': getCategoryDef(parsedQuickInput.matched_category).color }"
-                @click="quickAddParsedItem"
-              >
-                <div class="quick-add-left" :style="{ color: getCategoryDef(parsedQuickInput.matched_category).color }">
-                  <CategoryIcon :name="parsedQuickInput.matched_name" :category="parsedQuickInput.matched_category" size="34" />
-                </div>
-                <div class="quick-add-center">
-                  <div class="quick-add-name-row">
-                    <span class="quick-add-name">{{ parsedQuickInput.matched_name }}</span>
-                    <span class="quick-add-cat-dot" :style="{ backgroundColor: getCategoryDef(parsedQuickInput.matched_category).color }"></span>
+          <template v-else>
+            <div class="ks-sheet__handle rapid-sheet-handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
+
+            <!-- SCROLLABLE TOP AREA ABOVE SEARCH INPUT -->
+            <div class="rapid-scroll-area" @touchstart.stop>
+
+              <!-- STATE C: INLINE DETAILS FOR JUST-ADDED / UPDATED ITEM -->
+              <div v-if="rapidState.mode === 'inline_details' && selectedItem" class="inline-details-panel">
+                <!-- Top Confirmation Bar with Icon + Name + 1-Tap Undo -->
+                <div class="inline-confirm-bar">
+                  <div class="inline-confirm-left">
+                    <div class="inline-confirm-icon" :style="{ color: getCategoryDef(selectedItem.category).color }">
+                      <CategoryIcon :name="selectedItem.name" :category="selectedItem.category" size="26" />
+                    </div>
+                    <div class="inline-confirm-text">
+                      <span class="inline-confirm-status">
+                        ✓ {{ selectedItem.name }} {{ rapidState.actionKind === 'updated' ? 'aktualisiert' : 'hinzugefügt' }}
+                      </span>
+                      <span class="inline-confirm-sub">Details zu {{ selectedItem.name }}</span>
+                    </div>
                   </div>
-                  <div class="quick-add-pills">
-                    <span
-                      v-for="vp in parsedQuickInput.detected_variant_pills"
-                      :key="'qv-' + vp"
-                      class="qa-pill qa-pill--variant"
-                    >
-                      {{ vp }}
-                    </span>
-                    <span
-                      v-for="cp in parsedQuickInput.detected_custom_pills"
-                      :key="'qc-' + cp"
-                      class="qa-pill qa-pill--custom"
-                    >
-                      {{ cp }}
-                    </span>
-                    <span
-                      v-for="mp in parsedQuickInput.detected_meta_tags"
-                      :key="'qm-' + mp"
-                      class="qa-pill qa-pill--meta"
-                    >
-                      {{ mp }}
-                    </span>
-                  </div>
-                </div>
-                <div class="quick-add-right">
-                  <span class="quick-add-qty-badge">{{ parsedQuickInput.count_quantity }}×</span>
-                  <span class="quick-add-plus-btn" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
-                    </svg>
-                  </span>
-                </div>
-              </button>
-
-              <div class="ks-grid items-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2" style="padding: 0 4px;">
-                <div
-                  v-for="item in results"
-                  :key="item.id || item.name"
-                  class="grid-card"
-                  @click="selectItem(item)"
-                >
-                  <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: getCategoryDef(item.category).color }"></div>
-                  <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: getCategoryDef(item.category).color }">
-                    <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="64" />
-                  </div>
-                  <div class="card-text-area">
-                    <span class="item-name" v-html="highlightText(item.name, query)"></span>
-                    <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.matchedAlias }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="results.length === 0 && !parsedQuickInput?.has_modifiers" class="no-results">
-                Keine Vorschläge gefunden. Drücke Enter, um "{{ query }}" hinzuzufügen.
-              </div>
-            </div>
-
-            <!-- Instant Quick-Add Confirmation Banner -->
-            <div v-if="quickAddFeedback" class="quick-add-feedback-banner">
-              <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
-              </svg>
-              <span>{{ quickAddFeedback }}</span>
-            </div>
-
-            <!-- "Bald wieder leer" Suggestions Section -->
-            <div
-              v-if="!query.trim() && visibleDueSuggestions.length > 0"
-              class="restock-suggestions-section"
-            >
-              <div class="restock-section-header">
-                <div class="restock-title-wrapper">
-                  <svg class="restock-header-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
-                    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
-                  </svg>
-                  <span class="restock-title">Bald wieder leer</span>
-                  <span class="restock-count-badge">{{ visibleDueSuggestions.length }}</span>
-                </div>
-              </div>
-
-              <div class="restock-chips-slider" @touchstart.stop @touchmove.stop>
-                <div
-                  v-for="sug in visibleDueSuggestions"
-                  :key="sug.article_key || sug.articleKey"
-                  class="restock-card"
-                  :style="{ '--cat-accent': getCategoryDef(sug.category).color }"
-                  @click="restockSuggestion(sug)"
-                  role="button"
-                  tabindex="0"
-                  :aria-label="`${sug.display_name || sug.name} wieder auf die Liste setzen`"
-                >
                   <button
                     type="button"
-                    class="restock-dismiss-btn"
-                    @click.stop="dismissSuggestion(sug)"
-                    :aria-label="`${sug.display_name || sug.name} Vorschlag verwerfen`"
+                    class="inline-undo-btn"
+                    @mousedown.prevent
+                    @click="handleRapidUndo"
                   >
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
-                      <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
-                    </svg>
+                    Rückgängig
+                  </button>
+                </div>
+
+                <!-- Compact Quantity Stepper -->
+                <div class="quantity-stepper-row rapid-stepper-row">
+                  <span class="quantity-stepper-label">Menge</span>
+                  <div class="quantity-stepper-controls">
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      :class="{ 'is-disabled': currentQuantity <= 1 }"
+                      @mousedown.prevent
+                      @click="decrementQuantity"
+                      aria-label="Menge verringern"
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M19 13H5v-2h14v2z"/>
+                      </svg>
+                    </button>
+                    <span class="stepper-value">{{ currentQuantity }}</span>
+                    <button
+                      type="button"
+                      class="stepper-btn"
+                      @mousedown.prevent
+                      @click="incrementQuantity"
+                      aria-label="Menge erhöhen"
+                    >
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Compact Unit Selector Pills (only if multiple allowed units) -->
+                <div v-if="availableUnits.length > 1" class="unit-pill-row" @touchstart.stop>
+                  <button
+                    v-for="u in availableUnits"
+                    :key="'r-unit-' + u"
+                    type="button"
+                    class="unit-pill-btn"
+                    :class="{ active: currentUnit === u }"
+                    :style="currentUnit === u ? activeChipStyle : defaultChipStyle"
+                    @mousedown.prevent
+                    @click="selectUnit(u)"
+                  >
+                    {{ u }}
+                  </button>
+                </div>
+
+                <!-- Variants & Locally Remembered Custom Note Pills -->
+                <div v-if="totalSliderPillsCount > 0" class="slider-header">
+                  <span class="slider-title">Varianten &amp; Notizen</span>
+                  <button
+                    v-if="totalSliderPillsCount > 7"
+                    type="button"
+                    class="slider-expand-btn"
+                    @mousedown.prevent
+                    @click="isSliderExpanded = !isSliderExpanded; keepRapidSearchFocus();"
+                  >
+                    {{ isSliderExpanded ? 'Weniger' : `+ Alle (${totalSliderPillsCount})` }}
+                  </button>
+                </div>
+
+                <div
+                  v-if="totalSliderPillsCount > 0"
+                  class="variant-slider rapid-variant-slider"
+                  :class="{ 'is-expanded': isSliderExpanded }"
+                  @touchstart.stop
+                >
+                  <button
+                    v-for="note in allCustomNotes"
+                    :key="'r-note-' + note"
+                    type="button"
+                    class="ks-chip tag-chip tag-custom-note"
+                    :class="{ active: activeTags.includes(note) }"
+                    :style="activeTags.includes(note) ? activeChipStyle : defaultChipStyle"
+                    @mousedown.prevent
+                    @click="toggleTag(note)"
+                  >
+                    <span class="pill-text">{{ note }}</span>
+                    <span
+                      class="pill-remove-btn"
+                      @mousedown.prevent
+                      @click.stop="handleRemoveCustomNote(note)"
+                      title="Notiz entfernen"
+                    >
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                        <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                      </svg>
+                    </span>
                   </button>
 
-                  <div class="restock-card-main">
-                    <div class="restock-icon-wrapper" :style="{ color: getCategoryDef(sug.category).color }">
-                      <CategoryIcon :name="sug.display_name || sug.name" :category="sug.category" size="26" />
-                    </div>
-                    <div class="restock-card-text">
-                      <span class="restock-item-name">{{ sug.display_name || sug.name }}</span>
-                      <span class="restock-cadence">{{ sug.cadence_text || sug.cadenceText }}</span>
-                    </div>
-                  </div>
+                  <button
+                    v-for="tag in constellationPills"
+                    :key="'r-c-' + tag"
+                    type="button"
+                    class="ks-chip tag-chip tag-meta"
+                    :class="{ active: activeTags.includes(tag) }"
+                    :style="activeTags.includes(tag) ? activeChipStyle : defaultChipStyle"
+                    @mousedown.prevent
+                    @click="toggleTag(tag)"
+                  >
+                    {{ tag }}
+                  </button>
 
-                  <div class="restock-add-badge">
-                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                  <button
+                    v-for="tag in metaPills"
+                    :key="'r-m-' + tag"
+                    type="button"
+                    class="ks-chip tag-chip tag-meta"
+                    :class="{ active: activeTags.includes(tag) }"
+                    :style="activeTags.includes(tag) ? activeChipStyle : defaultChipStyle"
+                    @mousedown.prevent
+                    @click="toggleTag(tag)"
+                  >
+                    {{ tag }}
+                  </button>
+                </div>
+
+                <!-- 3-Column Meta-Tags Row -->
+                <div class="meta-tags-three-col rapid-meta-tags">
+                  <button
+                    v-for="tag in ['Dringend', 'Angebot', 'Wenn\'s passt']"
+                    :key="'r-u-' + tag"
+                    type="button"
+                    class="ks-chip meta-tag-col-btn"
+                    :class="{ active: activeTags.includes(tag) }"
+                    :style="activeTags.includes(tag) ? activeChipStyle : defaultChipStyle"
+                    @mousedown.prevent
+                    @click="toggleTag(tag)"
+                  >
+                    <svg v-if="tag === 'Dringend'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13.5 5.5c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zM9.8 8.9L7 23h2.1l1.8-8 2.1 2v6h2v-7.5l-2.1-2 .6-3C14.8 12 16.8 13 19 13v-2c-1.9 0-3.5-1-4.3-2.4l-1-1.6c-.4-.6-1-1-1.7-1-.3 0-.5.1-.8.1L6 8.3V13h2V9.6l1.8-.7"/>
+                    </svg>
+                    <svg v-if="tag === 'Angebot'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M21.41 11.58l-9-9C12.05 2.22 11.55 2 11 2H4c-1.1 0-2 .9-2 2v7c0 .55.22 1.05.59 1.42l9 9c.36.36.86.58 1.41.58.55 0 1.05-.22 1.41-.59l7-7c.37-.36.59-.86.59-1.41 0-.55-.23-1.06-.59-1.42zM5.5 7C4.67 7 4 6.33 4 5.5S4.67 4 5.5 4 7 4.67 7 5.5 6.33 7 5.5 7z"/>
+                    </svg>
+                    <svg v-if="tag === 'Wenn\'s passt'" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6v2h2v5h2v-5h2v-2zm4 5h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                    <span class="meta-tag-text">{{ tag }}</span>
+                  </button>
+                </div>
+
+                <!-- Compact Inline Custom Note Control -->
+                <div class="inline-note-wrap">
+                  <button
+                    v-if="!showInlineCustomNoteInput"
+                    type="button"
+                    class="inline-note-toggle-btn"
+                    @click="openInlineCustomNote"
+                  >
+                    <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
                       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
                     </svg>
+                    <span>Eigene Notiz hinzufügen</span>
+                  </button>
+                  <div v-else class="custom-note-input-row rapid-custom-note-row">
+                    <input
+                      ref="inlineNoteInputRef"
+                      type="text"
+                      v-model="customNoteInput"
+                      placeholder="Eigene Notiz (z. B. lactosefrei)…"
+                      class="custom-note-input"
+                      @keydown.enter.prevent="confirmInlineCustomNote"
+                    />
+                    <button
+                      type="button"
+                      class="custom-note-add-btn"
+                      :disabled="!customNoteInput.trim()"
+                      @mousedown.prevent
+                      @click="confirmInlineCustomNote"
+                      aria-label="Notiz speichern"
+                    >
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
               </div>
-            </div>
 
-            <div class="modal-header">
-              <div style="flex: 1; display: flex; flex-direction: column; position: relative;">
+              <!-- STATE B: LIVE SEARCH RESULTS -->
+              <div v-else-if="rapidState.mode === 'searching'" class="results-list rapid-results-list">
+                <!-- Pinned Quick-Add Card when Natural-Language Modifiers are detected -->
+                <button
+                  v-if="parsedQuickInput?.has_modifiers && parsedQuickInput?.matched_name"
+                  type="button"
+                  class="quick-add-card"
+                  :style="{ '--qa-accent': getCategoryDef(parsedQuickInput.matched_category).color }"
+                  @mousedown.prevent
+                  @click="quickAddParsedItem"
+                >
+                  <div class="quick-add-left" :style="{ color: getCategoryDef(parsedQuickInput.matched_category).color }">
+                    <CategoryIcon :name="parsedQuickInput.matched_name" :category="parsedQuickInput.matched_category" size="34" />
+                  </div>
+                  <div class="quick-add-center">
+                    <div class="quick-add-name-row">
+                      <span class="quick-add-name">{{ parsedQuickInput.matched_name }}</span>
+                      <span class="quick-add-cat-dot" :style="{ backgroundColor: getCategoryDef(parsedQuickInput.matched_category).color }"></span>
+                    </div>
+                    <div class="quick-add-pills">
+                      <span
+                        v-for="vp in parsedQuickInput.detected_variant_pills"
+                        :key="'qv-' + vp"
+                        class="qa-pill qa-pill--variant"
+                      >
+                        {{ vp }}
+                      </span>
+                      <span
+                        v-for="cp in parsedQuickInput.detected_custom_pills"
+                        :key="'qc-' + cp"
+                        class="qa-pill qa-pill--custom"
+                      >
+                        {{ cp }}
+                      </span>
+                      <span
+                        v-for="mp in parsedQuickInput.detected_meta_tags"
+                        :key="'qm-' + mp"
+                        class="qa-pill qa-pill--meta"
+                      >
+                        {{ mp }}
+                      </span>
+                    </div>
+                  </div>
+                  <div class="quick-add-right">
+                    <span class="quick-add-qty-badge">{{ parsedQuickInput.count_quantity }}×</span>
+                    <span class="quick-add-plus-btn" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                      </svg>
+                    </span>
+                  </div>
+                </button>
+
+                <div class="ks-grid items-grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-2" style="padding: 0 4px;">
+                  <div
+                    v-for="item in results"
+                    :key="item.id || item.name"
+                    class="grid-card"
+                    :class="{ 'is-already-open': getOpenItemQuantity(item) > 0 }"
+                    @mousedown.prevent
+                    @click="selectItem(item)"
+                  >
+                    <span v-if="getOpenItemQuantity(item) > 0" class="search-tile-open-badge">
+                      ✓ {{ getOpenItemQuantity(item) }}×
+                    </span>
+                    <div class="absolute -top-4 -right-4 w-24 h-24 rounded-full blur-xl opacity-15 pointer-events-none" :style="{ backgroundColor: getCategoryDef(item.category).color }"></div>
+                    <div class="item-icon-container flex items-center justify-center mb-1 select-none" :style="{ color: getCategoryDef(item.category).color }">
+                      <CategoryIcon class="icon-svg" :name="item.name" :category="item.category" size="64" />
+                    </div>
+                    <div class="card-text-area">
+                      <span class="item-name" v-html="highlightText(item.name, query)"></span>
+                      <span class="item-regular-tags" v-if="item.matchedAlias">{{ item.matchedAlias }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="results.length === 0 && !parsedQuickInput?.has_modifiers" class="no-results">
+                  Keine Vorschläge gefunden. Drücke Enter, um „{{ query }}“ hinzuzufügen.
+                </div>
+              </div>
+
+              <!-- STATE A: IDLE EMPTY ("Bald wieder leer" Suggestions or Quiet Hint) -->
+              <div v-else class="rapid-idle-area">
                 <div v-if="barcodeError" class="barcode-not-found-banner">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
                   </svg>
                   <span>{{ barcodeError }}</span>
                 </div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                  <input
-                    ref="inputRef"
-                    v-model="query"
-                    @input="handleInput($event); barcodeError = '';"
-                    type="text"
-                    class="modal-input"
-                    placeholder="Suchen oder z. B. „2x Milch bio !“..."
-                    @keyup.enter="confirmSelection(false)"
-                  />
+
+                <div
+                  v-if="visibleDueSuggestions.length > 0"
+                  class="restock-suggestions-section"
+                >
+                  <div class="restock-section-header">
+                    <div class="restock-title-wrapper">
+                      <svg class="restock-header-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                        <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.2 3.2.8-1.3-4.5-2.7V7z"/>
+                      </svg>
+                      <span class="restock-title">Bald wieder leer</span>
+                      <span class="restock-count-badge">{{ visibleDueSuggestions.length }}</span>
+                    </div>
+                  </div>
+
+                  <div class="restock-chips-slider" @touchstart.stop @touchmove.stop>
+                    <div
+                      v-for="sug in visibleDueSuggestions"
+                      :key="sug.article_key || sug.articleKey"
+                      class="restock-card"
+                      :style="{ '--cat-accent': getCategoryDef(sug.category).color }"
+                      @mousedown.prevent
+                      @click="restockSuggestion(sug)"
+                      role="button"
+                      tabindex="0"
+                      :aria-label="`${sug.display_name || sug.name} wieder auf die Liste setzen`"
+                    >
+                      <button
+                        type="button"
+                        class="restock-dismiss-btn"
+                        @mousedown.prevent
+                        @click.stop="dismissSuggestion(sug)"
+                        :aria-label="`${sug.display_name || sug.name} Vorschlag verwerfen`"
+                      >
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                          <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+                        </svg>
+                      </button>
+
+                      <div class="restock-card-main">
+                        <div class="restock-icon-wrapper" :style="{ color: getCategoryDef(sug.category).color }">
+                          <CategoryIcon :name="sug.display_name || sug.name" :category="sug.category" size="26" />
+                        </div>
+                        <div class="restock-card-text">
+                          <span class="restock-item-name">{{ sug.display_name || sug.name }}</span>
+                          <span class="restock-cadence">{{ sug.cadence_text || sug.cadenceText }}</span>
+                        </div>
+                      </div>
+
+                      <div class="restock-add-badge">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
+                          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else-if="!barcodeError" class="rapid-empty-hint">
+                  Artikel tippen – oder direkt mit Menge &amp; Notiz wie <strong>„3x Milch 1,5% !“</strong>.
                 </div>
               </div>
-              <button class="close-btn ks-icon-btn" @click="closeModal" aria-label="Schließen">
-                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </div>
+
+            <!-- DOCKED ANCHORED BOTTOM SEARCH BAR (STAYS ABOVE KEYBOARD) -->
+            <div class="rapid-bottom-bar">
+              <input
+                ref="inputRef"
+                :value="query"
+                @input="handleInput($event); barcodeError = '';"
+                type="text"
+                class="modal-input rapid-bottom-input"
+                :placeholder="(rapidState.mode === 'inline_details' || rapidState.addedCount > 0) ? 'Nächster Artikel…' : 'z. B. Milch, Brot oder 2x Joghurt…'"
+                @keyup.enter="confirmSelection(false)"
+              />
+              <button
+                type="button"
+                class="rapid-done-btn"
+                :class="{ 'is-primary': rapidState.addedCount > 0 }"
+                @click="handleDone"
+              >
+                {{ rapidState.addedCount > 0 ? 'Fertig' : 'Abbrechen' }}
               </button>
             </div>
-          </div>
+          </template>
         </div>
 
-        <!-- STEP 2: Compact Slider & Stepper Details -->
-        <div v-else class="tags-step">
+        <!-- LONG-PRESS EXISTING ITEM: FULL DETAIL MODAL (Preserved Unchanged) -->
+        <div v-else-if="selectedItem" class="tags-step">
           <div class="ks-sheet__handle" @touchstart="onTouchStart" @touchmove="onTouchMove" @touchend="onTouchEnd"></div>
 
           <div v-if="editIncrementNotice" class="edit-increment-notice">
@@ -2731,5 +3270,223 @@ watch(() => props.editItem, (newVal) => {
   margin: 6px 0 0;
   font-size: 12px;
   color: #f87171;
+}
+
+/* CONTINUOUS RAPID ADD-ITEM STYLES */
+.modal-content.is-rapid-add {
+  max-height: 78vh;
+  padding: 12px 14px max(12px, env(safe-area-inset-bottom));
+}
+
+.rapid-add-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.rapid-sheet-handle {
+  margin: 0 auto 10px auto;
+}
+
+.rapid-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 10px;
+}
+
+.rapid-results-list {
+  overflow-y: visible;
+  flex: none;
+}
+
+.search-tile-open-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 3;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  background: rgba(16, 185, 129, 0.22);
+  border: 1px solid rgba(52, 211, 153, 0.48);
+  color: #6ee7b7;
+  pointer-events: none;
+}
+
+.grid-card.is-already-open {
+  border: 1px solid rgba(52, 211, 153, 0.35);
+}
+
+.rapid-idle-area {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rapid-empty-hint {
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(30, 41, 59, 0.55);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  color: #94a3b8;
+  font-size: 13px;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.inline-details-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: restockFadeIn 0.18s ease-out;
+}
+
+.inline-confirm-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.inline-confirm-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.inline-confirm-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.inline-confirm-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.inline-confirm-status {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6ee7b7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inline-confirm-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.inline-undo-btn {
+  padding: 6px 11px;
+  border-radius: 9999px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.inline-undo-btn:active {
+  transform: scale(0.95);
+}
+
+.rapid-stepper-row {
+  margin-bottom: 0;
+}
+
+.rapid-variant-slider {
+  margin-bottom: 0;
+}
+
+.rapid-meta-tags {
+  margin-bottom: 0;
+}
+
+.inline-note-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.inline-note-toggle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 7px 12px;
+  border-radius: 9999px;
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  background: rgba(30, 41, 59, 0.55);
+  color: #cbd5e1;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inline-note-toggle-btn:active {
+  transform: scale(0.97);
+}
+
+.rapid-custom-note-row {
+  margin-bottom: 0;
+}
+
+.rapid-bottom-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.rapid-bottom-input {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 14px;
+  font-size: 16px;
+}
+
+.rapid-done-btn {
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  background: rgba(30, 41, 59, 0.9);
+  color: #e2e8f0;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rapid-done-btn.is-primary {
+  background: var(--ks-primary, #38bdf8);
+  border-color: transparent;
+  color: #0f172a;
+}
+
+.rapid-done-btn:active {
+  transform: scale(0.96);
 }
 </style>

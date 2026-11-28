@@ -15,6 +15,8 @@ import {
   syncUserMappings
 } from '../services/userMappingService';
 import { useBottomSheetDrag } from '../utils/useBottomSheetDrag';
+import { readClipboardTextWithFeedback } from '../utils/clipboardReader';
+import { triggerLightHaptic } from '../utils/hapticsService';
 
 const props = defineProps({
   isOpen: {
@@ -48,6 +50,8 @@ const isLoading = ref(false);
 const isImporting = ref(false);
 const errorMessage = ref('');
 const errorCode = ref('');
+const clipboardHint = ref('');
+let clipboardHintTimer = null;
 const recipeData = ref(null);
 const currentServings = ref(4);
 const inputRef = ref(null);
@@ -282,27 +286,45 @@ watch(() => props.shoppingLists, (newVal) => {
   }
 }, { deep: true });
 
+const showClipboardFeedback = (msg) => {
+  if (clipboardHintTimer) clearTimeout(clipboardHintTimer);
+  clipboardHint.value = msg;
+  clipboardHintTimer = setTimeout(() => {
+    clipboardHint.value = '';
+  }, 4500);
+};
+
 // Clipboard helpers
 const pasteFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text && text.trim()) {
-      url.value = text.trim();
-      errorMessage.value = '';
-      errorCode.value = '';
-    }
-  } catch (err) {}
+  clipboardHint.value = '';
+  const res = await readClipboardTextWithFeedback();
+  if (res.ok && res.text) {
+    triggerLightHaptic();
+    url.value = res.text;
+    errorMessage.value = '';
+    errorCode.value = '';
+    return;
+  }
+  showClipboardFeedback(res.message);
+  nextTick(() => {
+    inputRef.value?.focus({ preventScroll: true });
+  });
 };
 
 const pasteTextFromClipboard = async () => {
-  try {
-    const text = await navigator.clipboard.readText();
-    if (text && text.trim()) {
-      textInput.value = text.trim();
-      errorMessage.value = '';
-      errorCode.value = '';
-    }
-  } catch (err) {}
+  clipboardHint.value = '';
+  const res = await readClipboardTextWithFeedback();
+  if (res.ok && res.text) {
+    triggerLightHaptic();
+    textInput.value = res.text;
+    errorMessage.value = '';
+    errorCode.value = '';
+    return;
+  }
+  showClipboardFeedback(res.message);
+  nextTick(() => {
+    textareaRef.value?.focus({ preventScroll: true });
+  });
 };
 
 // Fetch & parse recipe via Link
@@ -713,7 +735,7 @@ const getHostname = (link) => {
             </div>
             <div>
               <h2 class="modal-title">Rezept importieren</h2>
-              <p class="modal-subtitle">Monsieur Cuisine, Mealie, Chefkoch & alle Rezeptseiten</p>
+              <p class="modal-subtitle">Chefkoch, Allrecipes &amp; viele weitere Kochwebseiten</p>
             </div>
           </div>
           <button class="close-btn" @click="emit('close')" aria-label="Schließen">
@@ -746,7 +768,7 @@ const getHostname = (link) => {
             type="button"
             class="mode-tab-btn"
             :class="{ 'active': importMode === 'link' }"
-            @click="importMode = 'link'; errorMessage = '';"
+            @click="importMode = 'link'; errorMessage = ''; clipboardHint = '';"
           >
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
               <path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/>
@@ -757,7 +779,7 @@ const getHostname = (link) => {
             type="button"
             class="mode-tab-btn"
             :class="{ 'active': importMode === 'text' }"
-            @click="importMode = 'text'; errorMessage = '';"
+            @click="importMode = 'text'; errorMessage = ''; clipboardHint = '';"
           >
             <svg viewBox="0 0 24 24" width="15" height="15" fill="currentColor">
               <path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>
@@ -780,7 +802,7 @@ const getHostname = (link) => {
               type="url"
               v-model="url"
               class="url-input"
-              placeholder="Rezept-Link einfügen (Monsieur Cuisine, Mealie, Chefkoch...)"
+              placeholder="Rezept-Link einfügen (z. B. Chefkoch, Allrecipes)…"
               :disabled="isLoading || !isOnline"
               @keyup.enter="fetchRecipe"
             />
@@ -793,15 +815,17 @@ const getHostname = (link) => {
             </button>
           </div>
 
+          <p v-if="clipboardHint && importMode === 'link'" class="clipboard-hint-msg">{{ clipboardHint }}</p>
+
           <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !url.trim() || !isOnline" @click="fetchRecipe" style="width: 100%;">
             <span v-if="isLoading" class="spinner"></span>
             <span v-else>Rezept laden</span>
           </button>
 
           <div class="hint-box">
-            <div class="hint-title">💡 Tipp für Monsieur Cuisine & Apps:</div>
+            <div class="hint-title">💡 Tipp für Rezept-Apps &amp; Browser:</div>
             <p class="hint-text">
-              Du kannst direkt in deinem Handy-Browser oder in der Rezept-App auf <strong>„Teilen“</strong> tippen und <strong>KaufSync</strong> auswählen!
+              Du kannst direkt in deinem Handy-Browser oder in einer Rezept-App auf <strong>„Teilen“</strong> tippen und <strong>KaufSync</strong> auswählen!
             </p>
           </div>
         </div>
@@ -834,6 +858,8 @@ const getHostname = (link) => {
               <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
             </button>
           </div>
+
+          <p v-if="clipboardHint && importMode === 'text'" class="clipboard-hint-msg">{{ clipboardHint }}</p>
 
           <button class="ks-btn-pill-primary full-width" :disabled="isLoading || !textInput.trim()" @click="handleTextParse" style="width: 100%;">
             <span v-if="isLoading" class="spinner"></span>
@@ -2149,6 +2175,17 @@ const getHostname = (link) => {
   border-top-color: #fff;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
+}
+
+.clipboard-hint-msg {
+  margin: -4px 0 8px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  color: #fde68a;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 @keyframes spin {
